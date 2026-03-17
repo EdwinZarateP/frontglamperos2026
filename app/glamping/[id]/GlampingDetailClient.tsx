@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -28,6 +28,7 @@ export function GlampingDetailClient({ glamping }: Props) {
   const queryClient = useQueryClient()
 
   const [imgIdx, setImgIdx] = useState(0)
+  const touchStartX = useRef(0)
   const [esFav, setEsFav] = useState(false)
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
@@ -194,7 +195,17 @@ export function GlampingDetailClient({ glamping }: Props) {
       {/* Galería — móvil: carrusel / desktop: grid */}
       <div className="mb-8">
         {/* Móvil: imagen principal con indicador */}
-        <div className="sm:hidden relative rounded-2xl overflow-hidden aspect-[4/3] bg-stone-100">
+        <div
+          className="sm:hidden relative rounded-2xl overflow-hidden aspect-[4/3] bg-stone-100"
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={(e) => {
+            const delta = touchStartX.current - e.changedTouches[0].clientX
+            if (Math.abs(delta) > 50) {
+              if (delta > 0) setImgIdx((i) => Math.min(imagenes.length - 1, i + 1))
+              else setImgIdx((i) => Math.max(0, i - 1))
+            }
+          }}
+        >
           <img
             src={imagenes[imgIdx]}
             alt={glamping.nombreGlamping}

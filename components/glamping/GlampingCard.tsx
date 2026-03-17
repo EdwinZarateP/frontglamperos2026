@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { Heart, Star, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -39,6 +39,9 @@ export function GlampingCard({ glamping }: Props) {
   const imagenes = glamping.imagenes?.length ? glamping.imagenes : [placeholderImg(600, 400)]
   const total = imagenes.length
 
+  const touchStartX = useRef(0)
+  const swipeOccurred = useRef(false)
+
   const prev = (e: React.MouseEvent) => {
     e.preventDefault()
     setCurrentImg((i) => Math.max(0, i - 1))
@@ -49,6 +52,20 @@ export function GlampingCard({ glamping }: Props) {
     setCurrentImg((i) => Math.min(total - 1, i + 1))
   }
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    swipeOccurred.current = false
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = touchStartX.current - e.changedTouches[0].clientX
+    if (Math.abs(delta) > 50) {
+      swipeOccurred.current = true
+      if (delta > 0) setCurrentImg((i) => Math.min(total - 1, i + 1))
+      else setCurrentImg((i) => Math.max(0, i - 1))
+    }
+  }
+
   // Puntos — máx 3, el activo cambia con cada imagen
   const MAX_DOTS = 3
   const dots = Math.min(total, MAX_DOTS)
@@ -57,12 +74,16 @@ export function GlampingCard({ glamping }: Props) {
   return (
     <article className="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg border border-stone-100 transition-all duration-300">
       {/* Carrusel con deslizamiento real */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div
+        className="relative aspect-[4/3] overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Tira de imágenes — se desplaza con translateX */}
         <Link
           href={`/glamping/${glamping.id}`}
           className="block w-full h-full"
-          onClick={(e) => { if (currentImg !== 0 || total > 1) {} }}
+          onClick={(e) => { if (swipeOccurred.current) e.preventDefault() }}
         >
           <div
             className="flex h-full transition-transform duration-300 ease-in-out"
