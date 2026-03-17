@@ -16,6 +16,8 @@ export interface Usuario {
   tipoDocumento?: string
   numeroDocumento?: string
   nombreTitular?: string
+  nequiNumero?: string
+  daviplataNumero?: string
   emailVerificado: boolean
   fechaRegistro: string
 }
