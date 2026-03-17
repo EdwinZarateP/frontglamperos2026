@@ -224,7 +224,7 @@ export default function EditarGlampingPage({ params }: Props) {
   const sectionTitle = 'font-semibold text-stone-800 text-base border-b border-stone-100 pb-3 mb-2'
 
   return (
-    <form onSubmit={handleSubmit((v) => guardar.mutate(v))} className="max-w-3xl space-y-6 pb-10">
+    <form onSubmit={handleSubmit((v) => guardar.mutate(v))} className="max-w-3xl space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -233,17 +233,12 @@ export default function EditarGlampingPage({ params }: Props) {
           </Link>
           <h1 className="text-xl font-bold text-stone-900">Editar glamping</h1>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {glamping.habilitado && (
-            <Link href={`/glamping/${id}`} target="_blank"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-600 text-sm hover:bg-stone-50">
-              <Eye size={14} /> Ver
-            </Link>
-          )}
-          <Button type="submit" loading={guardar.isPending || guardandoFotos}>
-            <Save size={15} /> Guardar cambios
-          </Button>
-        </div>
+        {glamping.habilitado && (
+          <Link href={`/glamping/${id}`} target="_blank"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-600 text-sm hover:bg-stone-50 shrink-0">
+            <Eye size={14} /> Ver publicación
+          </Link>
+        )}
       </div>
 
       {/* ── 1. Información básica ─────────────────────────────────────── */}
@@ -471,10 +466,11 @@ export default function EditarGlampingPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Botón final */}
-      <div className="flex justify-end">
-        <Button type="submit" size="lg" loading={guardar.isPending || guardandoFotos}>
-          <Save size={16} /> Guardar todos los cambios
+      {/* Botón flotante sticky — se queda en el fondo del form, nunca sale del padre */}
+      <div className="sticky bottom-4 flex justify-end pointer-events-none">
+        <Button type="submit" size="lg" loading={guardar.isPending || guardandoFotos}
+          className="pointer-events-auto shadow-lg">
+          <Save size={16} /> Guardar cambios
         </Button>
       </div>
     </form>
