@@ -40,15 +40,17 @@ interface PerfilForm {
   telefonoNumero: string
 }
 
+const BANCOS = [
+  'Bancolombia', 'Davivienda', 'Banco de Bogotá', 'BBVA', 'Banco Popular',
+  'Banco de Occidente', 'Banco Agrario', 'Banco Caja Social', 'Banco Falabella',
+  'Banco Pichincha', 'Scotiabank Colpatria', 'Itaú', 'Banco Finandina',
+  'Nequi', 'Daviplata', 'Movii', 'Rappipay',
+]
+
 interface PagosForm {
-  // Documento — obligatorio
   tipoDocumento: string
   numeroDocumento: string
   nombreTitular: string
-  // Medios digitales
-  nequiNumero: string
-  daviplataNumero: string
-  // Cuenta bancaria
   banco: string
   numeroCuenta: string
   tipoCuenta: string
@@ -73,8 +75,6 @@ export default function PerfilPage() {
         tipoDocumento:    usuario.tipoDocumento    || '',
         numeroDocumento:  usuario.numeroDocumento  || '',
         nombreTitular:    usuario.nombreTitular    || '',
-        nequiNumero:      usuario.nequiNumero      || '',
-        daviplataNumero:  usuario.daviplataNumero  || '',
         banco:            usuario.banco            || '',
         numeroCuenta:     usuario.numeroCuenta     || '',
         tipoCuenta:       usuario.tipoCuenta       || '',
@@ -169,89 +169,71 @@ export default function PerfilPage() {
             <p className="text-sm text-stone-400 mt-0.5">Cómo quieres recibir los pagos de Glamperos</p>
           </div>
 
-          {/* Documento — obligatorio */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Documento de identidad *</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-stone-700 block mb-1">Tipo *</label>
-                <select
-                  {...regPagos('tipoDocumento', { required: 'Obligatorio' })}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                >
-                  <option value="">Seleccionar</option>
-                  <option value="CC">Cédula de ciudadanía</option>
-                  <option value="CE">Cédula de extranjería</option>
-                  <option value="NIT">NIT</option>
-                  <option value="PP">Pasaporte</option>
-                </select>
-                {errorsPagos.tipoDocumento && (
-                  <p className="text-xs text-red-500 mt-1">{errorsPagos.tipoDocumento.message}</p>
-                )}
-              </div>
-              <Input
-                label="Número *"
-                placeholder="1234567890"
-                error={errorsPagos.numeroDocumento?.message}
-                {...regPagos('numeroDocumento', { required: 'Obligatorio' })}
-              />
-              <Input
-                label="Nombre del titular *"
-                placeholder="Como aparece en el documento"
-                error={errorsPagos.nombreTitular?.message}
-                {...regPagos('nombreTitular', { required: 'Obligatorio' })}
-              />
+          {/* Documento */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-stone-700 block mb-1">Tipo de documento *</label>
+              <select
+                {...regPagos('tipoDocumento', { required: 'Obligatorio' })}
+                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="">Seleccionar</option>
+                <option value="CC">Cédula de ciudadanía</option>
+                <option value="NIT">NIT</option>
+                <option value="CE">Cédula de extranjería</option>
+                <option value="PP">Pasaporte</option>
+              </select>
+              {errorsPagos.tipoDocumento && (
+                <p className="text-xs text-red-500 mt-1">{errorsPagos.tipoDocumento.message}</p>
+              )}
             </div>
+            <Input
+              label="Número de documento *"
+              placeholder="1234567890"
+              error={errorsPagos.numeroDocumento?.message}
+              {...regPagos('numeroDocumento', { required: 'Obligatorio' })}
+            />
           </div>
 
-          {/* Medios digitales */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Billeteras digitales</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-3 rounded-xl border border-stone-200">
-                <div className="w-9 h-9 rounded-lg bg-[#FF0080]/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[#FF0080] font-bold text-xs">N</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <Input
-                    label="Nequi — número de celular"
-                    placeholder="3001234567"
-                    {...regPagos('nequiNumero')}
-                  />
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl border border-stone-200">
-                <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-red-500 font-bold text-xs">D</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <Input
-                    label="Daviplata — número de celular"
-                    placeholder="3001234567"
-                    {...regPagos('daviplataNumero')}
-                  />
-                </div>
-              </div>
-            </div>
+          <Input
+            label="Nombre del titular *"
+            placeholder="Como aparece en el documento"
+            error={errorsPagos.nombreTitular?.message}
+            {...regPagos('nombreTitular', { required: 'Obligatorio' })}
+          />
+
+          {/* Banco / billetera */}
+          <div>
+            <label className="text-sm font-medium text-stone-700 block mb-1">Banco o billetera *</label>
+            <select
+              {...regPagos('banco', { required: 'Obligatorio' })}
+              className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">Seleccionar</option>
+              {BANCOS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+            {errorsPagos.banco && (
+              <p className="text-xs text-red-500 mt-1">{errorsPagos.banco.message}</p>
+            )}
           </div>
 
-          {/* Cuenta bancaria */}
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Cuenta bancaria</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input label="Banco" placeholder="Bancolombia, Davivienda..." {...regPagos('banco')} />
-              <Input label="Número de cuenta" {...regPagos('numeroCuenta')} />
-              <div>
-                <label className="text-sm font-medium text-stone-700 block mb-1">Tipo de cuenta</label>
-                <select
-                  {...regPagos('tipoCuenta')}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                >
-                  <option value="">Seleccionar</option>
-                  <option value="Ahorros">Ahorros</option>
-                  <option value="Corriente">Corriente</option>
-                </select>
-              </div>
+          {/* Cuenta */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Número de cuenta"
+              placeholder="0000000000"
+              {...regPagos('numeroCuenta')}
+            />
+            <div>
+              <label className="text-sm font-medium text-stone-700 block mb-1">Tipo de cuenta</label>
+              <select
+                {...regPagos('tipoCuenta')}
+                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="">Seleccionar</option>
+                <option value="Ahorros">Ahorros</option>
+                <option value="Corriente">Corriente</option>
+              </select>
             </div>
           </div>
 

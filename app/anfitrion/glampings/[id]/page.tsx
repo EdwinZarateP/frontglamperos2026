@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Plus, Trash2, Link2, CalendarDays, Pencil, Check, X } from 'lucide-react'
 import { tipoGlampingLabels, toTitleCase } from '@/lib/utils'
 import { CATALOGO_EXTRAS, UNIDAD_LABELS } from '@/lib/catalogoExtras'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
@@ -81,6 +81,16 @@ function tieneValores(t: TarifaDiariaForm) { return Object.values(t).some((v) =>
 
 interface Props { params: Promise<{ id: string }> }
 
+interface UnidadItem {
+  _id: string
+  nombre: string
+  numero: number
+  urlIcal?: string
+  urlIcalBooking?: string
+  habilitada: boolean
+}
+
+
 export default function EditarGlampingPage({ params }: Props) {
   const { id } = use(params)
   const router = useRouter()
@@ -93,6 +103,13 @@ export default function EditarGlampingPage({ params }: Props) {
   const [mostrarTarifasNoche, setMostrarTarifasNoche] = useState(false)
   const [mostrarTarifasPasadia, setMostrarTarifasPasadia] = useState(false)
   const [guardandoFotos, setGuardandoFotos] = useState(false)
+
+  // Unidades
+  const [editandoUnidad, setEditandoUnidad] = useState<string | null>(null)
+  const [unidadForm, setUnidadForm] = useState({ nombre: '', urlIcal: '', urlIcalBooking: '' })
+  const [agregandoUnidad, setAgregandoUnidad] = useState(false)
+  const [nuevaUnidadNombre, setNuevaUnidadNombre] = useState('')
+
 
   const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: { minimoNoches: 1, cantidadHuespedes: 2, cantidadHuespedesAdicionales: 0, checkInNoche: '15:00', checkOutNoche: '12:00', aceptaMascotas: false, permitePasadia: false, pasadiaHorarioInicio: '08:00', pasadiaHorarioFin: '17:00', diasCancelacion: 15, noCancelaciones: false, tarifasNoche: { ...TARIFA_VACIA }, tarifasPasadia: { ...TARIFA_VACIA } },
@@ -207,6 +224,38 @@ export default function EditarGlampingPage({ params }: Props) {
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
+  // Unidades queries & mutations
+  const { data: unidades = [], refetch: refetchUnidades } = useQuery({
+    queryKey: ['unidades', id],
+    queryFn: async () => { const { data } = await api.get(`/glampings/${id}/unidades`); return data as UnidadItem[] },
+    enabled: !!glamping,
+  })
+
+  const updateUnidad = useMutation({
+    mutationFn: async ({ uid, payload }: { uid: string; payload: object }) => {
+      const { data } = await api.put(`/glampings/${id}/unidades/${uid}`, payload)
+      return data
+    },
+    onSuccess: () => { toast.success('Unidad actualizada'); setEditandoUnidad(null); refetchUnidades() },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+  const addUnidad = useMutation({
+    mutationFn: async (nombre: string) => {
+      const { data } = await api.post(`/glampings/${id}/unidades`, { nombre })
+      return data
+    },
+    onSuccess: () => { toast.success('Unidad agregada'); setAgregandoUnidad(false); setNuevaUnidadNombre(''); refetchUnidades() },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+  const deleteUnidad = useMutation({
+    mutationFn: async (uid: string) => api.delete(`/glampings/${id}/unidades/${uid}`),
+    onSuccess: () => { toast.success('Unidad eliminada'); refetchUnidades() },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+
   if (isLoading) return (
     <div className="max-w-3xl space-y-4">
       <Skeleton className="h-7 w-48" /><Skeleton className="h-48 w-full" /><Skeleton className="h-32 w-full" />
@@ -224,7 +273,8 @@ export default function EditarGlampingPage({ params }: Props) {
   const sectionTitle = 'font-semibold text-stone-800 text-base border-b border-stone-100 pb-3 mb-2'
 
   return (
-    <form onSubmit={handleSubmit((v) => guardar.mutate(v))} className="max-w-3xl space-y-6 pb-24">
+    <div className="max-w-3xl space-y-6 pb-10">
+    <form onSubmit={handleSubmit((v) => guardar.mutate(v))} className="space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -233,12 +283,18 @@ export default function EditarGlampingPage({ params }: Props) {
           </Link>
           <h1 className="text-xl font-bold text-stone-900">Editar glamping</h1>
         </div>
-        {glamping.habilitado && (
-          <Link href={`/glamping/${id}`} target="_blank"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-600 text-sm hover:bg-stone-50 shrink-0">
-            <Eye size={14} /> Ver publicación
+        <div className="flex gap-2 shrink-0">
+          <Link href={`/anfitrion/glampings/${id}/calendario`}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm hover:bg-emerald-100 transition-colors">
+            <CalendarDays size={14} /> Calendario
           </Link>
-        )}
+          {glamping.habilitado && (
+            <Link href={`/glamping/${id}`} target="_blank"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-600 text-sm hover:bg-stone-50 shrink-0">
+              <Eye size={14} /> Ver publicación
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* ── 1. Información básica ─────────────────────────────────────── */}
@@ -378,9 +434,9 @@ export default function EditarGlampingPage({ params }: Props) {
         <p className="text-sm text-stone-400">Arrastra el marcador para ajustar la posición exacta.</p>
         <div className="h-72 rounded-xl overflow-hidden border border-stone-200">
           <MapaPicker
-            lat={ubicacion.lat ? Number(ubicacion.lat) : undefined}
-            lng={ubicacion.lng ? Number(ubicacion.lng) : undefined}
-            onChange={(lat, lng) => setUbicacion({ lat: String(lat), lng: String(lng) })}
+            lat={ubicacion.lat ?? ''}
+            lng={ubicacion.lng ?? ''}
+            onChange={(lat, lng) => setUbicacion({ lat, lng })}
           />
         </div>
         {ubicacion.lat && <p className="text-xs text-stone-400">Lat: {ubicacion.lat} · Lng: {ubicacion.lng}</p>}
@@ -474,5 +530,135 @@ export default function EditarGlampingPage({ params }: Props) {
         </Button>
       </div>
     </form>
+
+    {/* ── 8. Unidades e iCal ───────────────────────────────────────── */}
+    <div className={sectionClass}>
+      <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div>
+          <h2 className="font-semibold text-stone-800 text-base">Unidades y sincronización iCal</h2>
+          <p className="text-xs text-stone-400 mt-0.5">Cúpulas, domos, cabañas — cada una puede sincronizar con Airbnb o Booking</p>
+        </div>
+        <button type="button" onClick={() => setAgregandoUnidad(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+          <Plus size={13} /> Agregar unidad
+        </button>
+      </div>
+
+      {/* URL de exportación para pegar en Airbnb/Booking */}
+      {(() => {
+        const exportUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://api.glamperos.com'}/ical/exportar/${id}`
+        return (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide flex items-center gap-1.5">
+              <Link2 size={12} /> Tu URL de Glamperos → para pegar en Airbnb / Booking
+            </p>
+            <p className="text-xs text-blue-600">
+              Copia esta URL y pégala en la sección "Sincronizar calendario" de Airbnb o Booking para que vean tus reservas de Glamperos.
+            </p>
+            <div className="flex items-center gap-2">
+              <input readOnly value={exportUrl}
+                className="flex-1 rounded-lg border border-blue-300 bg-white px-3 py-2 text-xs text-stone-700 focus:outline-none select-all" />
+              <button type="button"
+                onClick={() => { navigator.clipboard.writeText(exportUrl); toast.success('URL copiada') }}
+                className="shrink-0 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors">
+                Copiar
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
+      <div className="space-y-3">
+        {unidades.map((u) => (
+          <div key={u._id} className="rounded-xl border border-stone-200 overflow-hidden">
+            {editandoUnidad === u._id ? (
+              <div className="p-4 space-y-3 bg-stone-50">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 block mb-1">Nombre</label>
+                    <input value={unidadForm.nombre} onChange={(e) => setUnidadForm((p) => ({ ...p, nombre: e.target.value }))}
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 block mb-1 flex items-center gap-1"><Link2 size={11} /> iCal Airbnb</label>
+                    <input value={unidadForm.urlIcal} onChange={(e) => setUnidadForm((p) => ({ ...p, urlIcal: e.target.value }))}
+                      placeholder="https://www.airbnb.com/calendar/ical/..."
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-stone-500 block mb-1 flex items-center gap-1"><Link2 size={11} /> iCal Booking</label>
+                    <input value={unidadForm.urlIcalBooking} onChange={(e) => setUnidadForm((p) => ({ ...p, urlIcalBooking: e.target.value }))}
+                      placeholder="https://ical.booking.com/..."
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button type="button" onClick={() => setEditandoUnidad(null)}
+                    className="px-3 py-1.5 rounded-lg border border-stone-300 text-sm text-stone-600 hover:bg-stone-100 transition-colors">
+                    Cancelar
+                  </button>
+                  <button type="button" onClick={() => updateUnidad.mutate({ uid: u._id, payload: { nombre: unidadForm.nombre, urlIcal: unidadForm.urlIcal || null, urlIcalBooking: unidadForm.urlIcalBooking || null } })}
+                    disabled={updateUnidad.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                    <Check size={14} /> Guardar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-700 font-bold text-sm">
+                  {u.numero}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-stone-800 text-sm">{u.nombre}</p>
+                  <div className="flex gap-3 mt-0.5">
+                    {u.urlIcal ? (
+                      <span className="text-xs text-emerald-600 flex items-center gap-1"><Link2 size={10} /> Airbnb ✓</span>
+                    ) : (
+                      <span className="text-xs text-stone-400">Sin iCal Airbnb</span>
+                    )}
+                    {u.urlIcalBooking ? (
+                      <span className="text-xs text-emerald-600 flex items-center gap-1"><Link2 size={10} /> Booking ✓</span>
+                    ) : (
+                      <span className="text-xs text-stone-400">Sin iCal Booking</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button type="button" onClick={() => { setEditandoUnidad(u._id); setUnidadForm({ nombre: u.nombre, urlIcal: u.urlIcal ?? '', urlIcalBooking: u.urlIcalBooking ?? '' }) }}
+                    className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors" title="Editar">
+                    <Pencil size={14} />
+                  </button>
+                  {unidades.length > 1 && (
+                    <button type="button" onClick={() => { if (confirm(`¿Eliminar ${u.nombre}?`)) deleteUnidad.mutate(u._id) }}
+                      className="p-2 rounded-lg hover:bg-red-50 text-stone-400 hover:text-red-500 transition-colors" title="Eliminar">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {agregandoUnidad && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3">
+            <input value={nuevaUnidadNombre} onChange={(e) => setNuevaUnidadNombre(e.target.value)}
+              placeholder="Ej: Cúpula 2, Domo Norte..."
+              className="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <button type="button" onClick={() => addUnidad.mutate(nuevaUnidadNombre)} disabled={!nuevaUnidadNombre.trim() || addUnidad.isPending}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium disabled:opacity-50 transition-colors">
+              <Check size={14} /> Agregar
+            </button>
+            <button type="button" onClick={() => { setAgregandoUnidad(false); setNuevaUnidadNombre('') }}
+              className="p-2 rounded-lg hover:bg-stone-100 text-stone-500 transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+
+    </div>
   )
 }

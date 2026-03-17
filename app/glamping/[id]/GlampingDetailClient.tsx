@@ -102,6 +102,9 @@ export function GlampingDetailClient({ glamping }: Props) {
     lines.push(`📍 ${glamping.ciudadDepartamento}`)
     lines.push('')
 
+    lines.push(glamping.descripcionGlamping)
+    lines.push('')
+
     const t = glamping.tarifasNoche
     const diasLabels: [string, string][] = [
       ['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],
@@ -109,7 +112,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     ]
     const tieneVariacion = t && diasLabels.some(([k]) => (t as Record<string,number>)[k] > 0)
     if (tieneVariacion && t) {
-      lines.push('💰 *Precios por noche (incluye plataforma):*')
+      lines.push('💰 *Precios por noche:*')
       for (const [key, label] of diasLabels) {
         const p = (t as Record<string,number>)[key] || glamping.precioNoche
         lines.push(`• ${label}: ${comision(p)}`)
@@ -119,15 +122,8 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
     lines.push('')
 
-    const totalH = glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales
-    lines.push(`👥 Hasta ${totalH} huéspedes`)
-    lines.push(`🌙 Mínimo ${glamping.minimoNoches} noche(s)`)
     lines.push(`🕐 Check-in: ${glamping.checkInNoche} | Check-out: ${glamping.checkOutNoche}`)
     if (glamping.aceptaMascotas) lines.push('🐾 Acepta mascotas')
-    lines.push('')
-
-    lines.push('📝 *Descripción:*')
-    lines.push(glamping.descripcionGlamping)
     lines.push('')
 
     const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []

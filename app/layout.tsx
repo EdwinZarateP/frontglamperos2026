@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,11 +43,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={inter.variable}>
-      <body className="font-sans bg-stone-50 text-stone-900 antialiased">
+      <body suppressHydrationWarning className="font-sans bg-stone-50 text-stone-900 antialiased">
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>
       </body>
     </html>

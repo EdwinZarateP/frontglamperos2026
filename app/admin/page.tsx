@@ -1,17 +1,10 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { TrendingUp, CalendarCheck, Tent, Users } from 'lucide-react'
+import Link from 'next/link'
+import { Tent, Users } from 'lucide-react'
 import { api } from '@/lib/api'
-import { formatCOP } from '@/lib/utils'
 
-interface Stats {
-  totalReservas: number
-  reservasConfirmadas: number
-  ingresosMes: number
-  totalGlampings: number
-  totalUsuarios: number
-}
 
 function StatCard({
   label, value, icon: Icon, color
@@ -30,20 +23,14 @@ function StatCard({
 }
 
 export default function AdminDashboard() {
-  const { data: reservas } = useQuery({
-    queryKey: ['admin-reservas-count'],
-    queryFn: async () => {
-      const res = await api.get('/reservas/', { params: { limit: 1 } })
-      return res.data
-    },
+  const { data: glampings = [] } = useQuery<any[]>({
+    queryKey: ['admin-glampings-count'],
+    queryFn: async () => (await api.get('/glampings/todos/')).data,
   })
 
-  const { data: glampings } = useQuery({
-    queryKey: ['admin-glampings-count'],
-    queryFn: async () => {
-      const res = await api.get('/glampings/todos/', { params: { limit: 1 } })
-      return res.data
-    },
+  const { data: usuarios = [] } = useQuery<any[]>({
+    queryKey: ['admin-usuarios-count'],
+    queryFn: async () => (await api.get('/usuarios/todos/lista')).data,
   })
 
   return (
@@ -52,28 +39,16 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
-          label="Total reservas"
-          value={String(reservas?.total || 0)}
-          icon={CalendarCheck}
-          color="bg-emerald-600"
-        />
-        <StatCard
           label="Glampings activos"
-          value={String(glampings?.total || 0)}
+          value={String(glampings.length)}
           icon={Tent}
           color="bg-blue-500"
         />
         <StatCard
-          label="Usuarios"
-          value="—"
+          label="Usuarios registrados"
+          value={String(usuarios.length)}
           icon={Users}
           color="bg-purple-500"
-        />
-        <StatCard
-          label="Ingresos este mes"
-          value="—"
-          icon={TrendingUp}
-          color="bg-amber-500"
         />
       </div>
 
@@ -86,13 +61,13 @@ export default function AdminDashboard() {
             { href: '/admin/usuarios', label: 'Gestionar usuarios' },
             { href: '/admin/comentarios', label: 'Comentarios plataforma' },
           ].map(({ href, label }) => (
-            <a
+            <Link
               key={href}
               href={href}
               className="p-4 rounded-xl border border-stone-200 text-sm text-stone-700 hover:bg-stone-50 hover:border-stone-300 transition-colors text-center"
             >
               {label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

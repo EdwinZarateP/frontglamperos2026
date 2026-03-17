@@ -184,6 +184,25 @@ export default function NuevoGlampingPage() {
   const dirtyRef = useRef(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Admin: asignar propietario
+  const isAdmin = perfil?.rol === 'admin'
+  const [propietarioId, setPropietarioId] = useState('')
+  const [propietarioBusqueda, setPropietarioBusqueda] = useState('')
+  const [propietarioSeleccionado, setPropietarioSeleccionado] = useState<{ id: string; nombre: string; email: string } | null>(null)
+
+  const { data: todosUsuarios = [] } = useQuery<{ id?: string; _id?: string; nombre: string; email: string; rol: string }[]>({
+    queryKey: ['admin-usuarios'],
+    queryFn: async () => (await api.get('/usuarios/todos/lista')).data,
+    enabled: isAdmin,
+  })
+
+  const usuariosSugeridos = propietarioBusqueda.trim() && !propietarioSeleccionado
+    ? todosUsuarios.filter((u) =>
+        u.nombre?.toLowerCase().includes(propietarioBusqueda.toLowerCase()) ||
+        u.email?.toLowerCase().includes(propietarioBusqueda.toLowerCase())
+      ).slice(0, 6)
+    : []
+
   const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: DEFAULT_VALUES,
   })
@@ -368,6 +387,12 @@ export default function NuevoGlampingPage() {
         fd.append('tipoGlamping', values.tipoGlamping)
         const { data } = await api.post('/glampings/borrador', fd)
         setDraftId(data._id)
+        // Si admin seleccionó otro propietario, transferir propiedad ahora
+        if (isAdmin && propietarioId) {
+          await api.put(`/glampings/${data._id}/propietario`, null, {
+            params: { nuevo_propietario_id: propietarioId },
+          })
+        }
         toast.success('Borrador creado — tu progreso se guarda automáticamente')
         guardarEnApi(values, data._id)
       } catch (err) {
@@ -556,6 +581,63 @@ export default function NuevoGlampingPage() {
         {/* ── Step 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
           <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 space-y-5">
+
+            {/* Selector de propietario (solo admin) */}
+            {isAdmin && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Asignar a anfitrión</p>
+                <p className="text-xs text-amber-600">Si no seleccionas a nadie, el glamping queda asignado a tu cuenta.</p>
+                {propietarioSeleccionado ? (
+                  <div className="flex items-center gap-3 bg-white rounded-xl border border-amber-200 px-3 py-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-stone-800 truncate">{propietarioSeleccionado.nombre}</p>
+                      <p className="text-xs text-stone-400 truncate">{propietarioSeleccionado.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setPropietarioSeleccionado(null); setPropietarioId(''); setPropietarioBusqueda('') }}
+                      className="shrink-0 text-xs text-stone-400 hover:text-red-500 transition-colors px-2"
+                    >
+                      Cambiar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o email..."
+                      value={propietarioBusqueda}
+                      onChange={(e) => setPropietarioBusqueda(e.target.value)}
+                      className="w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                    {usuariosSugeridos.length > 0 && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden">
+                        {usuariosSugeridos.map((u) => {
+                          const uid = u.id ?? u._id ?? ''
+                          return (
+                            <li key={uid}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPropietarioSeleccionado({ id: uid, nombre: u.nombre, email: u.email })
+                                  setPropietarioId(uid)
+                                  setPropietarioBusqueda('')
+                                }}
+                                className="w-full text-left px-4 py-2.5 hover:bg-stone-50 transition-colors"
+                              >
+                                <p className="text-sm font-medium text-stone-800">{u.nombre}</p>
+                                <p className="text-xs text-stone-400">{u.email}</p>
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <Input
               label="Nombre del establecimiento"
               placeholder="Ej: El Guadual, Finca La Esperanza"
