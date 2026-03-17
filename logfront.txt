@@ -1,14 +1,33 @@
-Console Error
-
-
-Cannot update a component (`Router`) while rendering a different component (`FavoritosPage`). To locate the bad setState() call inside `FavoritosPage`, follow the stack trace as described in https://react.dev/link/setstate-in-render
-app/favoritos/page.tsx (16:34) @ FavoritosPage
-
-
-  14 |   const { data, isLoading } = useFavoritos()
-  15 |
-> 16 |   if (!isAuthenticated) { router.push('/auth/login'); return null }
-     |                                  ^
-  17 |
-  18 |   const glampings = data?.data ?? []
-  19 |
+==> Cloning from https://github.com/EdwinZarateP/frontglamperos2026
+Menu
+==> Checking out commit 19c957bd4d6f71d8cd8e5d15b7fc57ca93f2c987 in branch main
+==> Using Node.js version 22.22.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+added 458 packages, and audited 459 packages in 13s
+154 packages are looking for funding
+  run `npm fund` for details
+1 moderate severity vulnerability
+To address all issues, run:
+  npm audit fix --force
+Run `npm audit` for details.
+> frontglamperos2026@0.1.0 build
+> next build
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+▲ Next.js 16.1.6 (Turbopack)
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.4s
+  Running TypeScript ...
+Failed to compile.
+./app/perfil/page.tsx:76:35
+Type error: Property 'nequiNumero' does not exist on type 'Usuario'.
+  74 |         numeroDocumento:  usuario.numeroDocumento  || '',
+  75 |         nombreTitular:    usuario.nombreTitular    || '',
+> 76 |         nequiNumero:      usuario.nequiNumero      || '',
+     |                                   ^
+  77 |         daviplataNumero:  usuario.daviplataNumero  || '',
+  78 |         banco:            usuario.banco            || '',
+  79 |         numeroCuenta:     usuario.numeroCuenta     || '',
+Next.js build worker exited with code: 1 and signal: null
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
