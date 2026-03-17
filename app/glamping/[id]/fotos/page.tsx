@@ -1,8 +1,8 @@
 'use client'
 
-import { use, useState, useEffect, useCallback } from 'react'
+import { use, useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, X, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useGlamping } from '@/hooks/useGlampings'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -25,6 +25,7 @@ export default function FotosPage({ params }: { params: Promise<{ id: string }> 
 
   const prev = useCallback(() => setCurrent((i) => Math.max(0, i - 1)), [])
   const next = useCallback(() => setCurrent((i) => Math.min(total - 1, i + 1)), [total])
+  const touchStartX = useRef(0)
 
   // Teclado
   useEffect(() => {
@@ -69,20 +70,21 @@ export default function FotosPage({ params }: { params: Promise<{ id: string }> 
           {current + 1} / {total}
         </span>
 
-        <a
-          href={imagenes[current]}
-          download
-          target="_blank"
-          rel="noopener noreferrer"
-          className="p-2 hover:text-stone-300 transition-colors"
-          aria-label="Descargar foto"
-        >
-          <Download size={18} />
-        </a>
+        <div className="w-9" />
       </div>
 
       {/* Imagen principal */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+      <div
+        className="flex-1 relative flex items-center justify-center overflow-hidden"
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+        onTouchEnd={(e) => {
+          const delta = touchStartX.current - e.changedTouches[0].clientX
+          if (Math.abs(delta) > 50) {
+            if (delta > 0) next()
+            else prev()
+          }
+        }}
+      >
         <img
           key={current}
           src={imagenes[current]}
