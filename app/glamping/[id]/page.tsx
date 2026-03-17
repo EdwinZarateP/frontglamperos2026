@@ -1,0 +1,91 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import type { Glamping } from '@/types'
+import { GlampingDetailClient } from './GlampingDetailClient'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+async function getGlamping(id: string): Promise<Glamping | null> {
+  try {
+    const res = await fetch(`${API_URL}/glampings/${id}`, {
+      next: { revalidate: 300 }, // ISR: revalida cada 5 minutos
+    })
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const glamping = await getGlamping(id)
+  if (!glamping) return { title: 'Glamping no encontrado' }
+
+  const firstImage = glamping.imagenes?.[0]
+  return {
+    title: `${glamping.nombreGlamping} — ${glamping.ciudadDepartamento}`,
+    description: glamping.descripcionGlamping?.slice(0, 160),
+    openGraph: {
+      title: glamping.nombreGlamping,
+      description: glamping.descripcionGlamping?.slice(0, 160),
+      images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
+      type: 'website',
+    },
+    alternates: { canonical: `/glamping/${id}` },
+  }
+}
+
+export default async function GlampingPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const glamping = await getGlamping(id)
+
+  if (!glamping) notFound()
+
+  return (
+    <>
+      {/* JSON-LD para SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'LodgingBusiness',
+            name: glamping.nombreGlamping,
+            description: glamping.descripcionGlamping,
+            image: glamping.imagenes,
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: glamping.ciudadDepartamento,
+              addressCountry: 'CO',
+            },
+            geo: glamping.ubicacion
+              ? {
+                  '@type': 'GeoCoordinates',
+                  latitude: glamping.ubicacion.lat,
+                  longitude: glamping.ubicacion.lng,
+                }
+              : undefined,
+            aggregateRating:
+              glamping.totalCalificaciones > 0
+                ? {
+                    '@type': 'AggregateRating',
+                    ratingValue: glamping.calificacion,
+                    reviewCount: glamping.totalCalificaciones,
+                  }
+                : undefined,
+          }),
+        }}
+      />
+      <GlampingDetailClient glamping={glamping} />
+    </>
+  )
+}

@@ -1,0 +1,14 @@
+Console Error
+
+
+Cannot update a component (`Router`) while rendering a different component (`FavoritosPage`). To locate the bad setState() call inside `FavoritosPage`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+app/favoritos/page.tsx (16:34) @ FavoritosPage
+
+
+  14 |   const { data, isLoading } = useFavoritos()
+  15 |
+> 16 |   if (!isAuthenticated) { router.push('/auth/login'); return null }
+     |                                  ^
+  17 |
+  18 |   const glampings = data?.data ?? []
+  19 |

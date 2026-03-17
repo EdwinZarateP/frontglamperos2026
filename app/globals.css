@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+button, [role="button"], label[for], select {
+  cursor: pointer;
+}
+
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background-color: #fafaf9;
+  color: #1c1917;
+}
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+/* Swiper custom */
+.swiper-pagination-bullet-active {
+  background-color: #059669 !important;
+}
