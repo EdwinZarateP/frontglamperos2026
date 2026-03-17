@@ -80,7 +80,7 @@ export default function PerfilPage() {
         tipoCuenta:       usuario.tipoCuenta       || '',
       })
     }
-  }, [usuario, reset, resetBanco])
+  }, [usuario, reset, resetPagos])
 
   const updatePerfil = useMutation({
     mutationFn: async (data: PerfilForm) => {
@@ -111,7 +111,11 @@ export default function PerfilPage() {
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
-  if (!isAuthenticated) { router.push('/auth/login'); return null }
+  useEffect(() => {
+    if (!isAuthenticated) router.push('/auth/login')
+  }, [isAuthenticated, router])
+
+  if (!isAuthenticated) return null
   if (isLoading) return <Spinner />
 
   return (
