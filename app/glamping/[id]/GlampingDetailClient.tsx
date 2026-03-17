@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Star, MapPin, Users, Moon, Dog, Clock, ChevronLeft,
-  Heart, Share2, CheckCircle, Youtube, Play, X
+  Heart, Share2, CheckCircle, Youtube, Play, X, Copy
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -93,8 +93,72 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   const amenidades = showAllAmenidades ? glamping.amenidades : glamping.amenidades.slice(0, 8)
 
+  const buildWhatsAppText = () => {
+    const tipo = tipoGlampingLabels[glamping.tipoGlamping] ?? glamping.tipoGlamping
+    const comision = (p: number) => formatCOP(Math.round(p * 1.15))
+    const lines: string[] = []
+
+    lines.push(`🏕️ *${tipo} en ${glamping.ciudadDepartamento.split(',')[0].trim()}*`)
+    lines.push(`📍 ${glamping.ciudadDepartamento}`)
+    lines.push('')
+
+    const t = glamping.tarifasNoche
+    const diasLabels: [string, string][] = [
+      ['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],
+      ['jueves','Jueves'],['viernes','Viernes'],['sabado','Sábado'],['domingo','Domingo'],
+    ]
+    const tieneVariacion = t && diasLabels.some(([k]) => (t as Record<string,number>)[k] > 0)
+    if (tieneVariacion && t) {
+      lines.push('💰 *Precios por noche (incluye plataforma):*')
+      for (const [key, label] of diasLabels) {
+        const p = (t as Record<string,number>)[key] || glamping.precioNoche
+        lines.push(`• ${label}: ${comision(p)}`)
+      }
+    } else {
+      lines.push(`💰 *Precio por noche:* ${comision(glamping.precioNoche)}`)
+    }
+    lines.push('')
+
+    const totalH = glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales
+    lines.push(`👥 Hasta ${totalH} huéspedes`)
+    lines.push(`🌙 Mínimo ${glamping.minimoNoches} noche(s)`)
+    lines.push(`🕐 Check-in: ${glamping.checkInNoche} | Check-out: ${glamping.checkOutNoche}`)
+    if (glamping.aceptaMascotas) lines.push('🐾 Acepta mascotas')
+    lines.push('')
+
+    lines.push('📝 *Descripción:*')
+    lines.push(glamping.descripcionGlamping)
+    lines.push('')
+
+    const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
+    if (extrasDisponibles.length > 0) {
+      lines.push('➕ *Extras disponibles:*')
+      for (const extra of extrasDisponibles) {
+        lines.push(`• ${extra.nombre}: ${formatCOP(extra.precioPublico)} (${extra.unidad.replace(/_/g, ' ')})`)
+      }
+      lines.push('')
+    }
+
+    lines.push(
+      glamping.diasCancelacion
+        ? `❌ Cancelación gratuita hasta ${glamping.diasCancelacion} días antes del check-in`
+        : '❌ No admite cancelaciones'
+    )
+
+    return lines.join('\n')
+  }
+
+  const copiarInfo = async () => {
+    try {
+      await navigator.clipboard.writeText(buildWhatsAppText())
+      toast.success('Info copiada al portapapeles')
+    } catch {
+      toast.error('No se pudo copiar')
+    }
+  }
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-32 lg:pb-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4">
         <Link href="/" className="hover:text-stone-700 flex items-center gap-1">
@@ -136,6 +200,14 @@ export function GlampingDetailClient({ glamping }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={copiarInfo}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-200 hover:bg-stone-50 text-sm text-stone-600 transition-colors"
+            title="Copiar info para WhatsApp"
+          >
+            <Copy size={15} />
+            <span className="hidden sm:inline">Copiar info</span>
+          </button>
           <button
             onClick={() => {
               navigator.clipboard.writeText(window.location.href)
