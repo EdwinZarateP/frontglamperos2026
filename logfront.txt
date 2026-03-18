@@ -1,41 +1,34 @@
-  6 |
-  7 | interface Props {
+==> Downloading cache...
 Menu
-  8 |   value: string
-The export MUNICIPIOS_COLOMBIA was not found in module [project]/lib/colombia.ts [app-client] (ecmascript).
-Did you mean to import CIUDADES_COLOMBIA?
-All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
-Import traces:
-  Client Component Browser:
-    ./components/ui/CiudadAutocomplete.tsx [Client Component Browser]
-    ./app/anfitrion/glampings/[id]/page.tsx [Client Component Browser]
-    ./app/anfitrion/glampings/[id]/page.tsx [Server Component]
-  Client Component SSR:
-    ./components/ui/CiudadAutocomplete.tsx [Client Component SSR]
-    ./app/anfitrion/glampings/[id]/page.tsx [Client Component SSR]
-    ./app/anfitrion/glampings/[id]/page.tsx [Server Component]
-./components/ui/CiudadAutocomplete.tsx:5:1
-Export MUNICIPIOS_COLOMBIA doesn't exist in target module
-  3 | import { useState, useRef, useEffect } from 'react'
-  4 | import { MapPin } from 'lucide-react'
-> 5 | import { MUNICIPIOS_COLOMBIA } from '@/lib/colombia'
-    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  6 |
-  7 | interface Props {
-  8 |   value: string
-The export MUNICIPIOS_COLOMBIA was not found in module [project]/lib/colombia.ts [app-ssr] (ecmascript).
-Did you mean to import CIUDADES_COLOMBIA?
-All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
-Import traces:
-  Client Component Browser:
-    ./components/ui/CiudadAutocomplete.tsx [Client Component Browser]
-    ./app/anfitrion/glampings/[id]/page.tsx [Client Component Browser]
-    ./app/anfitrion/glampings/[id]/page.tsx [Server Component]
-  Client Component SSR:
-    ./components/ui/CiudadAutocomplete.tsx [Client Component SSR]
-    ./app/anfitrion/glampings/[id]/page.tsx [Client Component SSR]
-    ./app/anfitrion/glampings/[id]/page.tsx [Server Component]
-    at <unknown> (./components/ui/CiudadAutocomplete.tsx:5:1)
-    at <unknown> (./components/ui/CiudadAutocomplete.tsx:5:1)
+==> Cloning from https://github.com/EdwinZarateP/frontglamperos2026
+==> Checking out commit 235185a7c23d51ada7ef0bf075eed2759aa7811e in branch main
+==> Downloaded 492MB in 5s. Extraction took 9s.
+==> Using Node.js version 22.22.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+up to date, audited 459 packages in 1s
+154 packages are looking for funding
+  run `npm fund` for details
+1 moderate severity vulnerability
+To address all issues, run:
+  npm audit fix --force
+Run `npm audit` for details.
+> frontglamperos2026@0.1.0 build
+> next build
+▲ Next.js 16.1.6 (Turbopack)
+  Creating an optimized production build ...
+✓ Compiled successfully in 12.0s
+  Running TypeScript ...
+Failed to compile.
+./components/ui/CiudadAutocomplete.tsx:37:11
+Type error: Property 'toLowerCase' does not exist on type 'CiudadColombia'.
+  35 |     ? []
+  36 |     : MUNICIPIOS_COLOMBIA.filter((m) =>
+> 37 |         m.toLowerCase().includes(query.toLowerCase())
+     |           ^
+  38 |       ).slice(0, 8)
+  39 |
+  40 |   const handleSelect = (opcion: string) => {
+Next.js build worker exited with code: 1 and signal: null
 ==> Build failed 😞
 ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

@@ -34,7 +34,7 @@ export function CiudadAutocomplete({ value, onChange, error }: Props) {
   const resultados = query.trim().length < 2
     ? []
     : MUNICIPIOS_COLOMBIA.filter((m) =>
-        m.toLowerCase().includes(query.toLowerCase())
+        m.label.toLowerCase().includes(query.toLowerCase())
       ).slice(0, 8)
 
   const handleSelect = (opcion: string) => {
@@ -71,15 +71,15 @@ export function CiudadAutocomplete({ value, onChange, error }: Props) {
       {open && resultados.length > 0 && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-stone-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
           {resultados.map((opcion) => (
-            <li key={opcion}>
+            <li key={opcion.slug}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()} // evitar blur antes del click
-                onClick={() => handleSelect(opcion)}
+                onClick={() => handleSelect(opcion.label)}
                 className="w-full text-left px-4 py-2.5 text-sm text-stone-700 hover:bg-emerald-50 hover:text-emerald-800 flex items-center gap-2"
               >
                 <MapPin size={12} className="text-stone-400 shrink-0" />
-                {opcion}
+                {opcion.label}
               </button>
             </li>
           ))}
