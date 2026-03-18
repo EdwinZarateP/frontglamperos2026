@@ -257,32 +257,37 @@ export default function AdminGlampingsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-xl font-bold text-stone-900">Glampings ({glampings.length})</h1>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/anfitrion/glampings/nuevo"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors shrink-0"
-          >
-            <Plus size={15} /> Crear glamping
-          </Link>
-          <div className="relative max-w-xs w-full">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, establecimiento o ciudad..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+      {/* Header */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl font-bold text-stone-900">Glampings ({glampings.length})</h1>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/anfitrion/glampings/nuevo"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+            >
+              <Plus size={15} />
+              <span className="hidden sm:inline">Crear glamping</span>
+            </Link>
+            <button
+              onClick={descargarExcel}
+              disabled={descargando}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-300 text-sm text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+            >
+              <Download size={15} />
+              <span className="hidden sm:inline">{descargando ? 'Generando...' : 'Excel'}</span>
+            </button>
           </div>
-          <button
-            onClick={descargarExcel}
-            disabled={descargando}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-stone-300 text-sm text-stone-600 hover:bg-stone-50 transition-colors shrink-0 disabled:opacity-50"
-          >
-            <Download size={15} /> {descargando ? 'Generando...' : 'Excel'}
-          </button>
+        </div>
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre, establecimiento o ciudad..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
         </div>
       </div>
 
@@ -291,83 +296,140 @@ export default function AdminGlampingsPage() {
       ) : filtrados.length === 0 ? (
         <p className="text-stone-400 text-sm py-8 text-center">No se encontraron glampings.</p>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
-              <tr>
-                <th className="text-left px-4 py-3 text-stone-500 font-medium">Glamping</th>
-                <th className="text-left px-4 py-3 text-stone-500 font-medium hidden lg:table-cell">Establecimiento</th>
-                <th className="text-left px-4 py-3 text-stone-500 font-medium hidden sm:table-cell">Ubicación</th>
-                <th className="text-left px-4 py-3 text-stone-500 font-medium hidden md:table-cell">Precio/noche</th>
-                <th className="text-left px-4 py-3 text-stone-500 font-medium">Estado</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {filtrados.map((g) => (
-                <tr key={g._id} className="hover:bg-stone-50 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {g.imagenes?.[0] ? (
-                        <img src={g.imagenes[0]} alt={g.nombreGlamping} className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-stone-200 shrink-0" />
-                      )}
-                      <div>
-                        <p className="font-medium text-stone-900 line-clamp-1">{g.nombreGlamping}</p>
-                        <p className="text-xs text-stone-400">{tipoGlampingLabels[g.tipoGlamping] ?? g.tipoGlamping}</p>
-                      </div>
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
+            {filtrados.map((g) => (
+              <div key={g._id} className="bg-white rounded-2xl border border-stone-200 p-4 space-y-3">
+                <div className="flex gap-3">
+                  {g.imagenes?.[0] ? (
+                    <img src={g.imagenes[0]} alt={g.nombreGlamping} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-stone-200 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-stone-900 truncate">{g.nombreGlamping}</p>
+                    {g.nombrePropiedad && <p className="text-xs text-stone-400 truncate">{g.nombrePropiedad}</p>}
+                    <div className="flex items-center gap-1 text-stone-400 mt-0.5">
+                      <MapPin size={11} />
+                      <span className="text-xs truncate">{g.ciudadDepartamento}</span>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    <p className="text-sm text-stone-700 line-clamp-1">{g.nombrePropiedad ?? '—'}</p>
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
-                    <div className="flex items-center gap-1 text-stone-500">
-                      <MapPin size={12} />
-                      <span className="text-xs truncate max-w-[160px]">{g.ciudadDepartamento}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-stone-700 font-medium">
-                    {formatCOP(g.precioNoche)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={g.estadoAprobacion ?? 'pendiente'}
-                      onChange={(e) => cambiarEstado.mutate({ id: g._id, estado: e.target.value })}
-                      className={`text-xs px-2 py-0.5 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                        ESTADO_CONFIG[g.estadoAprobacion ?? 'pendiente']?.className ?? ESTADO_CONFIG.pendiente.className
-                      }`}
+                    <p className="text-sm font-semibold text-stone-800 mt-0.5">{formatCOP(g.precioNoche)}<span className="text-xs font-normal text-stone-400">/noche</span></p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-100">
+                  <select
+                    value={g.estadoAprobacion ?? 'pendiente'}
+                    onChange={(e) => cambiarEstado.mutate({ id: g._id, estado: e.target.value })}
+                    className={`text-xs px-2 py-1 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                      ESTADO_CONFIG[g.estadoAprobacion ?? 'pendiente']?.className ?? ESTADO_CONFIG.pendiente.className
+                    }`}
+                  >
+                    {Object.entries(ESTADO_CONFIG).map(([val, { label }]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setModalAnfitriones(g)}
+                      className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                      title="Gestionar anfitriones"
                     >
-                      {Object.entries(ESTADO_CONFIG).map(([val, { label }]) => (
-                        <option key={val} value={val}>{label}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 justify-end">
-                      <button
-                        onClick={() => setModalAnfitriones(g)}
-                        className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
-                        title="Gestionar anfitriones"
-                      >
-                        <Users size={15} />
-                      </button>
-                      <Link href={`/glamping/${g._id}`} target="_blank"
-                        className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors" title="Ver">
-                        <Eye size={15} />
-                      </Link>
-                      <Link href={`/anfitrion/glampings/${g._id}`}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
-                        <Pencil size={13} /> Editar
-                      </Link>
-                    </div>
-                  </td>
+                      <Users size={15} />
+                    </button>
+                    <Link href={`/glamping/${g._id}`} target="_blank"
+                      className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors" title="Ver">
+                      <Eye size={15} />
+                    </Link>
+                    <Link href={`/anfitrion/glampings/${g._id}`}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+                      <Pencil size={13} /> Editar
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block bg-white rounded-2xl border border-stone-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-stone-50 border-b border-stone-200">
+                <tr>
+                  <th className="text-left px-4 py-3 text-stone-500 font-medium">Glamping</th>
+                  <th className="text-left px-4 py-3 text-stone-500 font-medium hidden lg:table-cell">Establecimiento</th>
+                  <th className="text-left px-4 py-3 text-stone-500 font-medium hidden md:table-cell">Ubicación</th>
+                  <th className="text-left px-4 py-3 text-stone-500 font-medium hidden lg:table-cell">Precio/noche</th>
+                  <th className="text-left px-4 py-3 text-stone-500 font-medium">Estado</th>
+                  <th className="px-4 py-3" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {filtrados.map((g) => (
+                  <tr key={g._id} className="hover:bg-stone-50 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {g.imagenes?.[0] ? (
+                          <img src={g.imagenes[0]} alt={g.nombreGlamping} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-stone-200 shrink-0" />
+                        )}
+                        <div>
+                          <p className="font-medium text-stone-900 line-clamp-1">{g.nombreGlamping}</p>
+                          <p className="text-xs text-stone-400">{tipoGlampingLabels[g.tipoGlamping] ?? g.tipoGlamping}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <p className="text-sm text-stone-700 line-clamp-1">{g.nombrePropiedad ?? '—'}</p>
+                    </td>
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <div className="flex items-center gap-1 text-stone-500">
+                        <MapPin size={12} />
+                        <span className="text-xs truncate max-w-[160px]">{g.ciudadDepartamento}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell text-stone-700 font-medium">
+                      {formatCOP(g.precioNoche)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={g.estadoAprobacion ?? 'pendiente'}
+                        onChange={(e) => cambiarEstado.mutate({ id: g._id, estado: e.target.value })}
+                        className={`text-xs px-2 py-0.5 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                          ESTADO_CONFIG[g.estadoAprobacion ?? 'pendiente']?.className ?? ESTADO_CONFIG.pendiente.className
+                        }`}
+                      >
+                        {Object.entries(ESTADO_CONFIG).map(([val, { label }]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          onClick={() => setModalAnfitriones(g)}
+                          className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                          title="Gestionar anfitriones"
+                        >
+                          <Users size={15} />
+                        </button>
+                        <Link href={`/glamping/${g._id}`} target="_blank"
+                          className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors" title="Ver">
+                          <Eye size={15} />
+                        </Link>
+                        <Link href={`/anfitrion/glampings/${g._id}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+                          <Pencil size={13} /> Editar
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {modalAnfitriones && (

@@ -61,23 +61,30 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       </aside>
 
       {/* Content */}
-      <div className="flex-1 bg-stone-50">
+      <div className="flex-1 bg-stone-50 min-w-0">
         {/* Mobile nav */}
-        <div className="md:hidden flex gap-2 overflow-x-auto p-3 bg-stone-900 scrollbar-hide">
-          {navItems.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'shrink-0 px-3 py-2 rounded-lg text-xs font-medium',
-                pathname === href
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-stone-300 bg-stone-800'
-              )}
-            >
-              {label}
-            </Link>
-          ))}
+        <div className="md:hidden bg-stone-900 border-b border-stone-800">
+          <div className="flex items-center justify-between px-4 py-2">
+            <p className="text-xs font-semibold text-emerald-400">Panel Admin</p>
+            <Link href="/" className="text-[10px] text-stone-500 hover:text-stone-300">← Sitio</Link>
+          </div>
+          <div className="flex overflow-x-auto scrollbar-hide px-2 pb-2 gap-1">
+            {navItems.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-medium min-w-[56px]',
+                  pathname === href
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-stone-400 hover:bg-stone-800 hover:text-white'
+                )}
+              >
+                <Icon size={17} />
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
         <div className="p-3 sm:p-6">{children}</div>
       </div>
