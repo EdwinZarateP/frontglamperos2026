@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { MapPin } from 'lucide-react'
-import { MUNICIPIOS_COLOMBIA } from '@/lib/colombia'
+import { CIUDADES_COLOMBIA as MUNICIPIOS_COLOMBIA } from '@/lib/colombia'
 
 interface Props {
   value: string
