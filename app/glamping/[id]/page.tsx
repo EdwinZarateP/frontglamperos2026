@@ -4,6 +4,7 @@ import type { Glamping } from '@/types'
 import { GlampingDetailClient } from './GlampingDetailClient'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://glamperos.com'
 
 async function getGlamping(id: string): Promise<Glamping | null> {
   try {
@@ -50,40 +51,76 @@ export default async function GlampingPage({
 
   if (!glamping) notFound()
 
+  const glampingUrl = `${SITE_URL}/glamping/${id}`
+
+  const lodgingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LodgingBusiness',
+    name: glamping.nombreGlamping,
+    description: glamping.descripcionGlamping,
+    url: glampingUrl,
+    image: glamping.imagenes,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: glamping.ciudadDepartamento,
+      addressCountry: 'CO',
+    },
+    geo: glamping.ubicacion
+      ? {
+          '@type': 'GeoCoordinates',
+          latitude: glamping.ubicacion.lat,
+          longitude: glamping.ubicacion.lng,
+        }
+      : undefined,
+    aggregateRating:
+      glamping.totalCalificaciones > 0
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: glamping.calificacion,
+            reviewCount: glamping.totalCalificaciones,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
+    priceRange: glamping.precioNoche
+      ? `COP ${glamping.precioNoche.toLocaleString('es-CO')}`
+      : undefined,
+  }
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: glamping.ciudadDepartamento,
+        item: `${SITE_URL}/?ciudad=${encodeURIComponent(glamping.ciudadDepartamento)}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: glamping.nombreGlamping,
+        item: glampingUrl,
+      },
+    ],
+  }
+
   return (
     <>
-      {/* JSON-LD para SEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'LodgingBusiness',
-            name: glamping.nombreGlamping,
-            description: glamping.descripcionGlamping,
-            image: glamping.imagenes,
-            address: {
-              '@type': 'PostalAddress',
-              addressLocality: glamping.ciudadDepartamento,
-              addressCountry: 'CO',
-            },
-            geo: glamping.ubicacion
-              ? {
-                  '@type': 'GeoCoordinates',
-                  latitude: glamping.ubicacion.lat,
-                  longitude: glamping.ubicacion.lng,
-                }
-              : undefined,
-            aggregateRating:
-              glamping.totalCalificaciones > 0
-                ? {
-                    '@type': 'AggregateRating',
-                    ratingValue: glamping.calificacion,
-                    reviewCount: glamping.totalCalificaciones,
-                  }
-                : undefined,
-          }),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(lodgingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <GlampingDetailClient glamping={glamping} />
     </>

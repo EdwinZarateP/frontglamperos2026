@@ -12,8 +12,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { useCalificaciones, useCotizacion } from '@/hooks/useGlampings'
+import { useCalificaciones, useCotizacion, useFechasBloqueadas } from '@/hooks/useGlampings'
 import { Button } from '@/components/ui/Button'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels } from '@/lib/utils'
 import type { Glamping } from '@/types'
 const MapaVista = dynamic(() => import('@/components/ui/MapaVista').then(m => m.MapaVista), { ssr: false })
@@ -33,11 +34,14 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [huespedes, setHuespedes] = useState(1)
+  const [tieneMascota, setTieneMascota] = useState(false)
   const [extrasSeleccionados, setExtrasSeleccionados] = useState<string[]>([])
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const { data: calificaciones } = useCalificaciones(glamping._id)
+  const { data: fechasBloqueadas = [] } = useFechasBloqueadas(glamping._id)
   const extrasParam = extrasSeleccionados.join(',')
   const { data: cotizacion, isLoading: loadingCotizacion } = useCotizacion(glamping._id, {
     fecha_inicio: fechaInicio,
@@ -81,6 +85,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       fechaFin,
       huespedes: String(huespedes),
       extras: extrasSeleccionados.join(','),
+      mascota: tieneMascota ? '1' : '0',
     })
     router.push(`/glamping/${glamping._id}/reservar?${params}`)
   }
@@ -585,38 +590,48 @@ export function GlampingDetailClient({ glamping }: Props) {
                 )}
               </div>
 
-              {/* Fechas */}
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div>
-                  <label className="text-xs font-medium text-stone-500">Llegada</label>
-                  <input
-                    type="date"
-                    value={fechaInicio}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => {
-                      setFechaInicio(e.target.value)
-                      if (fechaFin && e.target.value >= fechaFin) setFechaFin('')
+              {/* Fechas — botón que abre el calendario */}
+              <button
+                type="button"
+                onClick={() => setShowCalendar((v) => !v)}
+                className="w-full border border-stone-300 rounded-xl px-4 py-3 text-sm text-left hover:border-emerald-400 transition-colors mb-3"
+              >
+                {fechaInicio && fechaFin ? (
+                  <span className="font-medium text-stone-800">
+                    {formatDate(fechaInicio)} → {formatDate(fechaFin)}
+                    <span className="text-stone-400 font-normal ml-1">
+                      · {noches} {noches === 1 ? 'noche' : 'noches'}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-stone-400">Seleccionar fechas</span>
+                )}
+              </button>
+
+              {/* DateRangePicker desplegable */}
+              {showCalendar && (
+                <div className="mb-3 -mx-1">
+                  <DateRangePicker
+                    startDate={fechaInicio}
+                    endDate={fechaFin}
+                    blockedDates={fechasBloqueadas}
+                    minNights={glamping.minimoNoches || 1}
+                    onChange={(s, e) => {
+                      setFechaInicio(s)
+                      setFechaFin(e)
+                      if (s && e) setShowCalendar(false)
                     }}
-                    className="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    onClose={() => setShowCalendar(false)}
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-stone-500">Salida</label>
-                  <input
-                    type="date"
-                    value={fechaFin}
-                    min={fechaInicio || new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setFechaFin(e.target.value)}
-                    className="w-full border border-stone-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Huéspedes */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <label className="text-xs font-medium text-stone-500">Huéspedes</label>
                 <div className="flex items-center gap-3 mt-1">
                   <button
+                    type="button"
                     onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
                     className="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-50"
                   >
@@ -624,12 +639,10 @@ export function GlampingDetailClient({ glamping }: Props) {
                   </button>
                   <span className="font-medium text-stone-800">{huespedes}</span>
                   <button
+                    type="button"
                     onClick={() =>
                       setHuespedes((h) =>
-                        Math.min(
-                          glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales,
-                          h + 1
-                        )
+                        Math.min(glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales, h + 1)
                       )
                     }
                     className="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-50"
@@ -641,6 +654,23 @@ export function GlampingDetailClient({ glamping }: Props) {
                   </span>
                 </div>
               </div>
+
+              {/* Mascotas */}
+              {glamping.aceptaMascotas && (
+                <div className="flex items-center justify-between py-2 mb-3 border-t border-stone-100">
+                  <div className="flex items-center gap-2 text-sm text-stone-700">
+                    <Dog size={14} className="text-emerald-600" />
+                    <span>Llevar mascota</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTieneMascota((v) => !v)}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-emerald-500' : 'bg-stone-200'}`}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+              )}
 
               {/* Cotización */}
               {loadingCotizacion && (

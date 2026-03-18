@@ -21,7 +21,11 @@ export function useGlampingsHome(filtros: FiltrosHome, enabled = true) {
   return useQuery<HomeResponse>({
     queryKey: ['glampings-home', filtros],
     queryFn: async () => {
-      const { data } = await api.get('/glampings/home', { params: filtros })
+      // Si tenemos coordenadas, buscamos por radio y NO por nombre de ciudad
+      // (así Funza devuelve glampings cercanos aunque no haya ninguno en Funza exactamente)
+      const { ciudad: _ciudad, ...rest } = filtros
+      const params = filtros.lat != null && filtros.lng != null ? rest : filtros
+      const { data } = await api.get('/glampings/home', { params })
       return data
     },
     staleTime: 60_000,
@@ -75,6 +79,21 @@ export function useCalificaciones(glampingId: string) {
       return data
     },
     enabled: !!glampingId,
+  })
+}
+
+// ─── Fechas bloqueadas (para calendario cliente) ──────────────────────────────
+export function useFechasBloqueadas(glampingId: string, meses = 3) {
+  return useQuery<string[]>({
+    queryKey: ['fechas-bloqueadas', glampingId, meses],
+    queryFn: async () => {
+      const { data } = await api.get(`/glampings/${glampingId}/fechas-bloqueadas`, {
+        params: { meses },
+      })
+      return data as string[]
+    },
+    enabled: !!glampingId,
+    staleTime: 60_000,
   })
 }
 

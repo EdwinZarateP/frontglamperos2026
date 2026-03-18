@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Heart, Menu, X, User, LogOut, LayoutDashboard, Home, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
+import { SeasonalOverlay } from '@/components/seasonal/SeasonalOverlay'
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -32,17 +33,22 @@ export function Navbar() {
 
   return (
     <header suppressHydrationWarning className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-stone-200">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0 relative z-10">
           <span className="text-2xl font-bold tracking-tight">
             <span className="text-emerald-600">Glamp</span>
             <span className="text-stone-800">eros</span>
           </span>
         </Link>
 
+        {/* Zona vacía — el personaje vive exactamente aquí, entre logo y botones */}
+        <div className="flex-1 h-full relative pointer-events-none z-0">
+          <SeasonalOverlay />
+        </div>
+
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-2 ml-auto">
+        <div className="hidden md:flex items-center gap-2 shrink-0 relative z-10">
           {isAnfitrion ? (
             <Link
               href="/anfitrion"
@@ -167,7 +173,7 @@ export function Navbar() {
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden p-2 text-stone-600"
+          className="md:hidden p-2 text-stone-600 shrink-0 relative z-10"
           onClick={() => setMenuOpen((o) => !o)}
         >
           {menuOpen ? <X size={22} /> : <Menu size={22} />}

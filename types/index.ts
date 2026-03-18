@@ -265,6 +265,7 @@ export interface FiltrosHome {
   lng?: number
   radio_km?: number
   order_by?: 'precio_asc' | 'precio_desc' | 'distancia' | 'calificacion'
+  acepta_mascotas?: boolean
 }
 
 // ─── Soporte ─────────────────────────────────────────────────────────────────

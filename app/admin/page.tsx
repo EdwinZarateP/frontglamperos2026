@@ -1,10 +1,9 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { Tent, Users } from 'lucide-react'
 import { api } from '@/lib/api'
-
 
 function StatCard({
   label, value, icon: Icon, color
@@ -22,6 +21,75 @@ function StatCard({
   )
 }
 
+const SEASONS = [
+  { key: 'navidad',      label: 'Navidad',      emoji: '🎄' },
+  { key: 'halloween',    label: 'Halloween',    emoji: '🎃' },
+  { key: 'san-valentin', label: 'San Valentín', emoji: '❤️' },
+]
+
+function SeasonWidget() {
+  const qc = useQueryClient()
+
+  const { data: active } = useQuery<string | null>({
+    queryKey: ['active-season'],
+    queryFn: async () => {
+      const res = await api.get('/config/season')
+      return res.data.activeSeason
+    },
+  })
+
+  const { mutate: setSeason, isPending } = useMutation({
+    mutationFn: (activeSeason: string | null) =>
+      api.put('/config/season', { activeSeason }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['active-season'] }),
+  })
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-200 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-stone-800">Decoración de temporada</h2>
+        {active && (
+          <button
+            onClick={() => setSeason(null)}
+            disabled={isPending}
+            className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-3 py-1 rounded-lg transition-colors"
+          >
+            Apagar
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        {SEASONS.map(s => {
+          const isActive = active === s.key
+          return (
+            <button
+              key={s.key}
+              onClick={() => setSeason(isActive ? null : s.key)}
+              disabled={isPending}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm'
+                  : 'border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
+              }`}
+            >
+              <span className="text-lg">{s.emoji}</span>
+              {s.label}
+              {isActive && <span className="text-xs bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-md ml-1">Activa</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      <p className="text-xs text-stone-400 mt-3">
+        {active
+          ? `La decoración de ${SEASONS.find(s => s.key === active)?.label} está activa en el header.`
+          : 'Ninguna decoración activa. Selecciona una temporada para activarla.'}
+      </p>
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const { data: glampings = [] } = useQuery<any[]>({
     queryKey: ['admin-glampings-count'],
@@ -34,32 +102,24 @@ export default function AdminDashboard() {
   })
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-stone-900 mb-6">Dashboard</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-stone-900">Dashboard</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          label="Glampings activos"
-          value={String(glampings.length)}
-          icon={Tent}
-          color="bg-blue-500"
-        />
-        <StatCard
-          label="Usuarios registrados"
-          value={String(usuarios.length)}
-          icon={Users}
-          color="bg-purple-500"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Glampings activos"    value={String(glampings.length)} icon={Tent}  color="bg-blue-500"   />
+        <StatCard label="Usuarios registrados" value={String(usuarios.length)}  icon={Users} color="bg-purple-500" />
       </div>
+
+      <SeasonWidget />
 
       <div className="bg-white rounded-2xl border border-stone-200 p-6">
         <h2 className="font-semibold text-stone-800 mb-4">Accesos rápidos</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { href: '/admin/reservas', label: 'Ver reservas pendientes' },
-            { href: '/admin/glampings', label: 'Gestionar glampings' },
-            { href: '/admin/usuarios', label: 'Gestionar usuarios' },
-            { href: '/admin/comentarios', label: 'Comentarios plataforma' },
+            { href: '/admin/reservas',    label: 'Ver reservas pendientes' },
+            { href: '/admin/glampings',   label: 'Gestionar glampings'     },
+            { href: '/admin/usuarios',    label: 'Gestionar usuarios'      },
+            { href: '/admin/comentarios', label: 'Comentarios plataforma'  },
           ].map(({ href, label }) => (
             <Link
               key={href}

@@ -4,8 +4,9 @@ export function Footer() {
   return (
     <footer className="bg-stone-900 text-stone-400 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+
         {/* Brand */}
-        <div className="space-y-3">
+        <div className="space-y-3 sm:col-span-2 lg:col-span-1">
           <span className="text-xl font-bold">
             <span className="text-emerald-500">Glamp</span>
             <span className="text-white">eros</span>
@@ -13,27 +14,79 @@ export function Footer() {
           <p className="text-sm leading-relaxed">
             La plataforma de glamping más completa de Colombia. Naturaleza y lujo, juntos.
           </p>
+          <div className="pt-3 flex items-center gap-3">
+            <img
+              src="https://www.fondoemprender.com/SiteAssets/FE%202020%20Home/img/LOFO%20FE%20COLOR%202022.svg"
+              alt="Fondo Emprender SENA"
+              className="h-7 object-contain opacity-70 hover:opacity-100 transition-opacity"
+              title="Financiado por Fondo Emprender - SENA"
+            />
+            <img
+              src="https://www.sena.edu.co/Style%20Library/alayout/images/logoSena.png"
+              alt="SENA Colombia"
+              className="h-7 object-contain opacity-70 hover:opacity-100 transition-opacity"
+              title="SENA"
+            />
+            <img
+              src="https://www.fondoemprender.com/SiteAssets/FE%202020%20Home/img/LOGO-COLOMBIA-POTENCIA-DE-LA-VIDA.png"
+              alt="Colombia Potencia de la Vida"
+              className="h-7 object-contain opacity-70 hover:opacity-100 transition-opacity"
+              title="Gobierno de Colombia"
+            />
+          </div>
         </div>
 
-        {/* Explorar */}
+        {/* Glamperos */}
         <div className="space-y-3">
-          <h4 className="text-white font-semibold text-sm">Explorar</h4>
+          <h4 className="text-white font-semibold text-sm">Glamperos</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/?tipo=domo" className="hover:text-white transition-colors">Domos</Link></li>
-            <li><Link href="/?tipo=cabana" className="hover:text-white transition-colors">Cabañas</Link></li>
-            <li><Link href="/?tipo=treehouse" className="hover:text-white transition-colors">Casas en árbol</Link></li>
-            <li><Link href="/?tipo=burbuja" className="hover:text-white transition-colors">Burbujas</Link></li>
-            <li><Link href="/?order_by=calificacion" className="hover:text-white transition-colors">Los mejor calificados</Link></li>
+            <li>
+              <Link href="/acerca-de-nosotros" className="hover:text-white transition-colors">
+                Acerca de nosotros
+              </Link>
+            </li>
+            <li>
+              <Link href="/acerca-de-nosotros#patrocinadores" className="hover:text-white transition-colors">
+                Fondo Emprender · SENA
+              </Link>
+            </li>
+            <li>
+              <a
+                href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/RNT%20GLAMPEROS%202026.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                RNT Glamperos 2026
+              </a>
+            </li>
           </ul>
         </div>
 
-        {/* Anfitrión */}
+        {/* Síguenos */}
         <div className="space-y-3">
-          <h4 className="text-white font-semibold text-sm">Soy anfitrión</h4>
+          <h4 className="text-white font-semibold text-sm">Síguenos</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link href="/auth/registro" className="hover:text-white transition-colors">Publicar mi glamping</Link></li>
-            <li><Link href="/anfitrion" className="hover:text-white transition-colors">Mi panel</Link></li>
-            <li><Link href="/anfitrion/calendario" className="hover:text-white transition-colors">Mi calendario</Link></li>
+            <li>
+              <a href="https://www.instagram.com/glamperos/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Instagram
+              </a>
+            </li>
+            <li>
+              <a href="https://www.facebook.com/glamperos/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Facebook
+              </a>
+            </li>
+            <li>
+              <a href="https://www.youtube.com/@Glamperos" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                YouTube
+              </a>
+            </li>
+            <li>
+              <a href="https://wa.me/573218695196" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                WhatsApp · +57 321 869 5196
+              </a>
+            </li>
           </ul>
         </div>
 
@@ -43,22 +96,17 @@ export function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/soporte" className="hover:text-white transition-colors">Centro de ayuda</Link></li>
             <li><Link href="/comentarios" className="hover:text-white transition-colors">Deja tu opinión</Link></li>
-            <li>
-              <a
-                href="https://wa.me/573001234567"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                WhatsApp
-              </a>
-            </li>
           </ul>
         </div>
+
       </div>
 
       <div className="border-t border-stone-800 px-4 py-5 text-center text-xs text-stone-600">
-        © {new Date().getFullYear()} Glamperos Colombia. Todos los derechos reservados.
+        © {new Date().getFullYear()} Glamperos Colombia · Proyecto financiado por{' '}
+        <Link href="/acerca-de-nosotros#patrocinadores" className="hover:text-stone-400 transition-colors underline">
+          Fondo Emprender – SENA
+        </Link>
+        {' '}· Todos los derechos reservados.
       </div>
     </footer>
   )

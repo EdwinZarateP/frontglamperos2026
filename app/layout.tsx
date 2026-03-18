@@ -30,13 +30,17 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'es_CO',
     siteName: 'Glamperos',
-    images: ['/og-image.jpg'],
+    // opengraph-image.tsx genera la imagen automáticamente
   },
   twitter: { card: 'summary_large_image' },
   robots: {
     index: true,
     follow: true,
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
   },
 }
 

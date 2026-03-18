@@ -1,6 +1,9 @@
-# Glamperos Frontend — Documentación Técnica
+# Glamperos Frontend v1.0 — Documentación Técnica
 
-Plataforma de reservas de glamping para Colombia. Frontend construido con **Next.js 16 + Tailwind CSS + TanStack Query + Zustand**.
+Frontend de la plataforma de glamping tipo Airbnb para Colombia.
+Stack: **Next.js 14 (App Router) + TypeScript + Tailwind CSS + React Query + Zustand**.
+
+> Este documento está diseñado para que cualquier desarrollador (o IA) pueda retomar el trabajo sin tener que leer todo el código.
 
 ---
 
@@ -10,36 +13,31 @@ Plataforma de reservas de glamping para Colombia. Frontend construido con **Next
 2. [Estructura de Archivos](#2-estructura-de-archivos)
 3. [Variables de Entorno](#3-variables-de-entorno)
 4. [Arrancar el Proyecto](#4-arrancar-el-proyecto)
-5. [Autenticación y Roles](#5-autenticación-y-roles)
-6. [Rutas de la Aplicación](#6-rutas-de-la-aplicación)
-7. [Layouts y Navegación](#7-layouts-y-navegación)
-8. [Flujo de Creación de Glamping](#8-flujo-de-creación-de-glamping)
-9. [Panel Anfitrión](#9-panel-anfitrión)
-10. [Panel Admin](#10-panel-admin)
-11. [Flujo de Aprobación](#11-flujo-de-aprobación)
-12. [Componentes UI Reutilizables](#12-componentes-ui-reutilizables)
-13. [Librerías de Datos](#13-librerías-de-datos)
-14. [Comisiones y Precios](#14-comisiones-y-precios)
-15. [Convenciones de Código](#15-convenciones-de-código)
-16. [Changelog](#16-changelog)
+5. [Sistema de URLs SEO](#5-sistema-de-urls-seo)
+6. [Buscador del Home](#6-buscador-del-home)
+7. [Búsqueda por Radio Geográfico](#7-búsqueda-por-radio-geográfico)
+8. [Estado Global — Zustand](#8-estado-global--zustand)
+9. [Hooks de Datos — React Query](#9-hooks-de-datos--react-query)
+10. [Autenticación](#10-autenticación)
+11. [Páginas y Rutas](#11-páginas-y-rutas)
+12. [Componentes Clave](#12-componentes-clave)
+13. [Tipos TypeScript](#13-tipos-typescript)
+14. [Pendientes y TODOs](#14-pendientes-y-todos)
 
 ---
 
 ## 1. Stack Tecnológico
 
 | Componente | Tecnología |
-|---|---|
-| Framework | Next.js 16.1.6 (App Router, Turbopack) |
-| Estilos | Tailwind CSS v4 |
-| Estado global | Zustand (con `persist` en localStorage) |
-| Fetching / caché | TanStack Query v5 |
-| Formularios | React Hook Form v7 |
-| Mapas | Google Maps (`@react-google-maps/api`) |
-| Drag & Drop | `@dnd-kit/core` + `@dnd-kit/sortable` |
-| Notificaciones | `react-hot-toast` |
-| Íconos | `lucide-react` + `react-icons` |
-| HTTP | Axios (`lib/api.ts`, timeout 30s) |
-| Pagos | Widget Wompi (script embebido) |
+|------------|-----------|
+| Framework | Next.js 14 (App Router) |
+| Lenguaje | TypeScript |
+| Estilos | Tailwind CSS |
+| Estado global | Zustand |
+| Data fetching | TanStack React Query v5 |
+| HTTP client | Axios (`lib/api.ts`) |
+| Iconos | React Icons |
+| Formularios | React state local (sin librería) |
 
 ---
 
@@ -47,76 +45,74 @@ Plataforma de reservas de glamping para Colombia. Frontend construido con **Next
 
 ```
 frontglamperos2026/
-├── app/
-│   ├── admin/
-│   │   ├── layout.tsx                  # Sidebar oscuro, solo rol=admin
-│   │   ├── page.tsx                    # Dashboard admin (stats + accesos rápidos)
-│   │   ├── aprobaciones/page.tsx       # Aprobar/rechazar glampings pendientes
-│   │   ├── glampings/page.tsx          # Tabla de glampings + cambio de estado + gestión de anfitriones
-│   │   ├── reservas/page.tsx           # Gestión de reservas
-│   │   ├── usuarios/page.tsx           # Gestión de usuarios con modal de edición completo
-│   │   └── comentarios/page.tsx        # Comentarios plataforma (filtro, marcar leído, eliminar)
-│   ├── anfitrion/
-│   │   ├── layout.tsx                  # Sidebar blanco, requiere auth + hydration
-│   │   ├── page.tsx                    # Dashboard anfitrión (glampings + ingresos + calificación)
-│   │   ├── glampings/
-│   │   │   ├── page.tsx                # Lista mis glampings con badges de estado
-│   │   │   ├── nuevo/page.tsx          # Formulario creación glamping (3 pasos)
-│   │   │   └── [id]/page.tsx           # Editar glamping existente
-│   │   ├── reservas/page.tsx           # Reservas por glamping con filtro de estado
-│   │   └── calendario/page.tsx         # Calendario de disponibilidad + bloqueos + ocupación
-│   ├── auth/
-│   │   ├── login/page.tsx
-│   │   └── registro/page.tsx
+├── app/                             # Next.js App Router
+│   ├── layout.tsx                   # Root layout (fuentes, providers)
+│   ├── page.tsx                     # Home (SSR con fetchGlampingsSSR)
+│   ├── HomeClient.tsx               # Parte interactiva del home
+│   ├── [...slug]/page.tsx           # Catch-all para URLs SEO (/bogota/domo/jacuzzi)
 │   ├── glamping/
 │   │   └── [id]/
-│   │       ├── page.tsx                # Server Component (SEO)
-│   │       ├── GlampingDetailClient.tsx # Detalle interactivo
-│   │       └── reservar/page.tsx       # Flujo de reserva
-│   ├── perfil/page.tsx                 # Perfil + medios de pago (anfitriones/admin)
-│   ├── favoritos/page.tsx              # Glampings guardados
-│   ├── providers.tsx                   # QueryClient + Toaster
-│   └── layout.tsx                      # Root layout → usa ConditionalLayout
+│   │       ├── page.tsx             # Detalle del glamping (SSR)
+│   │       ├── GlampingDetailClient.tsx
+│   │       ├── fotos/page.tsx       # Galería de fotos
+│   │       └── reservar/page.tsx    # Formulario de reserva ⚠️ calendario pendiente
+│   ├── pago/
+│   │   ├── [reservaId]/page.tsx     # Inicia pago Wompi
+│   │   └── resultado/page.tsx       # Resultado del pago
+│   ├── mis-reservas/page.tsx        # Reservas del usuario
+│   ├── favoritos/page.tsx           # Favoritos del usuario
+│   ├── perfil/page.tsx              # Perfil del usuario
+│   ├── auth/
+│   │   ├── login/page.tsx
+│   │   ├── registro/page.tsx
+│   │   └── callback/page.tsx        # Callback Google OAuth
+│   ├── calificaciones/
+│   │   └── valorar/[token]/page.tsx # Valorar reserva (link único)
+│   ├── anfitrion/                   # Panel del anfitrión
+│   │   ├── page.tsx                 # Dashboard
+│   │   ├── glampings/               # Mis glampings + CRUD
+│   │   ├── reservas/                # Reservas de mis glampings
+│   │   └── calendario/              # Calendario de disponibilidad
+│   ├── admin/                       # Panel de administración
+│   │   ├── page.tsx
+│   │   ├── glampings/               # Aprobar/rechazar glampings
+│   │   ├── usuarios/
+│   │   ├── reservas/
+│   │   └── comentarios/
+│   └── acerca-de-nosotros/page.tsx
 ├── components/
+│   ├── home/
+│   │   ├── SearchFilters.tsx        # Buscador Airbnb-style (paneles, CalendarioRango)
+│   │   └── GlampingCard.tsx         # Tarjeta de glamping
 │   ├── layout/
-│   │   ├── Navbar.tsx                  # Header público con logo + menú usuario
-│   │   ├── Footer.tsx                  # Footer del sitio público
-│   │   └── ConditionalLayout.tsx       # Oculta Navbar en /admin; oculta Footer en /admin y /anfitrion
-│   └── ui/
-│       ├── Button.tsx
-│       ├── Input.tsx / Textarea.tsx
-│       ├── Skeleton.tsx
-│       ├── Spinner.tsx
-│       ├── CiudadAutocomplete.tsx
-│       ├── FotosUpload.tsx
-│       ├── MapaPicker.tsx
-│       └── TipoGlampingIcon.tsx
+│   │   └── Navbar.tsx               # Navegación principal
+│   └── ui/                          # Componentes reutilizables
 ├── hooks/
-│   ├── useAuth.ts                      # useMe, useLogout
-│   └── useGlampings.ts                 # useGlampingsHome, useTiposGlamping
+│   ├── useGlampings.ts              # React Query: listado home
+│   ├── useGlamping.ts               # React Query: detalle glamping
+│   └── useAuth.ts                   # Estado de autenticación
 ├── lib/
-│   ├── api.ts                          # Axios con baseURL, token JWT, interceptor 401
-│   ├── utils.ts                        # formatCOP, toTitleCase, tipoGlampingLabels, amenidadIconos…
-│   ├── colombia.ts                     # ~300 municipios colombianos
-│   ├── catalogoExtras.ts              # 24 servicios extras con unidad y label
-│   └── filtros.ts                      # Helpers para URLs semánticas (SSR)
+│   ├── api.ts                       # Axios instance con baseURL + JWT interceptor
+│   ├── filtros.ts                   # Helpers de URL, parseo de filtros, SEO meta
+│   ├── colombia.ts                  # Catálogo de ciudades, slugs, coordenadas
+│   └── utils.ts                     # formatCOP, formatDate, etc.
 ├── store/
-│   └── authStore.ts                    # Zustand: user, token, isAuthenticated, updateUser
-└── types/
-    └── index.ts                        # Interfaces TypeScript (Glamping, Reserva…)
+│   └── searchStore.ts               # Zustand: filtros activos de búsqueda
+├── types/
+│   └── index.ts                     # Tipos TypeScript globales
+└── public/
+    └── municipios.json              # ~1100 municipios colombianos con lat/lng
 ```
 
 ---
 
 ## 3. Variables de Entorno
 
-Archivo: `.env.local`
+Crea `.env.local` en la raíz de `frontglamperos2026/`:
 
-```bash
+```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_GOOGLE_MAPS_KEY=AIzaSy...          # Google Maps + Places API
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=...               # Google OAuth
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
 ```
 
 ---
@@ -124,407 +120,256 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=...               # Google OAuth
 ## 4. Arrancar el Proyecto
 
 ```bash
+cd frontglamperos2026
 npm install
-npm run dev       # http://localhost:3000 (Turbopack)
-npm run build
-npm run start
+npm run dev        # http://localhost:3000
+npm run build      # Producción
 ```
-
-> **Turbopack** está activo por defecto en Next.js 16. No usar configuración `webpack` en `next.config.ts`.
 
 ---
 
-## 5. Autenticación y Roles
+## 5. Sistema de URLs SEO
 
-### Zustand store
+Las URLs siguen el patrón `/ciudad/tipo/amenidad`:
+
+| URL | Significado |
+|-----|-------------|
+| `/` | Home sin filtros |
+| `/bogota` | Glampings cerca a Bogotá (130 km) |
+| `/bogota/domo` | Domos cerca a Bogotá |
+| `/bogota/jacuzzi` | Glampings con jacuzzi cerca a Bogotá |
+| `/bogota/domo/jacuzzi` | Domos con jacuzzi cerca a Bogotá |
+| `/san-francisco-cundinamarca` | Ciudad con nombre duplicado → slug largo |
+
+### Slugs de ciudades
+
+Generados en `lib/colombia.ts` con lógica inteligente:
+- Nombre único en Colombia → slug simple (`bogota`, `medellin`, `cartagena`)
+- Nombre duplicado (ej: San Francisco en Antioquia y Cundinamarca) → slug largo (`san-francisco-cundinamarca`)
+- `norm()` normaliza acentos Y puntuación → "Bogotá D.C." se convierte en "bogota dc"
+
+### Flujo de parseo de URL
+
+1. `[...slug]/page.tsx` recibe los segmentos de la URL
+2. Llama a `parseFiltrosFromSlug(slugs)` en `lib/filtros.ts`
+3. Reconoce: ciudad → tipo (`domo`, `cabana`, etc.) → amenidades principales (`jacuzzi`, `piscina`)
+4. Resuelve coordenadas con `getCoordenadas()` desde `municipios.json`
+5. Construye `FiltrosHome` con `lat`/`lng`/`radio_km=130`
+
+### Helpers en `lib/filtros.ts`
+
+| Función | Descripción |
+|---------|-------------|
+| `buildUrlFromFiltros(filtros)` | Construye la URL limpia a partir de los filtros activos |
+| `parseFiltrosFromSlug(slugs)` | Convierte segmentos de path → FiltrosHome |
+| `parseFiltrosFromSearchParams(sp)` | Convierte query params → FiltrosHome |
+| `buildSeoMeta(filtros)` | Genera `title` y `description` para SEO |
+| `findCiudadBySlug(slug)` | Busca ciudad por slug |
+| `findCiudadByNombre(nombre)` | Busca ciudad por nombre |
+
+---
+
+## 6. Buscador del Home
+
+Implementado en `components/home/SearchFilters.tsx`.
+
+### Principio de diseño clave
+**Todo el estado de los filtros es LOCAL** hasta que el usuario hace clic en "Buscar".
+No hay llamadas a la API mientras el usuario interactúa con los paneles.
+Solo en `handleSearch()` se actualiza el store de Zustand y se navega a la nueva URL.
+
+### Paneles
+Cada sección (Ubicación, Fechas, Huéspedes, Precio) tiene su propio `relative div` padre,
+por lo que su panel desplegable aparece debajo del botón correcto (no del siguiente).
+
+### CalendarioRango (sub-componente interno)
+Definido dentro de `SearchFilters.tsx`:
+- Dos meses lado a lado, estilo Airbnb
+- Selección de rango con efecto hover (cápsula verde entre inicio y fin)
+- Navegar meses con botones `<` y `>`
+
+### Ciudades como chips rápidos
+Las ciudades del panel de ubicación están hardcodeadas en `SearchFilters.tsx`.
+Bogotá usa label `"Bogotá, Cundinamarca"` para que el slug resulte en `/bogota`.
+
+### Huéspedes
+El control UI muestra 2 por defecto. El valor se incluye en la URL/API solo si es `> 2`.
+
+---
+
+## 7. Búsqueda por Radio Geográfico
+
+En lugar de filtrar por nombre exacto de ciudad, se usa búsqueda por radio de 130 km:
+
+1. `getCoordenadas(ciudad, departamento)` en `lib/colombia.ts` busca en `municipios.json`
+   - Primero: coincidencia exacta ciudad + departamento (normalizado con `norm()`)
+   - Fallback: solo por ciudad, si es única en Colombia
+2. Se pasan `lat`, `lng`, `radio_km=130` a la API
+3. El hook `useGlampings.ts` **omite** el parámetro `ciudad` cuando hay `lat`/`lng` presentes
+4. El backend filtra por distancia haversine
+
+**Resultado:** Buscar "Funza" muestra glampings en toda la sabana de Bogotá aunque Funza no tenga glampings propios.
+
+---
+
+## 8. Estado Global — Zustand
 
 ```ts
-const { user, token, isAuthenticated, setAuth, clearAuth, updateUser } = useAuthStore()
+// store/searchStore.ts
+interface SearchState {
+  filtros: FiltrosHome
+  setFiltros: (f: Partial<FiltrosHome>) => void
+  resetFiltros: () => void
+}
+
+const defaultFiltros: FiltrosHome = {
+  page: 1,
+  limit: 20,
+  order_by: 'calificacion',
+  // NO incluye huespedes:2 — ese valor es solo para el control UI
+}
 ```
 
-Estado persistido en `localStorage` con `zustand/middleware/persist`.
-
-**Problema de hidratación:** En layouts protegidos, el estado de Zustand no está disponible en el primer render. Siempre usar el patrón:
-
-```tsx
-const [hydrated, setHydrated] = useState(false)
-useEffect(() => setHydrated(true), [])
-if (!hydrated || !isAuthenticated) return null
-```
-
-### Roles
-
-| Rol | Acceso |
-|---|---|
-| `usuario` | Buscar, reservar, favoritos |
-| `anfitrion` | Todo lo anterior + gestionar glampings + panel anfitrión |
-| `admin` | Acceso total + panel admin + panel anfitrión |
-
-Un usuario se promueve a `anfitrion` automáticamente al crear su primer glamping o al ser asignado a uno por un admin.
+El store se actualiza únicamente desde:
+- `handleSearch()` en `SearchFilters.tsx`
+- `[...slug]/page.tsx` al parsear la URL actual (sincroniza el store con la URL)
 
 ---
 
-## 6. Rutas de la Aplicación
+## 9. Hooks de Datos — React Query
 
-| Ruta | Descripción | Acceso |
-|---|---|---|
-| `/` | Home con listado (SSR) | Público |
-| `/[...slug]` | Home filtrado con URL semántica (SSR) | Público |
-| `/glamping/[id]` | Detalle del glamping | Público |
-| `/glamping/[id]/reservar` | Flujo de reserva | Autenticado |
-| `/propiedad/[id]` | Alias de `/glamping/[id]` (UTMs Google Ads) | Público |
-| `/favoritos` | Mis glampings guardados | Autenticado |
-| `/auth/login` | Inicio de sesión | Público |
-| `/auth/registro` | Registro | Público |
-| `/perfil` | Mi perfil + medios de pago | Autenticado |
-| `/anfitrion` | Dashboard anfitrión | `anfitrion` o `admin` |
-| `/anfitrion/glampings` | Lista mis glampings | `anfitrion` o `admin` |
-| `/anfitrion/glampings/nuevo` | Crear glamping (3 pasos) | `anfitrion` o `admin` |
-| `/anfitrion/glampings/[id]` | Editar glamping | Propietario o `admin` |
-| `/anfitrion/reservas` | Ver reservas por glamping | `anfitrion` o `admin` |
-| `/anfitrion/calendario` | Calendario de disponibilidad | `anfitrion` o `admin` |
-| `/admin` | Dashboard admin | `admin` |
-| `/admin/aprobaciones` | Aprobar/rechazar glampings pendientes | `admin` |
-| `/admin/reservas` | Gestión de reservas | `admin` |
-| `/admin/glampings` | Gestión de glampings | `admin` |
-| `/admin/usuarios` | Gestión de usuarios | `admin` |
-| `/admin/comentarios` | Comentarios plataforma | `admin` |
+### `useGlampings` (listado home)
+```ts
+// hooks/useGlampings.ts
+// Query key: ['glampings', filtros]
+// Transformación: omite 'ciudad' si hay lat/lng (radio search)
+queryFn: async () => {
+  const { ciudad: _ciudad, ...rest } = filtros
+  const params = filtros.lat != null ? rest : filtros
+  const { data } = await api.get('/glampings/home', { params })
+  return data
+}
+```
+
+### `useGlamping` (detalle)
+```ts
+// Query key: ['glamping', id]
+// GET /glampings/{id}
+```
 
 ---
 
-## 7. Layouts y Navegación
+## 10. Autenticación
 
-### ConditionalLayout
+- JWT almacenado en `localStorage` (key: `token`)
+- `lib/api.ts` tiene un interceptor que añade `Authorization: Bearer <token>` en cada request
+- Login email/password: `POST /auth/login`
+- Login Google: botón → `GET /auth/google/authorize` → callback en `/auth/callback`
+- El hook `useAuth` decodifica el payload del JWT (userId, rol, nombre)
 
-El componente `components/layout/ConditionalLayout.tsx` controla qué elementos globales se muestran según la ruta:
+---
+
+## 11. Páginas y Rutas
+
+| Ruta | Descripción | Auth |
+|------|-------------|------|
+| `/` | Home con listado | No |
+| `/[...slug]` | Búsqueda filtrada SEO | No |
+| `/glamping/[id]` | Detalle del glamping | No |
+| `/glamping/[id]/fotos` | Galería completa | No |
+| `/glamping/[id]/reservar` | Formulario de reserva | Sí |
+| `/pago/[reservaId]` | Iniciar pago Wompi | Sí |
+| `/pago/resultado` | Resultado del pago | No |
+| `/mis-reservas` | Mis reservas | Sí |
+| `/favoritos` | Mis favoritos | Sí |
+| `/perfil` | Mi perfil | Sí |
+| `/auth/login` | Login | No |
+| `/auth/registro` | Registro | No |
+| `/calificaciones/valorar/[token]` | Valorar reserva | No (token en URL) |
+| `/anfitrion/*` | Panel del anfitrión | Sí (anfitrion/admin) |
+| `/admin/*` | Panel admin | Sí (admin) |
+
+---
+
+## 12. Componentes Clave
+
+### `SearchFilters.tsx`
+El buscador del home. Ver sección 6 para detalles completos.
+- Maneja estado local para todos los filtros
+- Sub-componente `CalendarioRango` para selección de fechas con rango
+
+### `GlampingCard.tsx`
+Tarjeta de glamping para el listado. Muestra imagen, nombre, ciudad, precio/noche, calificación y botón de favorito.
+
+### `Navbar.tsx`
+Navegación principal con menú de usuario (login/logout/perfil/panel según rol).
+
+---
+
+## 13. Tipos TypeScript
+
+Los tipos globales están en `types/index.ts`. Los más importantes:
 
 ```ts
-const NO_NAVBAR = ['/admin']            // Admin tiene su propio sidebar oscuro
-const NO_FOOTER = ['/admin', '/anfitrion'] // Paneles no muestran el footer del sitio
-```
+interface FiltrosHome {
+  page?: number
+  limit?: number
+  order_by?: string
+  ciudad?: string
+  tipo?: string
+  amenidades?: string       // comma-separated: "jacuzzi,piscina"
+  huespedes?: number
+  fecha_inicio?: string     // YYYY-MM-DD
+  fecha_fin?: string
+  acepta_mascotas?: boolean
+  lat?: number
+  lng?: number
+  radio_km?: number
+  precio_max?: number
+}
 
-- `/admin/*` → sin Navbar ni Footer (solo sidebar oscuro propio)
-- `/anfitrion/*` → con Navbar de Glamperos (logo + menú usuario) pero sin Footer
-- Todo lo demás → Navbar + Footer completos
-
-### Navbar en el panel anfitrión
-
-El anfitrión siempre ve el Navbar de Glamperos en la parte superior con el logo y el botón de perfil/logout, lo que permite navegar al inicio en cualquier momento.
-
-### Hydration warnings
-
-- `<body suppressHydrationWarning>` — Grammarly inyecta `cz-shortcut-listen`
-- `<header suppressHydrationWarning>` en Navbar — Next.js dev toolbar inyecta `style={{top:"calc(36px)"}}`
-
----
-
-## 8. Flujo de Creación de Glamping
-
-El formulario en `/anfitrion/glampings/nuevo` tiene **3 pasos** con borrador automático.
-
-### Asignación de propietario (solo admin)
-
-Al inicio del paso 1, los admins ven un bloque amarillo **"Asignar a anfitrión"** con buscador de usuarios. Si seleccionan a alguien, al crear el borrador se transfiere inmediatamente la propiedad vía `PUT /glampings/{id}/propietario`. Si no seleccionan a nadie, el glamping queda asignado al admin.
-
-### Paso 1 — Información básica
-
-Campos requeridos para avanzar:
-- `tipoGlamping`, `nombreGlamping`, `descripcionGlamping`, `ciudadDepartamento`, `precioNoche > 0`
-
-Campos opcionales: `nombrePropiedad`, huéspedes, precios adicionales, horarios, mascotas, pasadía, tarifas por día de semana.
-
-### Paso 2 — Ubicación y fotos
-
-- **Fotos** — mínimo 5, máximo 30; drag & drop para reordenar; primera = portada
-- **Mapa** — Google Maps con búsqueda inteligente; click para colocar; marcador arrastrable
-- `direccion` — referencia textual
-
-### Paso 3 — Amenidades y políticas
-
-- 51 amenidades del catálogo oficial
-- 24 servicios extras con precio y unidad (por persona / por pareja)
-- Política de cancelación + políticas de la casa
-
-### Borrador y auto-guardado
-
-- Borrador creado al avanzar del paso 1
-- Auto-guardado cada 30 segundos si hay cambios
-- Botón flotante **"Guardar ahora"**
-- Al recargar: borrador restaurado automáticamente
-
-### Estado tras publicar
-
-`estadoAprobacion = "pendiente"`. El admin aprueba desde `/admin/aprobaciones`.
-
----
-
-## 9. Panel Anfitrión
-
-### Dashboard `/anfitrion`
-
-- **Mis glampings** — cantidad de glampings del anfitrión
-- **Ingresos mes** — suma de `precioTotal` de reservas CONFIRMADA/COMPLETADA del mes actual (solo reservas Glamperos)
-- **Calificación** — promedio
-- Acceso rápido: **Ver calendario**
-
-Los ingresos se calculan en frontend usando `useQueries` para obtener reservas de cada glamping en paralelo vía `GET /reservas/glamping/{id}`.
-
-### Calendario `/anfitrion/calendario`
-
-- Vista mensual con color por glamping
-- **Bloqueo de fechas**: selector de glamping disponible (deshabilitado si ya está completamente bloqueado en el rango)
-- **Desbloqueo**: lista de bloqueos del mes actual; solo los manuales (`fuente === 'MANUAL'`) tienen ícono de papelera
-- **Ocupación**: pills de porcentaje por glamping, calculado sobre todas las fuentes (manual, Airbnb, Booking, Glamperos)
-
-### Mis reservas `/anfitrion/reservas`
-
-- Lista de reservas por glamping
-- Filtro por estado (PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA)
-- Cambio de estado por reserva
-
----
-
-## 10. Panel Admin
-
-### Dashboard `/admin`
-
-- Cards: Glampings activos, Usuarios registrados
-- Accesos rápidos: reservas, glampings, usuarios, comentarios (usan `<Link>` para navegación client-side sin resetear Zustand)
-
-### Gestión de Glampings `/admin/glampings`
-
-- Tabla con: foto, nombre glamping, establecimiento, ubicación, precio, estado
-- **Estado inline**: `<select>` que llama `PUT /glampings/{id}/estado` al cambiar; colores por estado:
-  - `pendiente` → amber
-  - `aprobado` → verde
-  - `rechazado` → rojo
-  - `inactivo` → gris
-- **Botón 👥 Anfitriones**: modal que muestra todos los anfitriones del glamping con opción de añadir co-anfitriones (buscador por nombre/email) o eliminarlos. El propietario principal muestra badge "Principal" y no se puede eliminar desde aquí.
-- **Botón + Crear glamping**: lleva a `/anfitrion/glampings/nuevo`
-- **Botón Excel**: descarga CSV con datos del glamping + datos del propietario (nombre, email, teléfono)
-
-#### Estados de un glamping
-
-| `estadoAprobacion` | `habilitado` | Visible en catálogo |
-|---|---|---|
-| `"pendiente"` | `false` | No — esperando revisión |
-| `"aprobado"` | `true` | Sí |
-| `"rechazado"` | `false` | No — el anfitrión debe corregir |
-| `"inactivo"` | `false` | No — pausado temporalmente |
-
-### Gestión de Usuarios `/admin/usuarios`
-
-- Lista de usuarios con rol, estado de verificación y foto
-- Modal de edición con:
-  - **Datos personales**: nombre, teléfono (selector de indicativo con 10 países)
-  - **Rol**: usuario / anfitrión / admin
-  - **Medios de pago** (solo si rol es anfitrión o admin): tipo/número de documento, titular, banco (dropdown con 17 opciones), número de cuenta, tipo de cuenta
-  - **Asignar glamping**: selecciona de los glampings del admin para transferir propiedad
-
-### Comentarios `/admin/comentarios`
-
-- Lista con filtro por tipo (sugerencia/queja/felicitación/otro) y estado (pendiente/leído)
-- Toggle leído/no leído con ícono de sobre
-- Eliminar comentario
-- Los leídos aparecen con `opacity-60`
-
----
-
-## 11. Flujo de Aprobación
-
-### Panel `/admin/aprobaciones`
-
-- Lista glampings pendientes
-- **Aprobar** → `POST /glampings/{id}/aprobar`
-- **Rechazar** → campo de motivo + `POST /glampings/{id}/rechazar?motivo=...`
-- El motivo aparece en el dashboard del anfitrión
-
-### Cambio de estado desde tabla
-
-Desde `/admin/glampings`, el `<select>` de estado llama a `PUT /glampings/{id}/estado?estado=` que acepta: `pendiente | aprobado | rechazado | inactivo`.
-
----
-
-## 12. Componentes UI Reutilizables
-
-### `FotosUpload`
-
-```tsx
-import { FotosUpload, type ImagenItem } from '@/components/ui/FotosUpload'
-// ImagenItem = File | string (URL ya guardada)
-<FotosUpload imagenes={imagenes} onChange={setImagenes} />
-```
-
-### `MapaPicker`
-
-```tsx
-// Siempre con dynamic + ssr: false
-const MapaPicker = dynamic(() => import('@/components/ui/MapaPicker').then(m => m.MapaPicker), { ssr: false })
-<MapaPicker lat={lat} lng={lng} onChange={(lat, lng) => setUbicacion({ lat, lng })} />
-```
-
-### `CiudadAutocomplete`
-
-```tsx
-<CiudadAutocomplete
-  value={watch('ciudadDepartamento') || ''}
-  onChange={(val) => setValue('ciudadDepartamento', val, { shouldDirty: true })}
-/>
-```
-
-Filtra `lib/colombia.ts` desde 2 caracteres, máximo 8 resultados.
-
-### `Skeleton`
-
-```tsx
-<Skeleton className="h-10 w-full" />
+interface HomeResponse {
+  glampings: GlampingResumen[]
+  total: number
+  page: number
+  pages: number
+}
 ```
 
 ---
 
-## 13. Librerías de Datos
+## 14. Pendientes y TODOs
 
-### `lib/colombia.ts`
+### ⚠️ URGENTE: Calendario del formulario de reserva
 
-~300 municipios en formato `"Municipio, Departamento"`.
+**Archivo:** `app/glamping/[id]/reservar/page.tsx`
 
-### `lib/catalogoExtras.ts`
+El selector de fechas usa `<input type="date">` nativo que se ve horrible.
 
-24 servicios: cabalgata, jacuzzi privado, masajes, cena romántica, decoración, picnic, noche de película, descorche, paseos (lancha, bicicleta, kayak, velero, jet ski), caminata guiada, cuatrimoto, parapente, masaje individual, desayuno, almuerzo, tours.
+**Solución:** Reemplazar con el componente `CalendarioRango` (ya implementado en `SearchFilters.tsx`)
+adaptado para:
+- Bloquear fechas no disponibles (vienen de `GET /glampings/{id}/calendario`)
+- Actualizar el cálculo de precio dinámicamente al cambiar el rango
 
-### `lib/filtros.ts`
-
-Catálogos y helpers para URLs semánticas: `buildFiltrosFromSlug`, `buildSlugFromFiltros`, `buildUrlFromFiltros`, `buildSeoMeta`, `fetchGlampingsSSR`.
-
----
-
-## 14. Comisiones y Precios
-
-El frontend **nunca calcula comisiones** — usa la cotización del backend (`GET /glampings/{id}/cotizar`).
-
-| Servicio | Comisión |
-|---|---|
-| Alojamiento | Escalonada 10%–20% según precio |
-| Extras (excepto jacuzzi) | Flat 10% |
-| Jacuzzi | Misma comisión escalonada que alojamiento |
-| Pago online (Wompi) | +5% sobre el total |
+### Otros pendientes
+- [ ] Vista de mapa (Leaflet/Mapbox) para visualizar glampings geográficamente
+- [ ] Paginación / "Ver más" en el listado (actualmente carga 20 y no pagina)
+- [ ] CalendarioRango en mobile (colapsar a 1 mes en pantallas pequeñas)
+- [ ] Página 404 personalizada para glampings no encontrados
+- [ ] Optimistic UI en favoritos (toggle inmediato sin esperar la API)
 
 ---
 
-## 15. Convenciones de Código
+## Changelog
 
-- **camelCase** en todos los campos de API y formularios
-- `toTitleCase()` aplicado a nombres antes de enviar al backend
-- Payload filtrado antes de PUT: eliminar strings vacíos, `undefined` y `null`
-- Mapas siempre con `dynamic(..., { ssr: false })`
-- `'use client'` en todos los componentes interactivos
-- Patrón `hydrated` en layouts protegidos para evitar redirect prematuro
-- `<Link>` (nunca `<a href>`) para navegación interna — `<a>` causa recarga completa y borra el estado de Zustand
-- Los IDs de MongoDB llegan como `id` (no `_id`) desde la API (Pydantic `Field(alias="_id")` serializa como `id`)
-
----
-
-## 16. Changelog
-
-### v2.8 — 2026-03-17
-
-#### Panel Admin — mejoras completas
-
-**Glampings (`/admin/glampings`)**
-- Estado de glamping cambiable inline con `<select>` coloreado (pendiente/aprobado/rechazado/inactivo)
-- Modal 👥 de gestión de co-anfitriones: listar, añadir (buscador de usuarios), eliminar
-- Botón "+ Crear glamping" que lleva a `/anfitrion/glampings/nuevo`
-- Excel corregido: `model_dump(by_alias=True)` para que `_id` llegue bien al CSV; `find_by_id` en lugar de `get_by_id`
-
-**Usuarios (`/admin/usuarios`)**
-- Modal de edición completo: nombre, teléfono con selector de indicativo (+57 Colombia por defecto), rol, medios de pago (solo si rol = anfitrión/admin), asignar glamping
-- Medios de pago: banco como dropdown (17 opciones), tipo/número de documento, titular, número y tipo de cuenta
-- Sección de medios de pago visible dinámicamente al cambiar rol en el propio modal
-
-**Comentarios (`/admin/comentarios`)** — nueva página
-- Filtros por tipo y estado
-- Toggle leído/no leído, eliminar comentario
-
-**Dashboard (`/admin`)** — correcciones
-- `glampings.length` (el endpoint devuelve array, no `{total}`)
-- Accesos rápidos cambiados de `<a>` a `<Link>` (evitaba reset de Zustand)
-
-#### Panel Anfitrión — mejoras
-
-**Dashboard**
-- Solo 3 cards: Mis glampings, Ingresos mes (solo reservas Glamperos), Calificación
-- Eliminados: "Reservas recientes", acceso rápido "Mis reservas", botón "+ Publicar"
-- Ingresos calculados con `useQueries` paralelos por glamping
-
-**Calendario**
-- Prevención de doble bloqueo: glampings completamente bloqueados aparecen deshabilitados con badge "Ya bloqueado"
-- Auto-selección de glamping si solo hay uno disponible
-- Lista de bloqueos del mes con fechas formateadas (ej: "19 mar 2026") y tipo (☀️ Pasadía / 🌙 Noches)
-- Botón eliminar solo en bloqueos manuales (`fuente === 'MANUAL'`)
-- Pills de ocupación % por glamping (incluye todas las fuentes: Airbnb, Booking, manual, Glamperos)
-
-#### Formulario creación glamping
-
-- **Selector de propietario** (solo admin): bloque amber al inicio del paso 1 con buscador de usuarios; al crear borrador, transfiere propiedad automáticamente si se seleccionó alguien
-
-#### Layout global
-
-- `ConditionalLayout` en `app/layout.tsx`: oculta Navbar para `/admin/*`, oculta Footer para `/admin/*` y `/anfitrion/*`
-- Panel anfitrión mantiene el Navbar de Glamperos (logo + menú usuario + enlace al inicio)
-
-#### Perfil (`/perfil`)
-
-- Sección medios de pago simplificada: banco como `<select>` con 17 opciones (en lugar de input libre + secciones separadas de Nequi/Daviplata)
-- Campos: tipo doc + número doc en grid, titular, banco, cuenta + tipo en grid
-
-#### Correcciones de React
-
-- `key` en listas usaba `r._id` pero la API devuelve `id` → corregido a `r.id`
-- `suppressHydrationWarning` en `<body>` (Grammarly) y `<header>` del Navbar (Next.js dev toolbar)
-
----
-
-### v2.7 — 2026-03-17
-
-#### Home — filtros rápidos y URLs SEO-friendly
-
-- Chips de filtro hardcodeados: domo, cabaña, chalet, tiny_house, tipi, jacuzzi, piscina, Bogotá, Medellín
-- URL semántica: `/medellin/domo`, `/bogota/jacuzzi`, etc.
-- Chip "Todos" usa `resetFiltros()` para cache hit en TanStack Query
-
-#### Rutas SEO con `[...slug]`
-
-- `app/[...slug]/page.tsx` — catch-all server component
-- Genera `<title>` y `<meta description>` dinámica
-- SSR: bots ven HTML completo con tarjetas
-
-#### URLs `/propiedad/:id` para Google Ads
-
-- `next.config.ts` rewrites `/propiedad/:id` → `/glamping/:id` preservando UTMs
-- Cache `s-maxage=300`
-
-#### GlampingCard — rediseño
-
-- Sin badge de tipo sobre imagen
-- Corazón siempre visible; sin sesión → toast de error
-- Badge "☕ Con desayuno" según amenidad `incluye-desayuno`
-
----
-
-### v2.6 — 2026-03-16
-
-#### Formulario creación
-
-- Skeleton loading, stepper clickeable, borrador automático, auto-guardado 30s
-- CiudadAutocomplete, FotosUpload, MapaPicker
-- 51 amenidades validadas, 24 servicios extras, política de cancelación
-- Al publicar: estado `pendiente`
-
-#### Panel admin aprobaciones
-
-- Lista glampings pendientes, aprobar/rechazar con motivo
-
-#### Lista y detalle glampings anfitrión
-
-- `GET /usuarios/me/glampings` — lista con badges de estado y motivo de rechazo
-- Detalle con banner contextual por estado, botón "Ver página pública"
+### v1.0 — 2026-03-17
+- Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
+- URLs SEO limpias con catch-all route `[...slug]`
+- Búsqueda por radio geográfico 130 km para cualquier ciudad
+- Catálogo de ~1100 ciudades colombianas con slugs inteligentes
+- `norm()` maneja acentos y puntuación ("Bogotá D.C." → "bogota dc")
+- Slug de Bogotá: `/bogota` (no `/bogota-bogota-dc`)
+- `CalendarioRango`: dos meses lado a lado, selección de rango con hover
+- Hook `useGlampings` omite `ciudad` cuando hay coordenadas (radio search)
+- Formulario de reserva: 2 huéspedes por defecto
+- Integración Wompi para pagos en línea

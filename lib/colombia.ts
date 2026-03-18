@@ -1,5 +1,61 @@
-// Municipios de Colombia — formato "Municipio, Departamento"
-export const MUNICIPIOS_COLOMBIA: string[] = [
+// lib/colombia.ts
+import municipiosData from './municipios.json'
+
+export interface CiudadColombia {
+  label: string        // "San Francisco, Cundinamarca"
+  ciudad: string       // "San Francisco"
+  departamento: string // "Cundinamarca"
+  slug: string         // "san-francisco-cundinamarca"
+}
+
+interface Municipio {
+  CIUDAD: string
+  DEPARTAMENTO: string
+  LATITUD: number
+  LONGITUD: number
+}
+
+function norm(s: string) {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+    .replace(/[^a-z0-9\s]/g, '')     // quitar puntuación (comas, puntos, guiones…)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** Retorna lat/lng desde municipios.json para una ciudad + departamento */
+export function getCoordenadas(ciudad: string, departamento: string): { lat: number; lng: number } | null {
+  const c = norm(ciudad)
+  const d = norm(departamento)
+  const all = municipiosData as Municipio[]
+
+  // 1. Match exacto ciudad + departamento
+  let m = all.find((m) => norm(m.CIUDAD) === c && norm(m.DEPARTAMENTO) === d)
+
+  // 2. Fallback: si la ciudad es única en el JSON, usar esa entrada
+  //    (ej: "Bogotá, Cundinamarca" → en municipios está como "Bogotá D.C.")
+  if (!m) {
+    const byCiudad = all.filter((m) => norm(m.CIUDAD) === c)
+    if (byCiudad.length === 1) m = byCiudad[0]
+  }
+
+  return m ? { lat: m.LATITUD, lng: m.LONGITUD } : null
+}
+
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+const RAW: string[] = [
   // Amazonas
   "Leticia, Amazonas", "Puerto Nariño, Amazonas",
 
@@ -35,8 +91,8 @@ export const MUNICIPIOS_COLOMBIA: string[] = [
   "Barranquilla, Atlántico", "Soledad, Atlántico", "Malambo, Atlántico",
   "Puerto Colombia, Atlántico", "Galapa, Atlántico", "Baranoa, Atlántico",
 
-  // Bogotá D.C.
-  "Bogotá, Bogotá D.C.",
+  // Bogotá Cundinamarca
+  "Bogotá, Cundinamarca",
 
   // Bolívar
   "Cartagena, Bolívar", "Magangué, Bolívar", "Mompox, Bolívar", "Turbaco, Bolívar",
@@ -197,3 +253,22 @@ export const MUNICIPIOS_COLOMBIA: string[] = [
   // Vichada
   "Puerto Carreño, Vichada",
 ]
+
+// Contar cuántas ciudades comparten el mismo slug simple (sin departamento)
+const _slugCount: Record<string, number> = {}
+RAW.forEach((raw) => {
+  const key = slugify(raw.slice(0, raw.indexOf(', ')))
+  _slugCount[key] = (_slugCount[key] || 0) + 1
+})
+
+export const CIUDADES_COLOMBIA: CiudadColombia[] = RAW.map((raw) => {
+  const commaIdx = raw.indexOf(', ')
+  const ciudad = raw.slice(0, commaIdx)
+  const departamento = raw.slice(commaIdx + 2)
+  const citySlug = slugify(ciudad)
+  // Solo agrega el departamento al slug si hay otra ciudad con el mismo nombre
+  const slug = _slugCount[citySlug] > 1
+    ? slugify(`${ciudad} ${departamento}`)
+    : citySlug
+  return { label: raw, ciudad, departamento, slug }
+})

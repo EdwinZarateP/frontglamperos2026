@@ -1,26 +1,47 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { HomeClient } from '../HomeClient'
-import { buildFiltrosFromSlug, buildSeoMeta, fetchGlampingsSSR } from '@/lib/filtros'
+import {
+  fetchGlampingsSSR,
+  parseFiltrosFromSlug,
+  parseFiltrosFromSearchParams,
+  buildSeoMeta,
+} from '@/lib/filtros'
+import type { FiltrosHome } from '@/types'
 
-interface Props {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
   params: Promise<{ slug: string[] }>
+  searchParams: Promise<Record<string, string>>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const sp = await searchParams
+  const slugFiltros = parseFiltrosFromSlug(slug) ?? {}
+  const spFiltros   = parseFiltrosFromSearchParams(sp)
+  const filtros     = { ...slugFiltros, ...spFiltros }
+  const { title, description } = buildSeoMeta(filtros)
+  return { title, description }
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export default async function SlugPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string[] }>
+  searchParams: Promise<Record<string, string>>
+}) {
   const { slug } = await params
-  const { title, description } = buildSeoMeta(slug)
-  const canonical = '/' + slug.join('/')
-  return {
-    title,
-    description,
-    alternates: { canonical },
-    openGraph: { title, description },
-  }
-}
+  const sp = await searchParams
 
-export default async function FilteredHomePage({ params }: Props) {
-  const { slug } = await params
-  const initialFiltros = buildFiltrosFromSlug(slug)
+  const slugFiltros = parseFiltrosFromSlug(slug)
+  if (!slugFiltros) notFound()
+
+  const spFiltros = parseFiltrosFromSearchParams(sp)
+  const initialFiltros: Partial<FiltrosHome> = { ...slugFiltros, ...spFiltros }
+
   const serverData = await fetchGlampingsSSR(initialFiltros)
-  return <HomeClient initialFiltros={initialFiltros} serverData={serverData} />
+
+  return <HomeClient serverData={serverData} initialFiltros={initialFiltros} />
 }
