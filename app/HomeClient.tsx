@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { MapPin, X, ChevronRight, Home } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -71,7 +72,7 @@ function FilterBreadcrumb({
               type="button"
               aria-label={`Quitar ${chip.label}`}
               onClick={() => onRemove(chip.removeKey)}
-              className="text-emerald-500 hover:text-emerald-700"
+              className="text-brand hover:text-brand-light"
             >
               <X size={11} />
             </button>
@@ -138,27 +139,44 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="pt-6 pb-2">
-        {/* overflow-hidden solo para la imagen — el SearchBar queda FUERA para que sus paneles no se corten */}
-        <div className="relative rounded-2xl overflow-hidden">
-          <img
-            src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/55" />
-          <div className="relative z-10 text-center pt-12 pb-16 sm:pt-16 sm:pb-20 px-6">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
-              DESCUBRE GLAMPING Y ALOJAMIENTOS RURALES INCREÍBLES PARA RESERVAR EN COLOMBIA
-            </h1>
+      {(() => {
+        const ciudad = filtros.ciudad ?? ''
+        const esBogota   = ciudad.toLowerCase().includes('bogot')
+        const esMedellin = ciudad.toLowerCase().includes('medell')
+        const heroImg = esBogota
+          ? 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/monserrate_optimizado.webp'
+          : esMedellin
+          ? 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/piedra_guatape.webp'
+          : 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
+        const heroText = esBogota
+          ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE BOGOTÁ'
+          : esMedellin
+          ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE MEDELLÍN'
+          : 'DESCUBRE GLAMPING Y ALOJAMIENTOS RURALES INCREÍBLES PARA RESERVAR EN COLOMBIA'
+
+        return (
+          <div className="pt-6 pb-2">
+            <div className="relative rounded-2xl overflow-hidden">
+              <img
+                src={heroImg}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/30" />
+              <div className="relative z-10 text-center pt-12 pb-16 sm:pt-16 sm:pb-20 px-6">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                  {heroText}
+                </h1>
+              </div>
+            </div>
+            {/* SearchBar fuera del overflow-hidden: paneles se abren libremente sin clipping */}
+            <div className="relative z-20 max-w-3xl mx-auto px-2 -mt-10">
+              <SearchBar />
+            </div>
           </div>
-        </div>
-        {/* SearchBar fuera del overflow-hidden: paneles se abren libremente sin clipping */}
-        <div className="relative z-20 max-w-4xl mx-auto px-2 -mt-10">
-          <SearchBar />
-        </div>
-      </div>
+        )
+      })()}
 
       {/* ── Chips de tipo/amenidad (fuera del hero, sin conflicto de z-index) */}
       <div className="mt-4 mb-2">
@@ -192,7 +210,7 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
             <p className="text-sm text-stone-500">
               {isFetching && ready ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
+                  <span className="h-3 w-3 rounded-full border-2 border-brand border-t-transparent animate-spin" />
                   Actualizando...
                 </span>
               ) : (
