@@ -177,12 +177,12 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
         <div className="flex gap-2 shrink-0">
           <button onClick={() => setVista('mes')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-              ${vista === 'mes' ? 'bg-emerald-600 text-white' : 'bg-white border border-stone-300 text-stone-600'}`}>
+              ${vista === 'mes' ? 'bg-brand text-white' : 'bg-white border border-stone-300 text-stone-600'}`}>
             Por unidad
           </button>
           <button onClick={() => setVista('macro')}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-              ${vista === 'macro' ? 'bg-emerald-600 text-white' : 'bg-white border border-stone-300 text-stone-600'}`}>
+              ${vista === 'macro' ? 'bg-brand text-white' : 'bg-white border border-stone-300 text-stone-600'}`}>
             Vista general
           </button>
         </div>
@@ -250,10 +250,10 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                     onMouseEnter={() => selStart && setSelHover(fecha)}
                     className={`min-h-[4rem] sm:min-h-[5rem] p-1.5 border-r border-b border-stone-100 cursor-pointer transition-colors
                       ${inRange ? 'bg-emerald-50' : isPast ? 'bg-stone-50/40 opacity-70' : 'hover:bg-stone-50'}
-                      ${isSelStart ? 'ring-2 ring-inset ring-emerald-500' : ''}`}
+                      ${isSelStart ? 'ring-2 ring-inset ring-brand' : ''}`}
                   >
                     <span className={`text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full mb-1
-                      ${isToday ? 'bg-emerald-600 text-white' : isPast ? 'text-stone-300' : 'text-stone-700'}`}>
+                      ${isToday ? 'bg-brand text-white' : isPast ? 'text-stone-300' : 'text-stone-700'}`}>
                       {parseInt(fecha.split('-')[2])}
                     </span>
 
@@ -304,7 +304,7 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
                     return (
                       <th key={d} className={`w-8 text-center py-2 border-b border-stone-100 font-medium
-                        ${dateStr === today ? 'text-emerald-600 bg-emerald-50' : 'text-stone-400'}`}>
+                        ${dateStr === today ? 'text-brand bg-emerald-50' : 'text-stone-400'}`}>
                         {d}
                       </th>
                     )
@@ -335,7 +335,7 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                             ${cfg ? cfg.cell : isPast ? 'bg-stone-50' : isToday ? 'bg-emerald-50' : 'hover:bg-emerald-50'}`}
                         >
                           {isToday && !cfg && (
-                            <div className="w-1 h-1 rounded-full bg-emerald-500 mx-auto" />
+                            <div className="w-1 h-1 rounded-full bg-brand mx-auto" />
                           )}
                         </td>
                       )
@@ -456,14 +456,14 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                         fechaFin: m.fechaFin <= ini ? nextDay(ini) : m.fechaFin,
                       }))
                     }}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-stone-500 block mb-1">Check-out</label>
                   <input type="date" value={modal.fechaFin}
                     min={modal.fechaInicio ? nextDay(modal.fechaInicio) : undefined}
                     onChange={(e) => setModal((m) => ({ ...m, fechaFin: e.target.value }))}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
             ) : (
@@ -471,7 +471,7 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                 <label className="text-xs font-medium text-stone-500 block mb-1">Fecha</label>
                 <input type="date" value={modal.fechaInicio}
                   onChange={(e) => setModal((m) => ({ ...m, fechaInicio: e.target.value }))}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
               </div>
             )}
 
@@ -481,7 +481,7 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                 <label className="text-xs font-medium text-stone-500 block mb-1">Alojamiento</label>
                 <select value={modal.unidadId}
                   onChange={(e) => setModal((m) => ({ ...m, unidadId: e.target.value }))}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white">
                   <option value="">Todas las unidades</option>
                   {unidades.map((u) => <option key={u._id} value={u._id}>{u.nombre}</option>)}
                 </select>
@@ -499,14 +499,14 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                   <input value={modal.nombreHuesped}
                     onChange={(e) => setModal((m) => ({ ...m, nombreHuesped: e.target.value }))}
                     placeholder="Juan García"
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-stone-500 block mb-1">Teléfono</label>
                   <input value={modal.telefonoHuesped}
                     onChange={(e) => setModal((m) => ({ ...m, telefonoHuesped: e.target.value }))}
                     placeholder="3001234567"
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
               <div>
@@ -514,7 +514,7 @@ export default function CalendarioPage({ params }: { params: Promise<{ id: strin
                 <input value={modal.descripcion}
                   onChange={(e) => setModal((m) => ({ ...m, descripcion: e.target.value }))}
                   placeholder="Desayuno, transporte, observaciones..."
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
               </div>
             </div>
 

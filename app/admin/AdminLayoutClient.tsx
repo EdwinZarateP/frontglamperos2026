@@ -45,7 +45,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors',
                 pathname === href
-                  ? 'bg-emerald-600 text-white'
+                  ? 'bg-brand text-white'
                   : 'text-stone-400 hover:bg-stone-800 hover:text-white'
               )}
             >
@@ -76,7 +76,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                 className={cn(
                   'shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[10px] font-medium min-w-[56px]',
                   pathname === href
-                    ? 'bg-emerald-600 text-white'
+                    ? 'bg-brand text-white'
                     : 'text-stone-400 hover:bg-stone-800 hover:text-white'
                 )}
               >

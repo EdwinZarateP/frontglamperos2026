@@ -72,10 +72,10 @@ export function GlampingCard({ glamping }: Props) {
   const activeDot = currentImg % MAX_DOTS
 
   return (
-    <article className="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg border border-stone-100 transition-all duration-300">
+    <article className="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg border border-stone-100 transition-all duration-300 flex flex-col h-full">
       {/* Carrusel con deslizamiento real */}
       <div
-        className="relative aspect-[4/3] overflow-hidden"
+        className="relative aspect-video overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -153,7 +153,7 @@ export function GlampingCard({ glamping }: Props) {
       </div>
 
       {/* Contenido */}
-      <Link href={`/glamping/${glamping.id}`} className="block p-4">
+      <Link href={`/glamping/${glamping.id}`} className="flex flex-col flex-1 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-stone-900 text-sm leading-tight line-clamp-1">
             {tipoGlampingLabels[glamping.tipo] ?? glamping.tipo} en{' '}
@@ -192,7 +192,7 @@ export function GlampingCard({ glamping }: Props) {
         </div>
 
         {/* Precio base + desayuno */}
-        <div className="mt-3 flex items-end justify-between gap-2">
+        <div className="mt-auto pt-3 flex items-end justify-between gap-2">
           <div>
             <p className="text-xs text-stone-400">Desde</p>
             <p className="font-bold text-stone-900 text-base">
@@ -202,7 +202,7 @@ export function GlampingCard({ glamping }: Props) {
           </div>
           <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
             glamping.amenidades?.includes('incluye-desayuno')
-              ? 'bg-emerald-50 text-emerald-700'
+              ? 'bg-emerald-50 text-brand-light'
               : 'bg-stone-100 text-stone-400'
           }`}>
             {glamping.amenidades?.includes('incluye-desayuno') ? '☕ Con desayuno' : 'Sin desayuno'}

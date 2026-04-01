@@ -265,7 +265,7 @@ export default function EditarGlampingPage({ params }: Props) {
   if (!glamping) return (
     <div className="max-w-3xl">
       <p className="text-red-500 text-sm">Glamping no encontrado</p>
-      <Link href="/anfitrion/glampings" className="text-sm text-emerald-600 hover:underline mt-2 inline-block">← Volver</Link>
+      <Link href="/anfitrion/glampings" className="text-sm text-brand hover:underline mt-2 inline-block">← Volver</Link>
     </div>
   )
 
@@ -285,7 +285,7 @@ export default function EditarGlampingPage({ params }: Props) {
         </div>
         <div className="flex gap-2 shrink-0">
           <Link href={`/anfitrion/glampings/${id}/calendario`}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm hover:bg-emerald-100 transition-colors">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-brand-light text-sm hover:bg-emerald-100 transition-colors">
             <CalendarDays size={14} /> Calendario
           </Link>
           {glamping.habilitado && (
@@ -352,7 +352,7 @@ export default function EditarGlampingPage({ params }: Props) {
 
         {/* Mascotas */}
         <label className="flex items-center gap-3 cursor-pointer select-none">
-          <input type="checkbox" {...register('aceptaMascotas')} className="w-4 h-4 accent-emerald-600" />
+          <input type="checkbox" {...register('aceptaMascotas')} className="w-4 h-4 accent-brand" />
           <span className="text-sm font-medium text-stone-700">Acepta mascotas</span>
         </label>
         {aceptaMascotas && (
@@ -361,7 +361,7 @@ export default function EditarGlampingPage({ params }: Props) {
 
         {/* Pasadía */}
         <label className="flex items-center gap-3 cursor-pointer select-none">
-          <input type="checkbox" {...register('permitePasadia')} className="w-4 h-4 accent-emerald-600" />
+          <input type="checkbox" {...register('permitePasadia')} className="w-4 h-4 accent-brand" />
           <span className="text-sm font-medium text-stone-700">Permite pasadía</span>
         </label>
         {permitePasadia && (
@@ -386,7 +386,7 @@ export default function EditarGlampingPage({ params }: Props) {
                   <input type="number" min={0} disabled={precioNocheBase === 0}
                     placeholder={String(precioNocheBase || 0)}
                     {...register(`tarifasNoche.${key as Dia}`, { valueAsNumber: true })}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-stone-50 disabled:text-stone-400" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand disabled:bg-stone-50 disabled:text-stone-400" />
                 </div>
               ))}
             </div>
@@ -408,7 +408,7 @@ export default function EditarGlampingPage({ params }: Props) {
                     <label className="text-xs font-medium text-stone-500 block mb-1">{label}</label>
                     <input type="number" min={0}
                       {...register(`tarifasPasadia.${key as Dia}`, { valueAsNumber: true })}
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                 ))}
               </div>
@@ -449,8 +449,8 @@ export default function EditarGlampingPage({ params }: Props) {
           {AMENIDADES_DISPONIBLES.map((a) => {
             const active = amenidades.includes(a.id)
             return (
-              <label key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-sm ${active ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-stone-200 text-stone-600 hover:border-stone-300'}`}>
-                <input type="checkbox" checked={active} onChange={() => setAmenidades((prev) => active ? prev.filter((x) => x !== a.id) : [...prev, a.id])} className="w-3.5 h-3.5 accent-emerald-600" />
+              <label key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-sm ${active ? 'border-emerald-400 bg-emerald-50 text-brand-light' : 'border-stone-200 text-stone-600 hover:border-stone-300'}`}>
+                <input type="checkbox" checked={active} onChange={() => setAmenidades((prev) => active ? prev.filter((x) => x !== a.id) : [...prev, a.id])} className="w-3.5 h-3.5 accent-brand" />
                 {a.label}
               </label>
             )
@@ -473,7 +473,7 @@ export default function EditarGlampingPage({ params }: Props) {
                       if (active) { const n = { ...prev }; delete n[cat.key]; return n }
                       return { ...prev, [cat.key]: { precio: 0, descripcion: '', unidad: cat.unidad } }
                     })
-                  }} className="w-4 h-4 accent-emerald-600 shrink-0" />
+                  }} className="w-4 h-4 accent-brand shrink-0" />
                   <span className="text-sm font-medium text-stone-700 flex-1">{cat.nombre}</span>
                 </label>
                 {active && (
@@ -482,13 +482,13 @@ export default function EditarGlampingPage({ params }: Props) {
                       <label className="text-xs font-medium text-stone-500 block mb-1">Precio (COP)</label>
                       <input type="number" min={0} value={val.precio}
                         onChange={(e) => setExtras((p) => ({ ...p, [cat.key]: { ...p[cat.key], precio: Number(e.target.value) } }))}
-                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                     </div>
                     <div>
                       <label className="text-xs font-medium text-stone-500 block mb-1">Unidad</label>
                       <select value={val.unidad}
                         onChange={(e) => setExtras((p) => ({ ...p, [cat.key]: { ...p[cat.key], unidad: e.target.value } }))}
-                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white">
                         {Object.entries(UNIDAD_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                       </select>
                     </div>
@@ -496,7 +496,7 @@ export default function EditarGlampingPage({ params }: Props) {
                       <label className="text-xs font-medium text-stone-500 block mb-1">Descripción</label>
                       <input type="text" value={val.descripcion} placeholder="Opcional"
                         onChange={(e) => setExtras((p) => ({ ...p, [cat.key]: { ...p[cat.key], descripcion: e.target.value } }))}
-                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                        className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                     </div>
                   </div>
                 )}
@@ -512,7 +512,7 @@ export default function EditarGlampingPage({ params }: Props) {
         <Textarea label="Políticas de la casa" rows={4} placeholder="Reglas, normas, restricciones..." {...register('politicasCasa')} />
         <div>
           <label className="flex items-center gap-3 cursor-pointer select-none mb-3">
-            <input type="checkbox" {...register('noCancelaciones')} className="w-4 h-4 accent-emerald-600" />
+            <input type="checkbox" {...register('noCancelaciones')} className="w-4 h-4 accent-brand" />
             <span className="text-sm font-medium text-stone-700">No admite cancelaciones</span>
           </label>
           {!noCancelaciones && (
@@ -539,7 +539,7 @@ export default function EditarGlampingPage({ params }: Props) {
           <p className="text-xs text-stone-400 mt-0.5">Cúpulas, domos, cabañas — cada una puede sincronizar con Airbnb o Booking</p>
         </div>
         <button type="button" onClick={() => setAgregandoUnidad(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors">
           <Plus size={13} /> Agregar unidad
         </button>
       </div>
@@ -577,19 +577,19 @@ export default function EditarGlampingPage({ params }: Props) {
                   <div>
                     <label className="text-xs font-medium text-stone-500 block mb-1">Nombre</label>
                     <input value={unidadForm.nombre} onChange={(e) => setUnidadForm((p) => ({ ...p, nombre: e.target.value }))}
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-stone-500 block mb-1 flex items-center gap-1"><Link2 size={11} /> iCal Airbnb</label>
                     <input value={unidadForm.urlIcal} onChange={(e) => setUnidadForm((p) => ({ ...p, urlIcal: e.target.value }))}
                       placeholder="https://www.airbnb.com/calendar/ical/..."
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-stone-500 block mb-1 flex items-center gap-1"><Link2 size={11} /> iCal Booking</label>
                     <input value={unidadForm.urlIcalBooking} onChange={(e) => setUnidadForm((p) => ({ ...p, urlIcalBooking: e.target.value }))}
                       placeholder="https://ical.booking.com/..."
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                 </div>
                 <div className="flex gap-2 justify-end">
@@ -599,26 +599,26 @@ export default function EditarGlampingPage({ params }: Props) {
                   </button>
                   <button type="button" onClick={() => updateUnidad.mutate({ uid: u._id, payload: { nombre: unidadForm.nombre, urlIcal: unidadForm.urlIcal || null, urlIcalBooking: unidadForm.urlIcalBooking || null } })}
                     disabled={updateUnidad.isPending}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors disabled:opacity-50">
                     <Check size={14} /> Guardar
                   </button>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-3 px-4 py-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-700 font-bold text-sm">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 text-brand-light font-bold text-sm">
                   {u.numero}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-stone-800 text-sm">{u.nombre}</p>
                   <div className="flex gap-3 mt-0.5">
                     {u.urlIcal ? (
-                      <span className="text-xs text-emerald-600 flex items-center gap-1"><Link2 size={10} /> Airbnb ✓</span>
+                      <span className="text-xs text-brand flex items-center gap-1"><Link2 size={10} /> Airbnb ✓</span>
                     ) : (
                       <span className="text-xs text-stone-400">Sin iCal Airbnb</span>
                     )}
                     {u.urlIcalBooking ? (
-                      <span className="text-xs text-emerald-600 flex items-center gap-1"><Link2 size={10} /> Booking ✓</span>
+                      <span className="text-xs text-brand flex items-center gap-1"><Link2 size={10} /> Booking ✓</span>
                     ) : (
                       <span className="text-xs text-stone-400">Sin iCal Booking</span>
                     )}
@@ -645,9 +645,9 @@ export default function EditarGlampingPage({ params }: Props) {
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-center gap-3">
             <input value={nuevaUnidadNombre} onChange={(e) => setNuevaUnidadNombre(e.target.value)}
               placeholder="Ej: Cúpula 2, Domo Norte..."
-              className="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              className="flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
             <button type="button" onClick={() => addUnidad.mutate(nuevaUnidadNombre)} disabled={!nuevaUnidadNombre.trim() || addUnidad.isPending}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium disabled:opacity-50 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-medium disabled:opacity-50 transition-colors">
               <Check size={14} /> Agregar
             </button>
             <button type="button" onClick={() => { setAgregandoUnidad(false); setNuevaUnidadNombre('') }}

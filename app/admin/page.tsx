@@ -69,13 +69,13 @@ function SeasonWidget() {
               disabled={isPending}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm'
+                  ? 'bg-emerald-50 border-emerald-400 text-brand-light shadow-sm'
                   : 'border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
               }`}
             >
               <span className="text-lg">{s.emoji}</span>
               {s.label}
-              {isActive && <span className="text-xs bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-md ml-1">Activa</span>}
+              {isActive && <span className="text-xs bg-emerald-100 text-brand px-1.5 py-0.5 rounded-md ml-1">Activa</span>}
             </button>
           )
         })}

@@ -35,7 +35,7 @@ interface Glamping {
 
 const ROL_COLOR: Record<string, string> = {
   admin:     'bg-red-100 text-red-700',
-  anfitrion: 'bg-emerald-100 text-emerald-700',
+  anfitrion: 'bg-emerald-100 text-brand-light',
   usuario:   'bg-stone-100 text-stone-600',
 }
 
@@ -72,7 +72,7 @@ const field = (label: string, value: string, onChange: (v: string) => void, plac
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
     />
   </div>
 )
@@ -83,7 +83,7 @@ const sel = (label: string, value: string, onChange: (v: string) => void, option
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
     >
       <option value="">Seleccionar</option>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -193,7 +193,7 @@ export default function AdminUsuariosPage() {
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
         placeholder="Buscar por nombre o email..."
-        className="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+        className="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
       />
 
       {isLoading ? (
@@ -228,7 +228,7 @@ export default function AdminUsuariosPage() {
                 </span>
                 <button
                   onClick={() => abrirModal(u)}
-                  className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                  className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-brand hover:bg-emerald-50 transition-colors"
                 >
                   <Pencil size={15} />
                 </button>
@@ -261,7 +261,7 @@ export default function AdminUsuariosPage() {
                   <select
                     value={form.indicativo}
                     onChange={(e) => setForm((f) => ({ ...f, indicativo: e.target.value }))}
-                    className="rounded-xl border border-stone-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white shrink-0"
+                    className="rounded-xl border border-stone-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white shrink-0"
                   >
                     {INDICATIVOS.map(({ code, label }) => (
                       <option key={code} value={code}>{label}</option>
@@ -272,7 +272,7 @@ export default function AdminUsuariosPage() {
                     value={form.telefonoNumero}
                     onChange={(e) => setForm((f) => ({ ...f, telefonoNumero: e.target.value }))}
                     placeholder="3001234567"
-                    className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
               </div>

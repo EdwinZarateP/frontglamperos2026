@@ -65,7 +65,7 @@ export default function CalendarioPublicoPage({ params }: { params: Promise<{ us
           <div className="flex flex-wrap gap-3">
             {glampings.map((g: { _id: string; nombreGlamping: string }, i: number) => {
               const PALETA = [
-                { dot: 'bg-emerald-500' }, { dot: 'bg-blue-500' }, { dot: 'bg-violet-500' },
+                { dot: 'bg-brand' }, { dot: 'bg-blue-500' }, { dot: 'bg-violet-500' },
                 { dot: 'bg-amber-500' },  { dot: 'bg-rose-500' }, { dot: 'bg-cyan-500' },
               ]
               return (

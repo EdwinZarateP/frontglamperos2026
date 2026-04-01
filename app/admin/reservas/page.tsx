@@ -116,7 +116,7 @@ export default function AdminReservasPage() {
                       href={reserva.comprobantePago}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-emerald-600 hover:underline mt-1 block"
+                      className="text-xs text-brand hover:underline mt-1 block"
                     >
                       Ver comprobante →
                     </a>

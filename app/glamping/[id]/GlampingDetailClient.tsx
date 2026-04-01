@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -39,6 +39,8 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
+
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const { data: calificaciones } = useCalificaciones(glamping._id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(glamping._id)
@@ -159,9 +161,9 @@ export function GlampingDetailClient({ glamping }: Props) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-24 lg:pb-6 flex flex-col">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4">
+      <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4 order-2 lg:order-1 px-0 pt-3 lg:pt-0">
         <Link href="/" className="hover:text-stone-700 flex items-center gap-1">
           <ChevronLeft size={14} /> Inicio
         </Link>
@@ -174,7 +176,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       </nav>
 
       {/* Título */}
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-4 mb-4 order-3 lg:order-2">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">
             {tipoGlampingLabels[glamping.tipoGlamping] ?? glamping.tipoGlamping} en {glamping.ciudadDepartamento.split(',')[0].trim()}
@@ -194,7 +196,7 @@ export function GlampingDetailClient({ glamping }: Props) {
               {glamping.tipoGlamping}
             </span>
             {glamping.aceptaMascotas && (
-              <span className="flex items-center gap-1 text-emerald-600">
+              <span className="flex items-center gap-1 text-brand">
                 <Dog size={13} /> Acepta mascotas
               </span>
             )}
@@ -266,7 +268,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       )}
 
       {/* Galería — móvil: carrusel / desktop: grid */}
-      <div className="mb-8">
+      <div className="mb-4 lg:mb-8 order-1 lg:order-3">
         {/* Móvil: imagen principal con indicador */}
         <div
           className="sm:hidden relative rounded-2xl overflow-hidden aspect-[4/3] bg-stone-100"
@@ -302,17 +304,21 @@ export function GlampingDetailClient({ glamping }: Props) {
               </span>
             </>
           )}
-          {/* Botones acción móvil */}
-          <div className="absolute top-3 left-3 flex gap-2">
-            {glamping.videoYoutube && (
-              <button
-                onClick={() => setShowVideo(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs font-medium hover:bg-black/80 transition-colors"
-              >
-                <Play size={12} fill="white" /> Ver video
-              </button>
-            )}
-          </div>
+          {/* Huellita pet-friendly */}
+          {glamping.aceptaMascotas && (
+            <span className="absolute top-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow text-base">
+              🐾
+            </span>
+          )}
+          {/* Botón video */}
+          {glamping.videoYoutube && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowVideo(true) }}
+              className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-medium hover:bg-black/80 transition-colors"
+            >
+              <Play size={12} fill="white" /> Ver video
+            </button>
+          )}
         </div>
 
         {/* Desktop: grid de fotos */}
@@ -324,17 +330,21 @@ export function GlampingDetailClient({ glamping }: Props) {
               alt={glamping.nombreGlamping}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            {/* Botones acción desktop sobre imagen principal */}
-            <div className="absolute bottom-3 left-3 flex gap-2">
-              {glamping.videoYoutube && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowVideo(true) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs font-medium hover:bg-black/80 transition-colors"
-                >
-                  <Play size={12} fill="white" /> Ver video
-                </button>
-              )}
-            </div>
+            {/* Huellita pet-friendly desktop */}
+            {glamping.aceptaMascotas && (
+              <span className="absolute top-3 left-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow text-lg">
+                🐾
+              </span>
+            )}
+            {/* Botón video desktop */}
+            {glamping.videoYoutube && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowVideo(true) }}
+                className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-medium hover:bg-black/80 transition-colors"
+              >
+                <Play size={12} fill="white" /> Ver video
+              </button>
+            )}
           </div>
           {imagenes.slice(1, 5).map((img, i) => (
             <div
@@ -357,13 +367,13 @@ export function GlampingDetailClient({ glamping }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 order-4">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-8">
           {/* Info básica */}
           <div className="flex flex-wrap gap-5 pb-8 border-b border-stone-100">
             <div className="flex items-center gap-2 text-stone-600">
-              <Users size={20} className="text-emerald-600" />
+              <Users size={20} className="text-brand" />
               <span className="text-sm">
                 Hasta <strong>{glamping.cantidadHuespedes}</strong> huéspedes
                 {glamping.cantidadHuespedesAdicionales > 0 &&
@@ -371,13 +381,13 @@ export function GlampingDetailClient({ glamping }: Props) {
               </span>
             </div>
             <div className="flex items-center gap-2 text-stone-600">
-              <Moon size={20} className="text-emerald-600" />
+              <Moon size={20} className="text-brand" />
               <span className="text-sm">
                 Mínimo <strong>{glamping.minimoNoches}</strong> noche(s)
               </span>
             </div>
             <div className="flex items-center gap-2 text-stone-600">
-              <Clock size={20} className="text-emerald-600" />
+              <Clock size={20} className="text-brand" />
               <span className="text-sm">
                 Check-in: <strong>{glamping.checkInNoche}</strong> · Check-out:{' '}
                 <strong>{glamping.checkOutNoche}</strong>
@@ -408,7 +418,7 @@ export function GlampingDetailClient({ glamping }: Props) {
               {glamping.amenidades.length > 8 && (
                 <button
                   onClick={() => setShowAllAmenidades((v) => !v)}
-                  className="mt-3 text-sm font-medium text-stone-700 underline hover:text-emerald-600"
+                  className="mt-3 text-sm font-medium text-stone-700 underline hover:text-brand"
                 >
                   {showAllAmenidades
                     ? 'Ver menos'
@@ -433,14 +443,14 @@ export function GlampingDetailClient({ glamping }: Props) {
                         onClick={() => toggleExtra(extra.key)}
                         className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
                           selected
-                            ? 'border-emerald-500 bg-emerald-50'
+                            ? 'border-brand bg-emerald-50'
                             : 'border-stone-200 hover:border-stone-300'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                              selected ? 'border-emerald-500 bg-emerald-500' : 'border-stone-300'
+                              selected ? 'border-brand bg-brand' : 'border-stone-300'
                             }`}
                           >
                             {selected && <CheckCircle size={12} className="text-white" />}
@@ -659,13 +669,13 @@ export function GlampingDetailClient({ glamping }: Props) {
               {glamping.aceptaMascotas && (
                 <div className="flex items-center justify-between py-2 mb-3 border-t border-stone-100">
                   <div className="flex items-center gap-2 text-sm text-stone-700">
-                    <Dog size={14} className="text-emerald-600" />
+                    <Dog size={14} className="text-brand" />
                     <span>Llevar mascota</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setTieneMascota((v) => !v)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-emerald-500' : 'bg-stone-200'}`}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-brand' : 'bg-stone-200'}`}
                   >
                     <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>

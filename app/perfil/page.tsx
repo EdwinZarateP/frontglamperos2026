@@ -138,7 +138,7 @@ export default function PerfilPage() {
           <div className="flex gap-2">
             <select
               {...register('indicativo')}
-              className="rounded-xl border border-stone-300 px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white shrink-0 max-w-[140px] sm:max-w-none"
+              className="rounded-xl border border-stone-300 px-2 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white shrink-0 max-w-[140px] sm:max-w-none"
             >
               {INDICATIVOS.map(({ code, label }) => (
                 <option key={code} value={code}>{label}</option>
@@ -147,7 +147,7 @@ export default function PerfilPage() {
             <input
               type="tel"
               placeholder="3001234567"
-              className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               {...register('telefonoNumero')}
             />
           </div>
@@ -175,7 +175,7 @@ export default function PerfilPage() {
               <label className="text-sm font-medium text-stone-700 block mb-1">Tipo de documento *</label>
               <select
                 {...regPagos('tipoDocumento', { required: 'Obligatorio' })}
-                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
               >
                 <option value="">Seleccionar</option>
                 <option value="CC">Cédula de ciudadanía</option>
@@ -207,7 +207,7 @@ export default function PerfilPage() {
             <label className="text-sm font-medium text-stone-700 block mb-1">Banco o billetera *</label>
             <select
               {...regPagos('banco', { required: 'Obligatorio' })}
-              className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
             >
               <option value="">Seleccionar</option>
               {BANCOS.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -228,7 +228,7 @@ export default function PerfilPage() {
               <label className="text-sm font-medium text-stone-700 block mb-1">Tipo de cuenta</label>
               <select
                 {...regPagos('tipoCuenta')}
-                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
               >
                 <option value="">Seleccionar</option>
                 <option value="Ahorros">Ahorros</option>

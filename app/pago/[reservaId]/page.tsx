@@ -93,7 +93,7 @@ export default function PagoPage({ params }: { params: Promise<{ reservaId: stri
                 onClick={() => setPorcentaje(p)}
                 className={`p-4 rounded-xl border-2 text-sm font-medium transition-all ${
                   porcentaje === p
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                    ? 'border-brand bg-emerald-50 text-brand-light'
                     : 'border-stone-200 text-stone-600 hover:border-stone-300'
                 }`}
               >

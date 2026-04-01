@@ -154,7 +154,7 @@ export default function AdminAprobacionesPage() {
                   <button
                     onClick={() => aprobar.mutate(g._id)}
                     disabled={aprobar.isPending}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-white text-sm font-medium hover:bg-brand-light disabled:opacity-50"
                   >
                     <CheckCircle size={14} /> Aprobar y publicar
                   </button>

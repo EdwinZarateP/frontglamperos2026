@@ -21,7 +21,7 @@ export interface Bloqueo  {
 
 // ── Color palette por glamping ────────────────────────────────────────────────
 export const PALETA = [
-  { bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-emerald-500' },
+  { bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-brand' },
   { bg: 'bg-blue-100',    text: 'text-blue-800',    dot: 'bg-blue-500'    },
   { bg: 'bg-violet-100',  text: 'text-violet-800',  dot: 'bg-violet-500'  },
   { bg: 'bg-amber-100',   text: 'text-amber-800',   dot: 'bg-amber-500'   },
@@ -144,9 +144,9 @@ export function CalendarioGrid({
               className={`min-h-[5rem] p-1.5 flex flex-col gap-0.5 transition-colors
                 ${clickable ? 'cursor-pointer' : ''}
                 ${inRange ? 'bg-emerald-50' : isPast ? 'bg-stone-50/40' : 'bg-white hover:bg-stone-50/60'}
-                ${isSelStart ? 'ring-2 ring-inset ring-emerald-500' : ''}`}>
+                ${isSelStart ? 'ring-2 ring-inset ring-brand' : ''}`}>
               <span className={`text-xs font-semibold self-start w-6 h-6 flex items-center justify-center rounded-full
-                ${isToday ? 'bg-emerald-600 text-white' : isPast ? 'text-stone-300' : 'text-stone-600'}`}>
+                ${isToday ? 'bg-brand text-white' : isPast ? 'text-stone-300' : 'text-stone-600'}`}>
                 {parseInt(fecha.split('-')[2])}
               </span>
               {ocupados.map(({ glamping, label, color }) => (
@@ -355,7 +355,7 @@ export default function CalendarioAnfitrionPage() {
         <h1 className="text-xl font-bold text-stone-900">Calendario</h1>
         <button onClick={copiarLink}
           className="flex items-center gap-2 px-3 py-2 rounded-xl border border-stone-200 text-sm text-stone-600 hover:bg-stone-50 transition-colors">
-          {copiado ? <Check size={15} className="text-emerald-600" /> : <Share2 size={15} />}
+          {copiado ? <Check size={15} className="text-brand" /> : <Share2 size={15} />}
           {copiado ? 'Copiado' : 'Compartir link'}
         </button>
       </div>
@@ -363,8 +363,8 @@ export default function CalendarioAnfitrionPage() {
       {/* Link público */}
       {publicUrl && (
         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <span className="text-xs text-emerald-700 flex-1 truncate">{publicUrl}</span>
-          <button onClick={copiarLink} className="shrink-0 p-1.5 rounded-lg hover:bg-emerald-100 text-emerald-700 transition-colors">
+          <span className="text-xs text-brand-light flex-1 truncate">{publicUrl}</span>
+          <button onClick={copiarLink} className="shrink-0 p-1.5 rounded-lg hover:bg-emerald-100 text-brand-light transition-colors">
             <Copy size={14} />
           </button>
         </div>
@@ -425,7 +425,7 @@ export default function CalendarioAnfitrionPage() {
       ) : glampings.length === 0 ? (
         <div className="bg-white rounded-2xl border border-stone-200 p-10 text-center">
           <p className="text-stone-400">No tienes glampings publicados aún.</p>
-          <Link href="/anfitrion/glampings/nuevo" className="text-emerald-600 text-sm hover:underline mt-2 inline-block">
+          <Link href="/anfitrion/glampings/nuevo" className="text-brand text-sm hover:underline mt-2 inline-block">
             + Publicar glamping
           </Link>
         </div>
@@ -559,7 +559,7 @@ export default function CalendarioAnfitrionPage() {
                         ${lleno
                           ? 'border-stone-100 bg-stone-50 text-stone-300 cursor-not-allowed'
                           : modal.glampingId === g._id
-                            ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                            ? 'border-brand bg-emerald-50 text-emerald-800'
                             : 'border-stone-200 text-stone-700 hover:border-stone-300 hover:bg-stone-50'}`}>
                       <div className={`w-3 h-3 rounded-full shrink-0 ${PALETA[gi % PALETA.length].dot} ${lleno ? 'opacity-30' : ''}`} />
                       <span className="flex-1">{g.nombreGlamping}</span>
@@ -576,7 +576,7 @@ export default function CalendarioAnfitrionPage() {
                 <label className="text-xs font-medium text-stone-500 block mb-1">¿Qué unidad?</label>
                 <select value={modal.unidadId}
                   onChange={(e) => setModal((m) => ({ ...m, unidadId: e.target.value }))}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white">
                   <option value="">Todas las unidades</option>
                   {unidadesModal.map((u) => <option key={u._id} value={u._id}>{u.nombre}</option>)}
                 </select>
@@ -608,14 +608,14 @@ export default function CalendarioAnfitrionPage() {
                       ...m, fechaInicio: e.target.value,
                       fechaFin: m.fechaFin <= e.target.value ? nextDay(e.target.value) : m.fechaFin,
                     }))}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-stone-500 block mb-1">Check-out</label>
                   <input type="date" value={modal.fechaFin}
                     min={modal.fechaInicio ? nextDay(modal.fechaInicio) : undefined}
                     onChange={(e) => setModal((m) => ({ ...m, fechaFin: e.target.value }))}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
             ) : (
@@ -623,7 +623,7 @@ export default function CalendarioAnfitrionPage() {
                 <label className="text-xs font-medium text-stone-500 block mb-1">Fecha</label>
                 <input type="date" value={modal.fechaInicio}
                   onChange={(e) => setModal((m) => ({ ...m, fechaInicio: e.target.value }))}
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
               </div>
             )}
 
@@ -638,14 +638,14 @@ export default function CalendarioAnfitrionPage() {
                   <input value={modal.nombreHuesped}
                     onChange={(e) => setModal((m) => ({ ...m, nombreHuesped: e.target.value }))}
                     placeholder="Juan García"
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-stone-500 block mb-1">Teléfono</label>
                   <input value={modal.telefonoHuesped}
                     onChange={(e) => setModal((m) => ({ ...m, telefonoHuesped: e.target.value }))}
                     placeholder="3001234567"
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
               <div>
@@ -653,7 +653,7 @@ export default function CalendarioAnfitrionPage() {
                 <input value={modal.descripcion}
                   onChange={(e) => setModal((m) => ({ ...m, descripcion: e.target.value }))}
                   placeholder="Desayuno, transporte, observaciones..."
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
               </div>
             </div>
 

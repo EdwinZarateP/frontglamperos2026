@@ -25,7 +25,7 @@ interface Glamping {
 
 const ESTADO_BADGE: Record<string, { label: string; className: string }> = {
   pendiente: { label: 'En revisión',  className: 'bg-amber-100 text-amber-700' },
-  aprobado:  { label: 'Publicado',    className: 'bg-emerald-100 text-emerald-700' },
+  aprobado:  { label: 'Publicado',    className: 'bg-emerald-100 text-brand-light' },
   rechazado: { label: 'Rechazado',    className: 'bg-red-100 text-red-600' },
 }
 
@@ -54,7 +54,7 @@ export default function MisGlampingsPage() {
         </div>
         <Link
           href="/anfitrion/glampings/nuevo"
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand text-white text-sm font-medium hover:bg-brand-light transition-colors"
         >
           <Plus size={16} /> Nuevo glamping
         </Link>
@@ -79,7 +79,7 @@ export default function MisGlampingsPage() {
           <p className="text-stone-400 mb-4">Aún no has publicado ningún glamping</p>
           <Link
             href="/anfitrion/glampings/nuevo"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-brand text-white text-sm font-medium hover:bg-brand-light"
           >
             <Plus size={16} /> Publicar mi primer glamping
           </Link>
@@ -154,7 +154,7 @@ export default function MisGlampingsPage() {
                     <Link
                       href={`/glamping/${g._id}`}
                       target="_blank"
-                      className="flex-1 text-center text-xs font-medium px-3 py-2 rounded-xl border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                      className="flex-1 text-center text-xs font-medium px-3 py-2 rounded-xl border border-emerald-200 text-brand hover:bg-emerald-50 transition-colors"
                     >
                       Ver página
                     </Link>

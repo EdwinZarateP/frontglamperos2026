@@ -61,7 +61,7 @@ export function CiudadAutocomplete({ value, onChange, error }: Props) {
             setOpen(true)
           }}
           onFocus={() => { if (query.trim().length >= 2) setOpen(true) }}
-          className={`w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+          className={`w-full rounded-xl border pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand ${
             error ? 'border-red-400' : 'border-stone-300'
           }`}
         />

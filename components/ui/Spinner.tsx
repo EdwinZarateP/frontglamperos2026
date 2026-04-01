@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 export function Spinner({ className }: { className?: string }) {
   return (
     <div className={cn('flex items-center justify-center py-20', className)}>
-      <div className="h-10 w-10 rounded-full border-4 border-stone-200 border-t-emerald-600 animate-spin" />
+      <div className="h-10 w-10 rounded-full border-4 border-stone-200 border-t-brand animate-spin" />
     </div>
   )
 }

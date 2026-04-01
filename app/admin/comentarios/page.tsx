@@ -20,7 +20,7 @@ interface Comentario {
 const TIPO_COLOR: Record<string, string> = {
   sugerencia:   'bg-blue-100 text-blue-700',
   queja:        'bg-red-100 text-red-600',
-  felicitacion: 'bg-emerald-100 text-emerald-700',
+  felicitacion: 'bg-emerald-100 text-brand-light',
   otro:         'bg-stone-100 text-stone-600',
 }
 const TIPO_LABEL: Record<string, string> = {
@@ -131,7 +131,7 @@ export default function AdminComentariosPage() {
                   <span className="text-xs text-stone-400">{fmtFecha(c.createdAt)}</span>
                   <button
                     onClick={() => marcarEstado.mutate({ id: c.id, estado: c.estado === 'leido' ? 'pendiente' : 'leido' })}
-                    className="p-1.5 rounded-lg text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                    className="p-1.5 rounded-lg text-stone-400 hover:text-brand hover:bg-emerald-50 transition-colors"
                     title={c.estado === 'leido' ? 'Marcar como pendiente' : 'Marcar como leído'}>
                     {c.estado === 'leido' ? <Mail size={15} /> : <MailOpen size={15} />}
                   </button>

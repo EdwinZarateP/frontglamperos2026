@@ -59,7 +59,7 @@ export default function AnfitrionDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Mis glampings', value: String(glampings.length),       icon: Tent,      color: 'bg-emerald-500' },
+          { label: 'Mis glampings', value: String(glampings.length),       icon: Tent,      color: 'bg-brand' },
           { label: 'Ingresos mes',  value: ingresosMes > 0 ? formatCOP(ingresosMes) : '$0', icon: DollarSign, color: 'bg-amber-500' },
           { label: 'Calificación',  value: calProm,                        icon: Star,      color: 'bg-purple-500'  },
         ].map(({ label, value, icon: Icon, color }) => (
@@ -80,7 +80,7 @@ export default function AnfitrionDashboard() {
         <div className="bg-white rounded-2xl border border-stone-200 p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold text-stone-800">Mis glampings</h2>
-            <Link href="/anfitrion/glampings" className="text-sm text-emerald-600 hover:underline">Ver todos</Link>
+            <Link href="/anfitrion/glampings" className="text-sm text-brand hover:underline">Ver todos</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {glampings.slice(0, 4).map((g) => (
@@ -101,7 +101,7 @@ export default function AnfitrionDashboard() {
                     <span className="inline-block text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Rechazado</span>
                   )}
                   {g.estadoAprobacion === 'aprobado' && (
-                    <span className="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Publicado</span>
+                    <span className="inline-block text-[10px] bg-emerald-100 text-brand-light px-2 py-0.5 rounded-full">Publicado</span>
                   )}
                   {g.calificacion > 0 && (
                     <p className="text-xs text-stone-400 flex items-center gap-1">
@@ -118,7 +118,7 @@ export default function AnfitrionDashboard() {
 
       {/* Atajo calendario */}
       <Link href="/anfitrion/calendario" className="flex items-center gap-4 bg-white rounded-2xl border border-stone-200 p-5 hover:shadow-md transition-shadow">
-        <CalendarDays size={28} className="text-emerald-600 shrink-0" />
+        <CalendarDays size={28} className="text-brand shrink-0" />
         <div>
           <p className="font-medium text-stone-800">Ver calendario</p>
           <p className="text-xs text-stone-400 mt-0.5">Gestiona tus bloqueos y disponibilidad</p>

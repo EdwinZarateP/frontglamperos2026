@@ -518,7 +518,7 @@ export default function NuevoGlampingPage() {
           {guardando
             ? <><Cloud size={13} className="animate-pulse" /> Guardando...</>
             : ultimoGuardado
-              ? <><Cloud size={13} className="text-emerald-500" /> Guardado</>
+              ? <><Cloud size={13} className="text-brand" /> Guardado</>
               : draftId
                 ? <><Cloud size={13} className="text-stone-300" /> Sin guardar</>
                 : <span className="text-stone-300">Sin borrador</span>
@@ -559,8 +559,8 @@ export default function NuevoGlampingPage() {
                 }`}
               >
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-colors ${
-                  active ? 'bg-emerald-600 text-white' :
-                  unlocked ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' :
+                  active ? 'bg-brand text-white' :
+                  unlocked ? 'bg-emerald-100 text-brand-light hover:bg-emerald-200' :
                   'bg-stone-200 text-stone-400'
                 }`}>
                   {stepNum}
@@ -660,7 +660,7 @@ export default function NuevoGlampingPage() {
                     <label
                       key={tipo}
                       className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition-all ${
-                        selected ? 'bg-emerald-600 text-white border-emerald-600' : 'border-stone-200 text-stone-600 hover:border-stone-400'
+                        selected ? 'bg-brand text-white border-brand' : 'border-stone-200 text-stone-600 hover:border-stone-400'
                       }`}
                     >
                       <input type="radio" {...register('tipoGlamping')} value={tipo} className="sr-only" />
@@ -705,11 +705,11 @@ export default function NuevoGlampingPage() {
             {/* Checkboxes */}
             <div className="flex gap-6 flex-wrap">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" {...register('aceptaMascotas')} className="accent-emerald-600" />
+                <input type="checkbox" {...register('aceptaMascotas')} className="accent-brand" />
                 <span className="text-sm text-stone-700">Acepta mascotas</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" {...register('permitePasadia')} className="accent-emerald-600" />
+                <input type="checkbox" {...register('permitePasadia')} className="accent-brand" />
                 <span className="text-sm text-stone-700">Permite pasadía</span>
               </label>
             </div>
@@ -766,7 +766,7 @@ export default function NuevoGlampingPage() {
                           min={0}
                           placeholder="0"
                           {...register(`tarifasNoche.${key}` as `tarifasNoche.${Dia}`)}
-                          className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                         />
                       </div>
                     ))}
@@ -800,7 +800,7 @@ export default function NuevoGlampingPage() {
                             min={0}
                             placeholder="0"
                             {...register(`tarifasPasadia.${key}` as `tarifasPasadia.${Dia}`)}
-                            className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                           />
                         </div>
                       ))}
@@ -844,7 +844,7 @@ export default function NuevoGlampingPage() {
                 {AMENIDADES_DISPONIBLES.map(({ id, label }) => (
                   <button key={id} type="button" onClick={() => toggleAmenidad(id)}
                     className={`px-4 py-2 rounded-full border text-sm transition-all ${
-                      amenidades.includes(id) ? 'bg-emerald-600 text-white border-emerald-600' : 'border-stone-200 text-stone-600 hover:border-stone-400'
+                      amenidades.includes(id) ? 'bg-brand text-white border-brand' : 'border-stone-200 text-stone-600 hover:border-stone-400'
                     }`}>
                     {label}
                   </button>
@@ -868,7 +868,7 @@ export default function NuevoGlampingPage() {
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          className="accent-emerald-600"
+                          className="accent-brand"
                           checked={activo}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -894,12 +894,12 @@ export default function NuevoGlampingPage() {
                               placeholder="Precio COP"
                               value={extras[cat.key]?.precio || ''}
                               onChange={(e) => setExtras((prev) => ({ ...prev, [cat.key]: { ...prev[cat.key], precio: Number(e.target.value) } }))}
-                              className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                             />
                             <select
                               value={extras[cat.key]?.unidad ?? cat.unidad}
                               onChange={(e) => setExtras((prev) => ({ ...prev, [cat.key]: { ...prev[cat.key], unidad: e.target.value } }))}
-                              className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                              className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand bg-white"
                             >
                               <option value="por_persona">por persona</option>
                               <option value="por_pareja">por pareja</option>
@@ -910,7 +910,7 @@ export default function NuevoGlampingPage() {
                             placeholder="Descripción opcional"
                             value={extras[cat.key]?.descripcion || ''}
                             onChange={(e) => setExtras((prev) => ({ ...prev, [cat.key]: { ...prev[cat.key], descripcion: e.target.value } }))}
-                            className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full rounded-lg border border-stone-300 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand"
                           />
                         </div>
                       )}
@@ -923,7 +923,7 @@ export default function NuevoGlampingPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-stone-700 block">Política de cancelación</label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" {...register('noCancelaciones')} className="accent-emerald-600" />
+                <input type="checkbox" {...register('noCancelaciones')} className="accent-brand" />
                 <span className="text-sm text-stone-700">No admite cancelaciones</span>
               </label>
               {!watch('noCancelaciones') && (
@@ -950,7 +950,7 @@ export default function NuevoGlampingPage() {
               </p>
 
               {rntUrl && !rntFile && (
-                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl mb-3 text-sm text-emerald-700">
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl mb-3 text-sm text-brand-light">
                   <FileText size={16} className="shrink-0" />
                   <span className="flex-1 truncate">Documento cargado</span>
                   <a href={rntUrl} target="_blank" rel="noopener noreferrer" className="underline text-xs">Ver</a>
@@ -1039,7 +1039,7 @@ export default function NuevoGlampingPage() {
             await guardarImagenes(id!)
             toast.success('Guardado')
           }}
-          className="pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 active:scale-95 disabled:opacity-60 transition-all text-sm font-medium"
+          className="pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-2xl bg-brand text-white shadow-lg hover:bg-brand-light active:scale-95 disabled:opacity-60 transition-all text-sm font-medium"
         >
           {guardando ? <Cloud size={16} className="animate-pulse" /> : <Cloud size={16} />}
           {guardando ? 'Guardando...' : 'Guardar ahora'}

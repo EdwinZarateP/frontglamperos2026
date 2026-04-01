@@ -43,7 +43,7 @@ interface Usuario {
 
 const ESTADO_CONFIG: Record<string, { label: string; className: string }> = {
   pendiente:  { label: 'Pendiente',  className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  aprobado:   { label: 'Aprobado',   className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  aprobado:   { label: 'Aprobado',   className: 'bg-emerald-50 text-brand-light border-emerald-200' },
   rechazado:  { label: 'Rechazado',  className: 'bg-red-50 text-red-600 border-red-200' },
   inactivo:   { label: 'Inactivo',   className: 'bg-stone-100 text-stone-500 border-stone-200' },
 }
@@ -122,7 +122,7 @@ function ModalAnfitriones({
           <ul className="space-y-2">
             {anfitriones.map((a) => (
               <li key={a.id} className="flex items-center gap-3 p-3 rounded-xl bg-stone-50">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm shrink-0">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-brand-light font-bold text-sm shrink-0">
                   {a.nombre?.[0]?.toUpperCase() ?? '?'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -130,7 +130,7 @@ function ModalAnfitriones({
                   <p className="text-xs text-stone-400 truncate">{a.email}</p>
                 </div>
                 {a.esPropietarioPrincipal ? (
-                  <span className="shrink-0 text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">Principal</span>
+                  <span className="shrink-0 text-[10px] bg-emerald-100 text-brand-light font-semibold px-2 py-0.5 rounded-full">Principal</span>
                 ) : (
                   <button
                     onClick={() => quitar.mutate(a.id)}
@@ -154,7 +154,7 @@ function ModalAnfitriones({
             placeholder="Buscar por nombre o email..."
             value={buscarEmail}
             onChange={(e) => setBuscarEmail(e.target.value)}
-            className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
           {sugeridos.length > 0 && (
             <ul className="space-y-1">
@@ -169,7 +169,7 @@ function ModalAnfitriones({
                     <button
                       onClick={() => agregar.mutate(uid)}
                       disabled={agregar.isPending}
-                      className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                      className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors disabled:opacity-50"
                     >
                       <UserPlus size={12} /> Añadir
                     </button>
@@ -264,7 +264,7 @@ export default function AdminGlampingsPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/anfitrion/glampings/nuevo"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors"
             >
               <Plus size={15} />
               <span className="hidden sm:inline">Crear glamping</span>
@@ -286,7 +286,7 @@ export default function AdminGlampingsPage() {
             placeholder="Buscar por nombre, establecimiento o ciudad..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
       </div>
@@ -321,7 +321,7 @@ export default function AdminGlampingsPage() {
                   <select
                     value={g.estadoAprobacion ?? 'pendiente'}
                     onChange={(e) => cambiarEstado.mutate({ id: g._id, estado: e.target.value })}
-                    className={`text-xs px-2 py-1 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                    className={`text-xs px-2 py-1 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand ${
                       ESTADO_CONFIG[g.estadoAprobacion ?? 'pendiente']?.className ?? ESTADO_CONFIG.pendiente.className
                     }`}
                   >
@@ -332,7 +332,7 @@ export default function AdminGlampingsPage() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setModalAnfitriones(g)}
-                      className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                      className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-brand transition-colors"
                       title="Gestionar anfitriones"
                     >
                       <Users size={15} />
@@ -342,7 +342,7 @@ export default function AdminGlampingsPage() {
                       <Eye size={15} />
                     </Link>
                     <Link href={`/anfitrion/glampings/${g._id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors">
                       <Pencil size={13} /> Editar
                     </Link>
                   </div>
@@ -396,7 +396,7 @@ export default function AdminGlampingsPage() {
                       <select
                         value={g.estadoAprobacion ?? 'pendiente'}
                         onChange={(e) => cambiarEstado.mutate({ id: g._id, estado: e.target.value })}
-                        className={`text-xs px-2 py-0.5 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                        className={`text-xs px-2 py-0.5 rounded-lg border font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand ${
                           ESTADO_CONFIG[g.estadoAprobacion ?? 'pendiente']?.className ?? ESTADO_CONFIG.pendiente.className
                         }`}
                       >
@@ -409,7 +409,7 @@ export default function AdminGlampingsPage() {
                       <div className="flex items-center gap-2 justify-end">
                         <button
                           onClick={() => setModalAnfitriones(g)}
-                          className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-brand transition-colors"
                           title="Gestionar anfitriones"
                         >
                           <Users size={15} />
@@ -419,7 +419,7 @@ export default function AdminGlampingsPage() {
                           <Eye size={15} />
                         </Link>
                         <Link href={`/anfitrion/glampings/${g._id}`}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors">
                           <Pencil size={13} /> Editar
                         </Link>
                       </div>

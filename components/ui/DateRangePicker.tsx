@@ -110,7 +110,7 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
           blocked && 'text-stone-300 cursor-not-allowed line-through',
           !blocked && !start && !end && !inRange && 'hover:bg-stone-100 text-stone-700',
           inRange && !start && !end && 'bg-emerald-50 rounded-none text-stone-700',
-          (start || end) && 'bg-emerald-600 text-white font-semibold z-10',
+          (start || end) && 'bg-brand text-white font-semibold z-10',
           isHov && !blocked && !start && !end && 'bg-stone-200',
           isToday(d) && !start && !end && !inRange && 'font-bold underline',
         )}
@@ -156,7 +156,7 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
       <div className="flex items-center justify-between mb-4">
         <div className="text-sm text-stone-600">
           {!startDate && <span className="text-stone-400">Selecciona fecha de llegada</span>}
-          {startDate && !endDate && <span className="text-emerald-700 font-medium">Ahora selecciona la salida</span>}
+          {startDate && !endDate && <span className="text-brand-light font-medium">Ahora selecciona la salida</span>}
           {startDate && endDate && (
             <span className="font-medium text-stone-800">
               {format(parseISO(startDate), 'd MMM', { locale: es })} →{' '}

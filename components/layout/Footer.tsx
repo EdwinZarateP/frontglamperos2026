@@ -7,9 +7,8 @@ export function Footer() {
 
         {/* Brand */}
         <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-          <span className="text-xl font-bold">
-            <span className="text-emerald-500">Glamp</span>
-            <span className="text-white">eros</span>
+          <span className="text-xl font-bold text-white">
+            Glamperos
           </span>
           <p className="text-sm leading-relaxed">
             La plataforma de glamping más completa de Colombia. Naturaleza y lujo, juntos.

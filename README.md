@@ -362,6 +362,33 @@ adaptado para:
 
 ## Changelog
 
+### v1.1 — 2026-04-01
+**Mejoras en el diseño del buscador del home (`SearchFilters.tsx`):**
+- Reducido el ancho máximo del contenedor del buscador de `max-w-4xl` (896px) a `max-w-3xl` (768px) para mejor proporción en pantallas grandes
+- Agregado `justify-center` al contenedor principal para centrar horizontalmente los componentes internos en pantallas grandes
+- Eliminado `flex-wrap` que causaba que los elementos se apilaran de forma desordenada
+- Implementado anchos porcentuales fijos para cada sección del buscador:
+  - Ubicación: 30% con min-width de 180px
+  - Fechas: 25% con min-width de 150px
+  - Viajeros: 25% con min-width de 130px
+  - Botón buscar: 44px fijo
+- Agregadas ciudades sugeridas por defecto (Bogotá y Medellín) cuando se abre el panel de ubicación en desktop
+  - Las ciudades sugeridas solo se ocultan cuando el usuario escribe más de 2 caracteres para buscar
+  - Cada ciudad sugerida muestra su icono y departamento correspondiente
+- Aplicado color `text-brand` (#0D261B, el mismo verde del navbar) a todos los iconos del buscador:
+  - MapPin (ubicación)
+  - Calendar (fechas)
+  - Users (viajeros)
+  - Search (botón de búsqueda)
+- Corregido problema de desbordamiento del calendario en pantallas grandes:
+  - Reducido el ancho del panel de fechas de `580px` a `530px` en desktop
+  - Reducido el min-width de cada mes de `260px` a `240px` para mejor ajuste
+- Corregidos errores de TypeScript y sintaxis en el componente
+
+**Archivos modificados:**
+- `app/HomeClient.tsx`: Reducción del ancho máximo del contenedor del buscador
+- `components/home/SearchFilters.tsx`: Mejoras de diseño, ciudades sugeridas, color de iconos, y corrección del calendario
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`

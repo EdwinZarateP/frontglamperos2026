@@ -81,7 +81,7 @@ export function MapaPicker({ lat, lng, onChange }: Props) {
           <input
             type="text"
             placeholder="Busca tu glamping, vereda, municipio..."
-            className="w-full rounded-xl border border-stone-300 pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full rounded-xl border border-stone-300 pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </Autocomplete>
       </div>

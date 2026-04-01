@@ -96,7 +96,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <span className="text-3xl font-bold">
-              <span className="text-emerald-600">Glamp</span>
+              <span className="text-brand">Glamp</span>
               <span className="text-stone-800">eros</span>
             </span>
           </Link>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="text-right">
-                  <Link href="/auth/recuperar" className="text-xs text-emerald-600 hover:underline">
+                  <Link href="/auth/recuperar" className="text-xs text-brand hover:underline">
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
@@ -203,7 +203,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-stone-400 mt-6">
           ¿No tienes cuenta?{' '}
-          <Link href="/auth/registro" className="text-emerald-600 font-medium hover:underline">
+          <Link href="/auth/registro" className="text-brand font-medium hover:underline">
             Regístrate gratis
           </Link>
         </p>

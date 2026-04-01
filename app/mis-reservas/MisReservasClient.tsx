@@ -40,10 +40,10 @@ export function MisReservasClient() {
 
       {nuevaReservaId && (
         <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex items-start gap-3">
-          <CheckCircle size={22} className="text-emerald-600 shrink-0 mt-0.5" />
+          <CheckCircle size={22} className="text-brand shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-emerald-800">¡Solicitud enviada con éxito!</p>
-            <p className="text-sm text-emerald-700 mt-0.5">
+            <p className="text-sm text-brand-light mt-0.5">
               Tu reserva está pendiente de aprobación. Te notificaremos por email y WhatsApp.
             </p>
           </div>

@@ -70,7 +70,7 @@ function FotoItem({ item, id, index, onRemove }: { item: ImagenItem; id: string;
       {/* Badge primera foto */}
       {index === 0 && (
         <div className="absolute bottom-1 left-1 right-1 text-center">
-          <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-md">
+          <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-md">
             Portada
           </span>
         </div>

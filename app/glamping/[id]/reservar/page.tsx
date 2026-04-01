@@ -177,7 +177,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
               ) : (
                 <p className="text-sm font-medium text-stone-800">
                   {editFechaInicio ? `${formatDate(editFechaInicio)} → ${formatDate(editFechaFin)}` : (
-                    <button type="button" onClick={() => setShowCalendar(true)} className="text-emerald-600 underline">
+                    <button type="button" onClick={() => setShowCalendar(true)} className="text-brand underline">
                       Seleccionar fechas
                     </button>
                   )}
@@ -224,7 +224,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                 <button
                   type="button"
                   onClick={() => setTieneMascota((v) => !v)}
-                  className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-emerald-500' : 'bg-stone-200'}`}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-brand' : 'bg-stone-200'}`}
                 >
                   <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-5' : 'translate-x-0.5'}`} />
                 </button>
@@ -254,12 +254,12 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                       key={extra.key}
                       onClick={() => toggleExtra(extra.key)}
                       className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        selected ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
+                        selected ? 'border-brand bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          selected ? 'border-emerald-500 bg-emerald-500' : 'border-stone-300'
+                          selected ? 'border-brand bg-brand' : 'border-stone-300'
                         }`}>
                           {selected && <CheckCircle size={12} className="text-white" />}
                         </div>
@@ -332,17 +332,17 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                 onClick={() => setMetodoPago('wompi')}
                 className={`relative flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
                   metodoPago === 'wompi'
-                    ? 'border-emerald-500 bg-emerald-50'
+                    ? 'border-brand bg-emerald-50'
                     : 'border-stone-200 hover:border-stone-300'
                 }`}
               >
                 {metodoPago === 'wompi' && (
-                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-brand flex items-center justify-center">
                     <CheckCircle size={10} className="text-white" />
                   </span>
                 )}
                 <div className="flex items-center gap-2 mb-2">
-                  <CreditCard size={18} className="text-emerald-600" />
+                  <CreditCard size={18} className="text-brand" />
                   <span className="font-semibold text-stone-800 text-sm">Pago en línea</span>
                 </div>
                 <p className="text-xs text-stone-500 mb-2">Tarjeta débito / crédito / PSE vía Wompi</p>
@@ -363,23 +363,23 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                 onClick={() => setMetodoPago('transferencia')}
                 className={`relative flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
                   metodoPago === 'transferencia'
-                    ? 'border-emerald-500 bg-emerald-50'
+                    ? 'border-brand bg-emerald-50'
                     : 'border-stone-200 hover:border-stone-300'
                 }`}
               >
                 {metodoPago === 'transferencia' && (
-                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-brand flex items-center justify-center">
                     <CheckCircle size={10} className="text-white" />
                   </span>
                 )}
                 <div className="flex items-center gap-2 mb-2">
-                  <Banknote size={18} className="text-emerald-600" />
+                  <Banknote size={18} className="text-brand" />
                   <span className="font-semibold text-stone-800 text-sm">Transferencia / Efectivo</span>
                 </div>
                 <p className="text-xs text-stone-500 mb-2">Transfiere directamente al anfitrión</p>
                 <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
-                  <ShieldCheck size={11} className="text-emerald-600 shrink-0" />
-                  <span className="text-xs text-emerald-700 font-medium">Sin comisión adicional</span>
+                  <ShieldCheck size={11} className="text-brand shrink-0" />
+                  <span className="text-xs text-brand-light font-medium">Sin comisión adicional</span>
                 </div>
                 {cotizacion && metodoPago === 'transferencia' && (
                   <p className="mt-2 text-sm font-bold text-stone-900">

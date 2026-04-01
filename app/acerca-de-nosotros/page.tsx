@@ -50,7 +50,7 @@ export default function AcercaDeNosotrosPage() {
       <section className="relative bg-emerald-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png')] bg-cover bg-center opacity-25" />
         <div className="relative max-w-4xl mx-auto px-6 py-24 text-center">
-          <span className="inline-block bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
+          <span className="inline-block bg-brand/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
             Nuestra historia
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
@@ -104,7 +104,7 @@ export default function AcercaDeNosotrosPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
               <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-                <Leaf size={20} className="text-emerald-600" />
+                <Leaf size={20} className="text-brand" />
               </div>
               <h3 className="text-xl font-bold text-stone-900 mb-3">Nuestra misión</h3>
               <p className="text-stone-600 leading-relaxed">
@@ -114,7 +114,7 @@ export default function AcercaDeNosotrosPage() {
             </div>
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
               <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4">
-                <Star size={20} className="text-emerald-600" />
+                <Star size={20} className="text-brand" />
               </div>
               <h3 className="text-xl font-bold text-stone-900 mb-3">Nuestra visión</h3>
               <p className="text-stone-600 leading-relaxed">
@@ -133,7 +133,7 @@ export default function AcercaDeNosotrosPage() {
           {valores.map(({ icon: Icon, titulo, texto }) => (
             <div key={titulo} className="flex gap-4">
               <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                <Icon size={18} className="text-emerald-600" />
+                <Icon size={18} className="text-brand" />
               </div>
               <div>
                 <h4 className="font-semibold text-stone-900 mb-1">{titulo}</h4>
@@ -216,7 +216,7 @@ export default function AcercaDeNosotrosPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
+          className="inline-flex items-center gap-2 bg-brand hover:bg-brand-light text-white font-semibold px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
         >
           Explorar glampings <ArrowRight size={18} />
         </Link>

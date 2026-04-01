@@ -90,7 +90,7 @@ export default function RegistroPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <span className="text-3xl font-bold">
-              <span className="text-emerald-600">Glamp</span>
+              <span className="text-brand">Glamp</span>
               <span className="text-stone-800">eros</span>
             </span>
           </Link>
@@ -157,7 +157,7 @@ export default function RegistroPage() {
                   <input type="checkbox" {...register('aceptaTratamientoDatos')} className="mt-0.5" />
                   <span className="text-xs text-stone-500">
                     Acepto el{' '}
-                    <Link href="/privacidad" className="text-emerald-600 hover:underline">
+                    <Link href="/privacidad" className="text-brand hover:underline">
                       tratamiento de datos personales
                     </Link>{' '}
                     según la política de privacidad de Glamperos.
@@ -208,7 +208,7 @@ export default function RegistroPage() {
 
         <p className="text-center text-sm text-stone-400 mt-6">
           ¿Ya tienes cuenta?{' '}
-          <Link href="/auth/login" className="text-emerald-600 font-medium hover:underline">
+          <Link href="/auth/login" className="text-brand font-medium hover:underline">
             Inicia sesión
           </Link>
         </p>

@@ -2,9 +2,9 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
-  --color-emerald-50: #ecfdf5;
-  --color-emerald-600: #059669;
-  --color-emerald-700: #047857;
+  --color-brand: #0D261B;
+  --color-brand-light: #11333A;
+  --color-brand-hover: #0A1F24;
 }
 
 html {
@@ -41,5 +41,5 @@ body {
 
 /* Swiper custom */
 .swiper-pagination-bullet-active {
-  background-color: #059669 !important;
+  background-color: #0D261B !important;
 }

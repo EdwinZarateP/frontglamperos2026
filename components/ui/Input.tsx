@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             'w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-stone-900',
             'placeholder:text-stone-400 text-sm',
-            'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent',
+            'focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent',
             'disabled:bg-stone-50 disabled:text-stone-400',
             error && 'border-red-400 focus:ring-red-400',
             className
@@ -59,7 +59,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={cn(
             'w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-stone-900',
             'placeholder:text-stone-400 text-sm resize-y min-h-[100px]',
-            'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent',
+            'focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent',
             error && 'border-red-400 focus:ring-red-400',
             className
           )}

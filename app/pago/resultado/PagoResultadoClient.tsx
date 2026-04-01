@@ -54,7 +54,7 @@ export function PagoResultadoClient() {
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-10 max-w-md w-full text-center">
         {exito ? (
           <>
-            <CheckCircle size={56} className="text-emerald-500 mx-auto mb-4" />
+            <CheckCircle size={56} className="text-brand mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-stone-900 mb-2">¡Pago recibido!</h1>
             <p className="text-stone-500 mb-6">
               Tu pago fue procesado exitosamente. El administrador confirmará tu reserva pronto.

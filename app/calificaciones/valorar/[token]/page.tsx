@@ -44,7 +44,7 @@ export default function ValorarPage({ params }: { params: Promise<{ token: strin
 
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <div className="h-8 w-8 border-4 border-brand border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
@@ -84,7 +84,7 @@ export default function ValorarPage({ params }: { params: Promise<{ token: strin
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <span className="text-3xl font-bold">
-            <span className="text-emerald-600">Glamp</span>
+            <span className="text-brand">Glamp</span>
             <span className="text-stone-800">eros</span>
           </span>
           <h1 className="text-xl font-semibold text-stone-900 mt-4">

@@ -48,7 +48,7 @@ export default function AnfitrionLayoutClient({ children }: { children: React.Re
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-colors',
                 pathname === href
-                  ? 'bg-emerald-50 text-emerald-700 font-medium'
+                  ? 'bg-emerald-50 text-brand-light font-medium'
                   : 'text-stone-500 hover:bg-stone-50 hover:text-stone-800'
               )}
             >
@@ -72,7 +72,7 @@ export default function AnfitrionLayoutClient({ children }: { children: React.Re
               className={cn(
                 'shrink-0 px-3 py-2 rounded-lg text-xs font-medium border',
                 pathname === href
-                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  ? 'bg-brand text-white border-brand'
                   : 'text-stone-600 bg-white border-stone-200'
               )}
             >

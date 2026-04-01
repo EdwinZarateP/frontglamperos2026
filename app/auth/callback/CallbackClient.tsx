@@ -94,7 +94,7 @@ export function CallbackClient() {
           {/* Logo */}
           <div className="text-center mb-6">
             <span className="text-2xl font-bold">
-              <span className="text-emerald-600">Glamp</span>
+              <span className="text-brand">Glamp</span>
               <span className="text-stone-800">eros</span>
             </span>
             <p className="text-stone-500 text-sm mt-1">Antes de continuar</p>
@@ -137,11 +137,11 @@ export function CallbackClient() {
               type="checkbox"
               checked={aceptado}
               onChange={(e) => setAceptado(e.target.checked)}
-              className="mt-0.5 accent-emerald-600 w-4 h-4 shrink-0"
+              className="mt-0.5 accent-brand w-4 h-4 shrink-0"
             />
             <span className="text-sm text-stone-600 leading-relaxed">
               Acepto el{' '}
-              <Link href="/privacidad" target="_blank" className="text-emerald-600 underline hover:text-emerald-700">
+              <Link href="/privacidad" target="_blank" className="text-brand underline hover:text-brand-light">
                 tratamiento de mis datos personales
               </Link>{' '}
               según la política de privacidad de Glamperos, de conformidad con la Ley
