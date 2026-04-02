@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
+import { WhatsAppFloatingButton } from '@/components/home/WhatsAppFloatingButton'
 
 // Admin tiene su propio panel oscuro → ocultar Navbar y Footer
 // Anfitrión mantiene el Navbar de Glamperos pero no el Footer
@@ -19,6 +20,9 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
       {!hideNavbar && <Navbar />}
       <main className={hideNavbar && hideFooter ? '' : 'min-h-screen'}>{children}</main>
       {!hideFooter && <Footer />}
+      {/* WhatsApp button en home y páginas de glamping */}
+      {(pathname === '/' || pathname.startsWith('/glamping/')) && <WhatsAppFloatingButton />}
     </>
   )
 }
+

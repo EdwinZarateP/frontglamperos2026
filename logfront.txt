@@ -1,33 +1,56 @@
 ## Error Type
-Build Error
+Console Error
 
 ## Error Message
-Parsing ecmascript source code failed
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
-## Build Output
-./components/home/SearchFilters.tsx:798:4
-Parsing ecmascript source code failed
-  796 |     </div>
-  797 |
-> 798 |   </div>
-      |    ^^^^^
-  799 |   )
-  800 | }
-  801 |
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
 
-Unterminated regexp literal
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
 
-Import traces:
-  Client Component Browser:
-    ./components/home/SearchFilters.tsx [Client Component Browser]
-    ./app/HomeClient.tsx [Client Component Browser]
-    ./app/HomeClient.tsx [Server Component]
-    ./app/page.tsx [Server Component]
+https://react.dev/link/hydration-mismatch
 
-  Client Component SSR:
-    ./components/home/SearchFilters.tsx [Client Component SSR]
-    ./app/HomeClient.tsx [Client Component SSR]
-    ./app/HomeClient.tsx [Server Component]
-    ./app/page.tsx [Server Component]
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="es"
++                         className="inter_2fe1ab3d-module__-T-KAq__variable"
+-                         className="inter_2fe1ab3d-module__-T-KAq__variable js-enabled"
+                        >
+                  ...
+
+
+
+    at html (<anonymous>:null:null)
+    at RootLayout (app\layout.tsx:49:5)
+
+## Code Frame
+  47 | export default function RootLayout({ children }: { children: React.ReactNode }) {
+  48 |   return (
+> 49 |     <html lang="es" className={inter.variable}>
+     |     ^
+  50 |       <body suppressHydrationWarning className="font-sans bg-white text-stone-900 antialiased">
+  51 |         <Providers>
+  52 |           <ConditionalLayout>{children}</ConditionalLayout>
 
 Next.js version: 16.1.6 (Turbopack)

@@ -8,11 +8,10 @@ import {
   getDay, differenceInCalendarDays, parseISO, isToday,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
 
 interface Props {
-  startDate: string   // YYYY-MM-DD
-  endDate: string     // YYYY-MM-DD
+  startDate: string
+  endDate: string
   onChange: (start: string, end: string) => void
   blockedDates?: string[]
   minNights?: number
@@ -23,190 +22,185 @@ const DAYS = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá']
 
 function buildMonth(date: Date) {
   const first = startOfMonth(date)
-  const last = endOfMonth(date)
-  const days = eachDayOfInterval({ start: first, end: last })
-  const startOffset = getDay(first) // 0=Sunday
-  return { days, startOffset, monthLabel: format(date, 'MMMM yyyy', { locale: es }) }
+  const last  = endOfMonth(date)
+  const days  = eachDayOfInterval({ start: first, end: last })
+  return { days, startOffset: getDay(first), label: format(date, 'MMMM yyyy', { locale: es }) }
 }
 
 export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [], minNights = 1, onClose }: Props) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d }, [])
 
-  const [baseMonth, setBaseMonth] = useState<Date>(() => {
-    if (startDate) {
-      const d = parseISO(startDate)
-      return startOfMonth(d)
-    }
-    return startOfMonth(today)
-  })
-
-  // Hover state for range preview
+  const [baseMonth, setBaseMonth] = useState<Date>(() =>
+    startDate ? startOfMonth(parseISO(startDate)) : startOfMonth(today)
+  )
   const [hoverDate, setHoverDate] = useState<Date | null>(null)
 
   const blockedSet = useMemo(() => new Set(blockedDates), [blockedDates])
-
   const month1 = useMemo(() => buildMonth(baseMonth), [baseMonth])
   const month2 = useMemo(() => buildMonth(addMonths(baseMonth, 1)), [baseMonth])
 
   const startParsed = startDate ? parseISO(startDate) : null
-  const endParsed = endDate ? parseISO(endDate) : null
+  const endParsed   = endDate   ? parseISO(endDate)   : null
 
-  const isBlocked = (d: Date) =>
-    blockedSet.has(format(d, 'yyyy-MM-dd')) || isBefore(d, today)
-
-  const isStart = (d: Date) => startParsed !== null && isSameDay(d, startParsed)
-  const isEnd = (d: Date) => endParsed !== null && isSameDay(d, endParsed)
+  const isBlocked = (d: Date) => blockedSet.has(format(d, 'yyyy-MM-dd')) || isBefore(d, today)
 
   const isInRange = (d: Date) => {
     const rangeEnd = endParsed || hoverDate
     if (!startParsed || !rangeEnd) return false
     const lo = isBefore(startParsed, rangeEnd) ? startParsed : rangeEnd
-    const hi = isBefore(startParsed, rangeEnd) ? rangeEnd : startParsed
+    const hi = isBefore(startParsed, rangeEnd) ? rangeEnd   : startParsed
     return isAfter(d, lo) && isBefore(d, hi)
   }
 
-  const handleDayClick = (d: Date) => {
+  const handleClick = (d: Date) => {
     if (isBlocked(d)) return
-    const fmtD = format(d, 'yyyy-MM-dd')
-
-    // Si no hay inicio, o ya hay rango completo → empieza nuevo rango
-    if (!startDate || (startDate && endDate)) {
-      onChange(fmtD, '')
-      return
-    }
-
-    // Tenemos inicio sin fin → establece fin
-    if (startDate && !endDate) {
-      if (isBefore(d, parseISO(startDate))) {
-        // Fecha antes del inicio → resetea
-        onChange(fmtD, '')
-        return
-      }
-      const nights = differenceInCalendarDays(d, parseISO(startDate))
-      if (nights < minNights) return // no cumple mínimo
-      onChange(startDate, fmtD)
-    }
-  }
-
-  const renderDay = (d: Date, key: string) => {
-    const blocked = isBlocked(d)
-    const start = isStart(d)
-    const end = isEnd(d)
-    const inRange = isInRange(d)
     const fmt = format(d, 'yyyy-MM-dd')
-    const isHov = hoverDate ? isSameDay(d, hoverDate) : false
-
-    return (
-      <button
-        key={key}
-        type="button"
-        disabled={blocked}
-        onClick={() => handleDayClick(d)}
-        onMouseEnter={() => !blocked && setHoverDate(d)}
-        onMouseLeave={() => setHoverDate(null)}
-        className={cn(
-          'relative w-full aspect-square flex items-center justify-center text-sm rounded-full transition-all select-none',
-          blocked && 'text-stone-300 cursor-not-allowed line-through',
-          !blocked && !start && !end && !inRange && 'hover:bg-stone-100 text-stone-700',
-          inRange && !start && !end && 'bg-emerald-50 rounded-none text-stone-700',
-          (start || end) && 'bg-brand text-white font-semibold z-10',
-          isHov && !blocked && !start && !end && 'bg-stone-200',
-          isToday(d) && !start && !end && !inRange && 'font-bold underline',
-        )}
-        title={blocked ? 'No disponible' : fmt}
-      >
-        {format(d, 'd')}
-      </button>
-    )
+    if (!startDate || (startDate && endDate)) { onChange(fmt, ''); return }
+    if (isBefore(d, parseISO(startDate))) { onChange(fmt, ''); return }
+    if (differenceInCalendarDays(d, parseISO(startDate)) < minNights) return
+    onChange(startDate, fmt)
   }
-
-  const renderMonth = (month: ReturnType<typeof buildMonth>) => (
-    <div className="flex-1 min-w-0">
-      <p className="text-center text-sm font-semibold text-stone-800 mb-3 capitalize">
-        {month.monthLabel}
-      </p>
-      <div className="grid grid-cols-7 gap-0.5 mb-1">
-        {DAYS.map((d) => (
-          <div key={d} className="text-center text-xs text-stone-400 font-medium py-1">
-            {d}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-0.5">
-        {/* Offset vacío para el primer día */}
-        {Array.from({ length: month.startOffset }).map((_, i) => (
-          <div key={`empty-${i}`} />
-        ))}
-        {month.days.map((d) => renderDay(d, format(d, 'yyyy-MM-dd')))}
-      </div>
-    </div>
-  )
 
   const nightsLabel = () => {
     if (!startDate || !endDate) return null
     const n = differenceInCalendarDays(parseISO(endDate), parseISO(startDate))
-    if (n <= 0) return null
-    return `${n} ${n === 1 ? 'noche' : 'noches'}`
+    return n > 0 ? `${n} ${n === 1 ? 'noche' : 'noches'}` : null
   }
 
+  const renderDay = (d: Date) => {
+    const blocked = isBlocked(d)
+    const isStart = startParsed ? isSameDay(d, startParsed) : false
+    const isEnd   = endParsed   ? isSameDay(d, endParsed)   : false
+    const inRange = isInRange(d)
+    const isHov   = hoverDate   ? isSameDay(d, hoverDate)   : false
+
+    // Para el rango: mostrar media franja a la derecha del inicio y a la izquierda del fin
+    const rangeEnd = endParsed || hoverDate
+    const hasRange = startParsed && rangeEnd && !isSameDay(startParsed, rangeEnd ?? startParsed)
+    const showRightHalf = isStart && hasRange && (rangeEnd ? isAfter(rangeEnd, startParsed) : false)
+    const showLeftHalf  = isEnd   && hasRange
+
+    return (
+      <div
+        key={format(d, 'yyyy-MM-dd')}
+        className="relative flex items-center justify-center h-9"
+        onMouseEnter={() => !blocked && setHoverDate(d)}
+        onMouseLeave={() => setHoverDate(null)}
+      >
+        {/* Franja derecha para inicio del rango */}
+        {showRightHalf && (
+          <div className="absolute top-0.5 bottom-0.5 left-1/2 right-0 bg-stone-100 pointer-events-none" />
+        )}
+        {/* Franja izquierda para fin del rango */}
+        {showLeftHalf && (
+          <div className="absolute top-0.5 bottom-0.5 right-1/2 left-0 bg-stone-100 pointer-events-none" />
+        )}
+        {/* Franja completa para días intermedios */}
+        {inRange && !isStart && !isEnd && (
+          <div className="absolute top-0.5 bottom-0.5 left-0 right-0 bg-stone-100 pointer-events-none" />
+        )}
+
+        <button
+          type="button"
+          disabled={blocked}
+          onClick={() => handleClick(d)}
+          className={[
+            'relative z-10 w-9 h-9 shrink-0 flex items-center justify-center text-sm rounded-full transition-colors select-none',
+            blocked
+              ? 'text-stone-300 cursor-not-allowed line-through'
+              : (isStart || isEnd)
+              ? 'bg-stone-900 text-white font-semibold'
+              : isHov && !startDate
+              ? 'bg-stone-200 text-stone-800'
+              : inRange || isHov
+              ? 'hover:bg-stone-200 text-stone-700'
+              : isToday(d)
+              ? 'font-bold text-emerald-600 hover:bg-stone-100'
+              : 'hover:bg-stone-100 text-stone-700',
+          ].join(' ')}
+        >
+          {format(d, 'd')}
+        </button>
+      </div>
+    )
+  }
+
+  const renderMonth = (month: ReturnType<typeof buildMonth>) => (
+    <div className="flex-1 min-w-0 overflow-hidden">
+      <p className="text-center text-sm font-semibold text-stone-800 mb-3 capitalize">
+        {month.label}
+      </p>
+      {/* Días de la semana */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAYS.map((d) => (
+          <div key={d} className="h-9 flex items-center justify-center text-xs text-stone-400 font-medium">
+            {d}
+          </div>
+        ))}
+      </div>
+      {/* Días del mes */}
+      <div className="grid grid-cols-7">
+        {Array.from({ length: month.startOffset }).map((_, i) => <div key={`e${i}`} className="h-9" />)}
+        {month.days.map((d) => renderDay(d))}
+      </div>
+    </div>
+  )
+
+  const canPrev = isBefore(today, baseMonth)
+
   return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 p-4 w-full max-w-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-stone-600">
-          {!startDate && <span className="text-stone-400">Selecciona fecha de llegada</span>}
-          {startDate && !endDate && <span className="text-brand-light font-medium">Ahora selecciona la salida</span>}
+    <div className="bg-white rounded-2xl shadow-xl border border-stone-200 p-4 w-full">
+      {/* Header — estado de selección */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm">
+          {!startDate && <span className="text-stone-400">Selecciona tu fecha de llegada</span>}
+          {startDate && !endDate && <span className="text-emerald-600 font-medium">Selecciona tu fecha de salida</span>}
           {startDate && endDate && (
             <span className="font-medium text-stone-800">
               {format(parseISO(startDate), 'd MMM', { locale: es })} →{' '}
-              {format(parseISO(endDate), 'd MMM', { locale: es })}
+              {format(parseISO(endDate),   'd MMM', { locale: es })}
               {nightsLabel() && <span className="text-stone-400 font-normal"> · {nightsLabel()}</span>}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {(startDate || endDate) && (
-            <button
-              type="button"
-              onClick={() => onChange('', '')}
-              className="text-xs text-stone-400 hover:text-stone-700 underline"
-            >
+            <button type="button" onClick={() => onChange('', '')} className="text-xs text-stone-400 hover:text-stone-700 underline">
               Limpiar
             </button>
           )}
           {onClose && (
-            <button type="button" onClick={onClose} className="p-1 text-stone-400 hover:text-stone-700">
+            <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700">
               <X size={16} />
             </button>
           )}
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navegación de meses */}
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
           onClick={() => setBaseMonth((m) => subMonths(m, 1))}
-          disabled={!isBefore(today, baseMonth)}
-          className="p-1.5 rounded-full hover:bg-stone-100 text-stone-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          disabled={!canPrev}
+          className="p-2 rounded-full hover:bg-stone-100 text-stone-600 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           type="button"
           onClick={() => setBaseMonth((m) => addMonths(m, 1))}
-          className="p-1.5 rounded-full hover:bg-stone-100 text-stone-600"
+          className="p-2 rounded-full hover:bg-stone-100 text-stone-600 transition-colors"
         >
           <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Calendars */}
-      <div className="flex gap-6">
+      {/* Meses */}
+      <div className="flex gap-4">
         {renderMonth(month1)}
-        <div className="hidden sm:block w-px bg-stone-100" />
-        <div className="hidden sm:flex flex-1">
+        <div className="hidden sm:block w-px bg-stone-100 shrink-0" />
+        <div className="hidden sm:flex flex-1 min-w-0">
           {renderMonth(month2)}
         </div>
       </div>

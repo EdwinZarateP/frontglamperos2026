@@ -8,6 +8,8 @@ interface Props {
   lng: number
 }
 
+const LIBRARIES: ('places')[] = ['places']
+
 const MAP_OPTIONS: google.maps.MapOptions = {
   zoom: 13,
   minZoom: 10,
@@ -30,6 +32,9 @@ const CIRCLE_OPTIONS: google.maps.CircleOptions = {
 export function MapaVista({ lat, lng }: Props) {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '',
+    libraries: LIBRARIES,
+    language: 'es',
+    region: 'CO',
   })
 
   if (!isLoaded) {

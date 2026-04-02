@@ -2,18 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { MapPin, X, ChevronRight, Home } from 'lucide-react'
+import { MapPin, X, ChevronRight, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useSearchStore } from '@/store/searchStore'
-import { useGlampingsHome } from '@/hooks/useGlampings'
+import { useGlampingsHome, useGlamping } from '@/hooks/useGlampings'
 import { SearchBar, FilterChips } from '@/components/home/SearchFilters'
 import { GlampingCard } from '@/components/glamping/GlampingCard'
 import { SkeletonCard } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { formatCOP } from '@/lib/utils'
 import { buildUrlFromFiltros } from '@/lib/filtros'
+import { CategoriasCarouselServer } from '@/components/home/CategoriasCarouselServer'
 import type { FiltrosHome, HomeResponse } from '@/types'
 
 const ORDER_LABELS: Record<string, string> = {
@@ -21,6 +21,58 @@ const ORDER_LABELS: Record<string, string> = {
   precio_desc: 'Precio: mayor a menor',
   distancia: 'Más cercanos',
 }
+
+const BENEFITS = [
+  {
+    icon: Shield,
+    title: 'Reserva segura y alojamientos verificados',
+    description: 'Tu tranquilidad es lo primero. En Glamperos cada alojamiento está validado y tu reserva queda protegida desde el momento en que confirmas.'
+  },
+  {
+    icon: Wallet,
+    title: 'Flexibilidad total para pagar',
+    description: 'Separa tu estadía con solo el 50% y paga el resto al llegar. Planear tu escapada nunca había sido tan fácil ni tan accesible.'
+  },
+  {
+    icon: MessageCircle,
+    title: 'Habla directamente con tu anfitrión',
+    description: 'En cada alojamiento encontrarás la opción "Escríbele a tu anfitrión" para resolver dudas, coordinar detalles y sentirte seguro antes de reservar.'
+  },
+  {
+    icon: MessageSquare,
+    title: 'Soporte inmediato por WhatsApp',
+    description: '¿Necesitas información extra o tu anfitrión no responde rápido? Escríbenos y te ayudamos en cuestión de minutos.'
+  },
+  {
+    icon: Sparkles,
+    title: 'Experiencias y servicios personalizados',
+    description: 'Cenas románticas, decoraciones, pasadías y más. Puedes agregar todo lo que desees a tu reserva antes de pagar y crear una estadía inolvidable.'
+  },
+  {
+    icon: MapPinIcon,
+    title: 'Un lugar dedicado a Colombia',
+    description: 'A diferencia de plataformas globales, en Glamperos encuentras solo alojamientos rurales, ecológicos y hechos con amor en Colombia. Aquí apoyas directamente el turismo local y rural.'
+  }
+]
+
+const FAQ_ITEMS = [
+  {
+    title: '¿Cuánto cuesta un glamping en Colombia?',
+    text: 'Un glamping en Colombia es un alojamiento al aire libre con comodidades y contacto con la naturaleza. Ofrece desde opciones básicas hasta experiencias más lujosas. Varía según la ubicación, temporada y servicios incluidos.'
+  },
+  {
+    title: '¿Qué llevar a un glamping?',
+    text: 'Lleva ropa cómoda y abrigada, ideal para clima cambiante. Incluye calzado cerrado, artículos de aseo personal y protector solar/repelente. No olvides linterna, cargador portátil y algo ligero para la noche.'
+  },
+  {
+    title: '¿Cuál es la mejor zona para hacer glamping?',
+    text: 'Las mejores zonas para glamping en Colombia son las de clima templado y montaña. Destacan el Eje Cafetero y Antioquia por su naturaleza y turismo. Cundinamarca y Boyacá son ideales por su cercanía a Bogotá.'
+  },
+  {
+    title: '¿Es seguro hacer glamping en Colombia?',
+    text: 'Sí, el glamping en Colombia es seguro cuando se eligen lugares formales y bien calificados. La mayoría cuenta con personal, protocolos y ubicaciones turísticas confiables. Se recomienda revisar reseñas y seguir las indicaciones del lugar.'
+  }
+]
 
 function FilterBreadcrumb({
   filtros,
@@ -119,6 +171,10 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
   const glampings = data?.data ?? []
   const hasMore = (filtros.page ?? 1) * (filtros.limit ?? 20) < total
   const showLoading = !data && (!ready || isLoading)
+  
+  // Obtener imagen del glamping para el carrusel
+  const { data: glampingImg } = useGlamping('69b8b1a4776b87a18af6b6f8')
+  const carouselImage = glampingImg?.imagenes?.[0]
 
   const handleRemoveFiltro = (key: keyof FiltrosHome | 'fechas' | 'precio' | 'amenidades_all') => {
     let updated: Partial<FiltrosHome>
@@ -241,6 +297,68 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
           )}
         </>
       )}
+
+      {/* ── Beneficios ──────────────────────────────────────────────────── */}
+      <section className="mt-16 mb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-900 mb-3">
+            ¿Por qué reservar glampings en Glamperos?
+          </h2>
+          <p className="text-stone-500 max-w-2xl mx-auto">
+            Descubre los beneficios que nos hacen diferentes
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {BENEFITS.map((benefit, index) => {
+            const Icon = benefit.icon
+            return (
+              <div
+                key={index}
+                className="group p-6 rounded-2xl border border-stone-200 bg-white hover:border-brand hover:shadow-lg transition-all duration-300"
+              >
+                <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 group-hover:bg-brand transition-colors">
+                  <Icon size={28} className="text-brand group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="text-lg font-semibold text-stone-900 mb-2">
+                  {benefit.title}
+                </h3>
+                <p className="text-sm text-stone-600 leading-relaxed">
+                  {benefit.description}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── Carrusel de Categorías ──────────────────────────────────────── */}
+      <CategoriasCarouselServer glampingImage={carouselImage} />
+
+      {/* ── FAQ / Contenido Informativo ───────────────────────────────────── */}
+      <section className="mt-20 mb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-900 mb-3">
+            Todo lo que necesitas saber antes de reservar un glamping en Colombia
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {FAQ_ITEMS.map((item, index) => (
+            <div
+              key={index}
+              className="p-8 rounded-2xl border border-stone-200 bg-stone-50 hover:border-brand hover:shadow-lg transition-all duration-300"
+            >
+              <h3 className="text-xl font-bold text-stone-900 mb-3">
+                {item.title}
+              </h3>
+              <p className="text-base text-stone-600 leading-relaxed">
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

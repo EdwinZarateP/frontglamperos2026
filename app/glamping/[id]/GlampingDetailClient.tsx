@@ -4,9 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Star, MapPin, Users, Moon, Dog, Clock, ChevronLeft,
-  Heart, Share2, CheckCircle, Youtube, Play, X, Copy
+  Star, MapPin, Users, Dog, Clock, ChevronLeft,
+  Heart, Share2, CheckCircle, Youtube, Play, X, Copy,
+  Plus, XCircle
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -33,7 +35,7 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [esFav, setEsFav] = useState(false)
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
-  const [huespedes, setHuespedes] = useState(1)
+  const [huespedes, setHuespedes] = useState(2)
   const [tieneMascota, setTieneMascota] = useState(false)
   const [extrasSeleccionados, setExtrasSeleccionados] = useState<string[]>([])
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
@@ -44,18 +46,140 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   const { data: calificaciones } = useCalificaciones(glamping._id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(glamping._id)
-  const extrasParam = extrasSeleccionados.join(',')
+  
+  const extrasParam = extrasSeleccionados.length > 0 ? extrasSeleccionados.join(',') : undefined
+  
   const { data: cotizacion, isLoading: loadingCotizacion } = useCotizacion(glamping._id, {
     fecha_inicio: fechaInicio,
     fecha_fin: fechaFin,
     huespedes,
-    extras: extrasParam || undefined,
+    extras: extrasParam,
   })
+  
+  useEffect(() => {
+    if (cotizacion) {
+      console.log('=== COTIZACIÓN API ===')
+      console.log('subtotalAlojamiento:', cotizacion.subtotalAlojamiento)
+      console.log('subtotalExtras:', cotizacion.subtotalExtras)
+      console.log('precioTotal:', cotizacion.precioTotal)
+      console.log('disponible:', cotizacion.disponible)
+      console.log('=======================\n')
+    }
+  }, [cotizacion])
 
   const noches = calcularNoches(fechaInicio, fechaFin)
   const imagenes = glamping.imagenes?.length
     ? glamping.imagenes
     : ['https://placehold.co/1200x800/1a1a1a/ffffff?text=Sin+imagen']
+
+  const getDiaSemana = (fecha: string): string => {
+    const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado']
+    const date = new Date(fecha + 'T00:00:00')
+    return dias[date.getDay()]
+  }
+
+  const getPrecioPorNoche = (fecha: string): number => {
+    if (!glamping.tarifasNoche) {
+      console.log('Sin tarifasNoche, usando precioNoche:', glamping.precioNoche)
+      return glamping.precioNoche
+    }
+    
+    const dia = getDiaSemana(fecha)
+    const precioDia = (glamping.tarifasNoche as Record<string, number>)[dia]
+    
+    console.log(`Fecha: ${fecha}, Día: ${dia}, Precio del día: ${precioDia}, Precio base: ${glamping.precioNoche}`)
+    
+    if (precioDia && precioDia > 0) {
+      return precioDia
+    }
+    
+    const preciosValidos = Object.values(glamping.tarifasNoche).filter((p: any) => p > 0) as number[]
+    if (preciosValidos.length > 0) {
+      console.log('Usando precio mínimo de días válidos:', Math.min(...preciosValidos))
+      return Math.min(...preciosValidos)
+    }
+    
+    console.log('Usando precioNoche como fallback:', glamping.precioNoche)
+    return glamping.precioNoche
+  }
+
+  const precioBaseDinamico = (() => {
+    if (glamping.tarifasNoche) {
+      const precios = Object.values(glamping.tarifasNoche).filter((p: any) => p > 0) as number[]
+      if (precios.length > 0) {
+        const precioMinimo = Math.min(...precios)
+        console.log('Precios válidos:', precios, 'Precio mínimo:', precioMinimo)
+        return precioMinimo
+      }
+    }
+    
+    if (fechaInicio) {
+      return getPrecioPorNoche(fechaInicio)
+    }
+    
+    console.log('Usando glamping.precioNoche:', glamping.precioNoche)
+    return glamping.precioNoche
+  })()
+
+  const calcularTotalLocal = () => {
+    if (!fechaInicio || !fechaFin) return { subtotalAlojamiento: 0, subtotalExtras: 0, precioTotal: 0 }
+    
+    console.log('=== CÁLCULO LOCAL ===')
+    console.log('Fecha inicio:', fechaInicio)
+    console.log('Fecha fin:', fechaFin)
+    console.log('Noches:', noches)
+    
+    let subtotalAlojamiento = 0
+    const fechaActual = new Date(fechaInicio + 'T00:00:00')
+    
+    for (let i = 0; i < noches; i++) {
+      const fechaIteracion = new Date(fechaActual)
+      fechaIteracion.setDate(fechaIteracion.getDate() + i)
+      const fechaStr = fechaIteracion.toISOString().split('T')[0]
+      const precioNoche = getPrecioPorNoche(fechaStr)
+      console.log(`Noche ${i + 1} (${fechaStr}): $${precioNoche.toLocaleString()}`)
+      subtotalAlojamiento += precioNoche
+    }
+    
+    console.log('Subtotal alojamiento:', subtotalAlojamiento)
+    
+    const subtotalExtras = extrasSeleccionados.reduce((total, key) => {
+      const extra = glamping.extras?.find(e => e.key === key)
+      if (!extra) return total
+      const cantidad = extra.unidad === 'por_noche' ? noches : 
+                       extra.unidad === 'por_persona' ? huespedes : 1
+      const precioExtra = extra.precioPublico * cantidad
+      console.log(`Extra ${extra.nombre}: ${cantidad} x $${extra.precioPublico} = $${precioExtra}`)
+      return total + precioExtra
+    }, 0)
+    
+    console.log('Subtotal extras:', subtotalExtras)
+    console.log('Total:', subtotalAlojamiento + subtotalExtras)
+    console.log('=====================\n')
+    
+    return {
+      subtotalAlojamiento,
+      subtotalExtras,
+      precioTotal: subtotalAlojamiento + subtotalExtras
+    }
+  }
+
+  const cotizacionDisplay = (() => {
+    console.log('=== DECIDIENDO COTIZACIÓN ===')
+    console.log('Hay datos de API:', !!cotizacion)
+    console.log('La API tiene precioTotal > 0:', cotizacion?.precioTotal && cotizacion.precioTotal > 0)
+    console.log('Calculo local:', calcularTotalLocal())
+    
+    if (cotizacion && cotizacion.precioTotal && cotizacion.precioTotal > 0) {
+      console.log('Usando cotización de API\n')
+      return cotizacion
+    }
+    
+    console.log('Usando cálculo local\n')
+    return calcularTotalLocal()
+  })()
+
+  const disponible = cotizacion?.disponible !== undefined ? cotizacion.disponible : true
 
   const toggleFavorito = useMutation({
     mutationFn: async () => {
@@ -135,7 +259,7 @@ export function GlampingDetailClient({ glamping }: Props) {
 
     const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
     if (extrasDisponibles.length > 0) {
-      lines.push('➕ *Extras disponibles:*')
+      lines.push('➕ *Extras disponibles (con costo adicional):*')
       for (const extra of extrasDisponibles) {
         lines.push(`• ${extra.nombre}: ${formatCOP(extra.precioPublico)} (${extra.unidad.replace(/_/g, ' ')})`)
       }
@@ -147,6 +271,31 @@ export function GlampingDetailClient({ glamping }: Props) {
         ? `❌ Cancelación gratuita hasta ${glamping.diasCancelacion} días antes del check-in`
         : '❌ No admite cancelaciones'
     )
+    lines.push('')
+
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://glamperos.com'
+    lines.push(`📸 *Ver collage de fotos:*\n${base}/glamping/${glamping._id}/fotos`)
+
+    if (glamping.videoYoutube) {
+      lines.push('')
+      lines.push(`🎥 *Ver video:*\n${glamping.videoYoutube}`)
+    }
+
+    lines.push('')
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━')
+    lines.push('💌 *Proceso de reserva*')
+    lines.push('Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha.')
+    lines.push('La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.')
+    lines.push('_Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️._')
+    lines.push('')
+    lines.push('*Datos de pago:*')
+    lines.push('🏦 Cuenta Bancolombia – Glamperos SAS')
+    lines.push('📂 Tipo: Ahorros')
+    lines.push('🔢 Nº 292-000059-43')
+    lines.push('📂 Nuestra Llave')
+    lines.push('🔢 0089996468')
+    lines.push('')
+    lines.push('_Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios._')
 
     return lines.join('\n')
   }
@@ -160,15 +309,17 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
   }
 
+  const extrasSeleccionadosInfo = extrasSeleccionados.map(key => {
+    return glamping.extras?.find(e => e.key === key)
+  }).filter(Boolean)
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-24 lg:pb-6 flex flex-col">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4 order-2 lg:order-1 px-0 pt-3 lg:pt-0">
         <Link href="/" className="hover:text-stone-700 flex items-center gap-1">
           <ChevronLeft size={14} /> Inicio
         </Link>
-        <span>/</span>
-        <span className="text-stone-600">{glamping.ciudadDepartamento}</span>
         <span>/</span>
         <span className="text-stone-800 font-medium truncate">
           {tipoGlampingLabels[glamping.tipoGlamping] ?? glamping.tipoGlamping} en {glamping.ciudadDepartamento.split(',')[0].trim()}
@@ -195,11 +346,6 @@ export function GlampingDetailClient({ glamping }: Props) {
             <span className="capitalize bg-stone-100 px-2.5 py-0.5 rounded-full text-xs font-medium">
               {glamping.tipoGlamping}
             </span>
-            {glamping.aceptaMascotas && (
-              <span className="flex items-center gap-1 text-brand">
-                <Dog size={13} /> Acepta mascotas
-              </span>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -267,11 +413,37 @@ export function GlampingDetailClient({ glamping }: Props) {
         </div>
       )}
 
+      {/* Modal calendario */}
+      {showCalendar && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-6"
+          onClick={() => setShowCalendar(false)}
+        >
+          <div
+            className="w-full sm:w-auto sm:max-w-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DateRangePicker
+              startDate={fechaInicio}
+              endDate={fechaFin}
+              blockedDates={fechasBloqueadas}
+              minNights={glamping.minimoNoches || 1}
+              onChange={(s, e) => {
+                setFechaInicio(s)
+                setFechaFin(e)
+                if (s && e) setShowCalendar(false)
+              }}
+              onClose={() => setShowCalendar(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Galería — móvil: carrusel / desktop: grid */}
       <div className="mb-4 lg:mb-8 order-1 lg:order-3">
         {/* Móvil: imagen principal con indicador */}
         <div
-          className="sm:hidden relative rounded-2xl overflow-hidden aspect-[4/3] bg-stone-100"
+          className="sm:hidden relative overflow-hidden aspect-[4/3] bg-stone-100 -mx-4"
           onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
           onTouchEnd={(e) => {
             const delta = touchStartX.current - e.changedTouches[0].clientX
@@ -304,13 +476,11 @@ export function GlampingDetailClient({ glamping }: Props) {
               </span>
             </>
           )}
-          {/* Huellita pet-friendly */}
           {glamping.aceptaMascotas && (
             <span className="absolute top-3 left-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow text-base">
               🐾
             </span>
           )}
-          {/* Botón video */}
           {glamping.videoYoutube && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowVideo(true) }}
@@ -330,13 +500,11 @@ export function GlampingDetailClient({ glamping }: Props) {
               alt={glamping.nombreGlamping}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            {/* Huellita pet-friendly desktop */}
             {glamping.aceptaMascotas && (
               <span className="absolute top-3 left-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow text-lg">
                 🐾
               </span>
             )}
-            {/* Botón video desktop */}
             {glamping.videoYoutube && (
               <button
                 onClick={(e) => { e.stopPropagation(); setShowVideo(true) }}
@@ -369,7 +537,7 @@ export function GlampingDetailClient({ glamping }: Props) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 order-4">
         {/* Columna principal */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6">
           {/* Info básica */}
           <div className="flex flex-wrap gap-5 pb-8 border-b border-stone-100">
             <div className="flex items-center gap-2 text-stone-600">
@@ -378,12 +546,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                 Hasta <strong>{glamping.cantidadHuespedes}</strong> huéspedes
                 {glamping.cantidadHuespedesAdicionales > 0 &&
                   ` (+${glamping.cantidadHuespedesAdicionales} adicionales)`}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-stone-600">
-              <Moon size={20} className="text-brand" />
-              <span className="text-sm">
-                Mínimo <strong>{glamping.minimoNoches}</strong> noche(s)
               </span>
             </div>
             <div className="flex items-center gap-2 text-stone-600">
@@ -402,6 +564,61 @@ export function GlampingDetailClient({ glamping }: Props) {
               {glamping.descripcionGlamping}
             </p>
           </div>
+
+          {/* Extras */}
+          {glamping.extras?.filter((e) => e.disponible).length > 0 && (
+            <div>
+              <h2 className="text-lg font-semibold text-stone-900 mb-1">Servicios extras</h2>
+              <p className="text-xs text-stone-400 mb-4">Con costo adicional</p>
+              <div className="space-y-3">
+                {glamping.extras
+                  .filter((e) => e.disponible)
+                  .map((extra) => {
+                    const selected = extrasSeleccionados.includes(extra.key)
+                    return (
+                      <motion.div
+                        key={extra.key}
+                        onClick={() => toggleExtra(extra.key)}
+                        initial={{ scale: 1 }}
+                        whileTap={{ scale: 0.98 }}
+                        animate={{ 
+                          scale: 1,
+                          borderColor: selected ? '#059669' : '#e7e5e4'
+                        }}
+                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                          selected
+                            ? 'border-brand bg-emerald-50'
+                            : 'border-stone-200 hover:border-stone-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: selected ? 1 : 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                              selected ? 'border-brand bg-brand' : 'border-stone-300'
+                            }`}
+                          >
+                            {selected && <CheckCircle size={12} className="text-white" />}
+                          </motion.div>
+                          <div>
+                            <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
+                            <p className="text-xs text-stone-400 capitalize">
+                              {extra.unidad.replace(/_/g, ' ')}
+                              {extra.descripcion && ` · ${extra.descripcion}`}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-stone-700 text-sm">
+                          {formatCOP(extra.precioPublico)}
+                        </span>
+                      </motion.div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
 
           {/* Amenidades */}
           {glamping.amenidades?.length > 0 && (
@@ -425,51 +642,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                     : `Ver todas las ${glamping.amenidades.length} amenidades`}
                 </button>
               )}
-            </div>
-          )}
-
-          {/* Extras */}
-          {glamping.extras?.filter((e) => e.disponible).length > 0 && (
-            <div>
-              <h2 className="text-lg font-semibold text-stone-900 mb-4">Servicios extras</h2>
-              <div className="space-y-3">
-                {glamping.extras
-                  .filter((e) => e.disponible)
-                  .map((extra) => {
-                    const selected = extrasSeleccionados.includes(extra.key)
-                    return (
-                      <div
-                        key={extra.key}
-                        onClick={() => toggleExtra(extra.key)}
-                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                          selected
-                            ? 'border-brand bg-emerald-50'
-                            : 'border-stone-200 hover:border-stone-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                              selected ? 'border-brand bg-brand' : 'border-stone-300'
-                            }`}
-                          >
-                            {selected && <CheckCircle size={12} className="text-white" />}
-                          </div>
-                          <div>
-                            <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
-                            <p className="text-xs text-stone-400 capitalize">
-                              {extra.unidad.replace(/_/g, ' ')}
-                              {extra.descripcion && ` · ${extra.descripcion}`}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="font-semibold text-stone-700 text-sm">
-                          {formatCOP(extra.precioPublico)}
-                        </span>
-                      </div>
-                    )
-                  })}
-              </div>
             </div>
           )}
 
@@ -503,30 +675,31 @@ export function GlampingDetailClient({ glamping }: Props) {
             </p>
           </div>
 
-          {/* Video YouTube */}
-          {glamping.videoYoutube && (
-            <div>
-              <h2 className="text-lg font-semibold text-stone-900 mb-3 flex items-center gap-2">
-                <Youtube size={20} className="text-red-500" /> Video del glamping
-              </h2>
-              <button
-                onClick={() => setShowVideo(true)}
-                className="relative w-full aspect-video rounded-xl overflow-hidden group block"
-              >
-                {/* Thumbnail de YouTube */}
-                <img
-                  src={`https://img.youtube.com/vi/${glamping.videoYoutube.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1]}/hqdefault.jpg`}
-                  alt="Video del glamping"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                  <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-xl">
-                    <Play size={28} fill="white" className="text-white ml-1" />
-                  </div>
-                </div>
-              </button>
+
+          {/* Proceso de reserva */}
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 space-y-4">
+            <h2 className="text-lg font-semibold text-stone-900 flex items-center gap-2">
+              💌 Proceso de reserva
+            </h2>
+            <p className="text-sm text-stone-700 leading-relaxed">
+              Las reservas se garantizan con una transferencia del <strong>50% del valor total</strong> 💳 para asegurar tu fecha.
+              La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.
+            </p>
+            <p className="text-xs text-stone-500 italic">
+              Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️.
+            </p>
+
+            <div className="bg-white rounded-xl p-4 border border-emerald-100 space-y-1.5">
+              <p className="text-sm font-semibold text-stone-800">Datos de pago:</p>
+              <p className="text-sm text-stone-700">🏦 Cuenta Bancolombia – Glamperos SAS</p>
+              <p className="text-sm text-stone-700">📂 Tipo: Ahorros &nbsp;·&nbsp; 🔢 Nº 292-000059-43</p>
+              <p className="text-sm text-stone-700">📂 Nuestra Llave &nbsp;·&nbsp; 🔢 0089996468</p>
             </div>
-          )}
+
+            <p className="text-xs text-stone-400 leading-relaxed italic">
+              Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios.
+            </p>
+          </div>
 
           {/* Mapa */}
           {glamping.ubicacion && (
@@ -587,7 +760,7 @@ export function GlampingDetailClient({ glamping }: Props) {
               <div className="mb-4">
                 <span className="text-xs text-stone-400">Desde</span>
                 <p className="text-2xl font-bold text-stone-900">
-                  {formatCOP(glamping.precioNoche * 1.15)}
+                  {formatCOP(precioBaseDinamico * 1.15)}
                   <span className="text-sm font-normal text-stone-400"> / noche</span>
                 </p>
                 {glamping.calificacion > 0 && (
@@ -600,10 +773,10 @@ export function GlampingDetailClient({ glamping }: Props) {
                 )}
               </div>
 
-              {/* Fechas — botón que abre el calendario */}
+              {/* Fechas — botón que abre el calendario popup */}
               <button
                 type="button"
-                onClick={() => setShowCalendar((v) => !v)}
+                onClick={() => setShowCalendar(true)}
                 className="w-full border border-stone-300 rounded-xl px-4 py-3 text-sm text-left hover:border-emerald-400 transition-colors mb-3"
               >
                 {fechaInicio && fechaFin ? (
@@ -617,24 +790,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                   <span className="text-stone-400">Seleccionar fechas</span>
                 )}
               </button>
-
-              {/* DateRangePicker desplegable */}
-              {showCalendar && (
-                <div className="mb-3 -mx-1">
-                  <DateRangePicker
-                    startDate={fechaInicio}
-                    endDate={fechaFin}
-                    blockedDates={fechasBloqueadas}
-                    minNights={glamping.minimoNoches || 1}
-                    onChange={(s, e) => {
-                      setFechaInicio(s)
-                      setFechaFin(e)
-                      if (s && e) setShowCalendar(false)
-                    }}
-                    onClose={() => setShowCalendar(false)}
-                  />
-                </div>
-              )}
 
               {/* Huéspedes */}
               <div className="mb-3">
@@ -682,28 +837,63 @@ export function GlampingDetailClient({ glamping }: Props) {
                 </div>
               )}
 
+              {/* Extras seleccionados - animados */}
+              <AnimatePresence>
+                {extrasSeleccionadosInfo.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-3 space-y-2"
+                  >
+                    <p className="text-xs font-medium text-stone-500">Extras seleccionados:</p>
+                    {extrasSeleccionadosInfo.map((extra) => (
+                      <motion.div
+                        key={extra!.key}
+                        initial={{ x: 100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 100, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        className="flex items-center justify-between bg-emerald-50 border border-brand rounded-lg px-3 py-2"
+                      >
+                        <span className="text-sm text-stone-700">{extra!.nombre}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleExtra(extra!.key)
+                          }}
+                          className="text-brand hover:text-red-500 transition-colors"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Cotización */}
               {loadingCotizacion && (
                 <div className="text-center py-3 text-sm text-stone-400">Calculando...</div>
               )}
-              {cotizacion && !loadingCotizacion && (
+              {cotizacionDisplay && !loadingCotizacion && (
                 <div className="bg-stone-50 rounded-xl p-4 mb-4 space-y-2 text-sm">
                   <div className="flex justify-between text-stone-600">
                     <span>Alojamiento ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
-                    <span>{formatCOP(cotizacion.subtotalAlojamiento)}</span>
+                    <span>{formatCOP(cotizacionDisplay.subtotalAlojamiento)}</span>
                   </div>
-                  {cotizacion.subtotalExtras > 0 && (
+                  {(cotizacionDisplay.subtotalExtras || 0) > 0 && (
                     <div className="flex justify-between text-stone-600">
                       <span>Extras</span>
-                      <span>{formatCOP(cotizacion.subtotalExtras)}</span>
+                      <span>{formatCOP(cotizacionDisplay.subtotalExtras)}</span>
                     </div>
                   )}
                   <hr className="border-stone-200" />
                   <div className="flex justify-between font-bold text-stone-900">
                     <span>Total</span>
-                    <span>{formatCOP(cotizacion.precioTotal)}</span>
+                    <span>{formatCOP(cotizacionDisplay.precioTotal)}</span>
                   </div>
-                  {!cotizacion.disponible && (
+                  {!disponible && (
                     <p className="text-red-500 text-xs font-medium">
                       No disponible en esas fechas
                     </p>
@@ -715,7 +905,7 @@ export function GlampingDetailClient({ glamping }: Props) {
                 fullWidth
                 size="lg"
                 onClick={handleReservar}
-                disabled={!!(cotizacion && !cotizacion.disponible)}
+                disabled={!disponible}
               >
                 Reservar ahora
               </Button>
@@ -729,26 +919,62 @@ export function GlampingDetailClient({ glamping }: Props) {
       </div>
 
       {/* Barra fija inferior — solo móvil */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 px-4 py-3 flex items-center justify-between gap-4">
-        <div>
-          {cotizacion ? (
-            <>
-              <p className="text-xs text-stone-400">Total estimado</p>
-              <p className="text-lg font-bold text-stone-900">{formatCOP(cotizacion.precioTotal)}</p>
-            </>
-          ) : (
-            <>
-              <p className="text-xs text-stone-400">Desde</p>
-              <p className="text-lg font-bold text-stone-900">
-                {formatCOP(glamping.precioNoche * 1.15)}
-                <span className="text-xs font-normal text-stone-400"> / noche</span>
-              </p>
-            </>
-          )}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 px-4 pt-3 pb-4 space-y-2">
+        {/* Fila 1: fechas + huéspedes */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCalendar(true)}
+            className="flex-1 border border-stone-300 rounded-xl px-3 py-2 text-xs text-left hover:border-emerald-400 transition-colors"
+          >
+            {fechaInicio && fechaFin ? (
+              <span className="font-medium text-stone-800">
+                {formatDate(fechaInicio)} → {formatDate(fechaFin)}
+                <span className="text-stone-400 font-normal"> · {noches} {noches === 1 ? 'noche' : 'noches'}</span>
+              </span>
+            ) : (
+              <span className="text-stone-400">📅 Seleccionar fechas</span>
+            )}
+          </button>
+
+          <div className="flex items-center gap-1.5 border border-stone-300 rounded-xl px-2 py-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
+              className="w-6 h-6 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 text-sm hover:bg-stone-50"
+            >−</button>
+            <span className="text-xs font-medium text-stone-800 w-4 text-center">{huespedes}</span>
+            <button
+              type="button"
+              onClick={() => setHuespedes((h) => Math.min(glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales, h + 1))}
+              className="w-6 h-6 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 text-sm hover:bg-stone-50"
+            >+</button>
+            <span className="text-xs text-stone-400">hués.</span>
+          </div>
         </div>
-        <Button onClick={handleReservar} size="lg" className="shrink-0">
-          Reservar
-        </Button>
+
+        {/* Fila 2: precio + reservar */}
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            {cotizacionDisplay ? (
+              <>
+                <p className="text-xs text-stone-400">Total estimado</p>
+                <p className="text-base font-bold text-stone-900">{formatCOP(cotizacionDisplay.precioTotal)}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-stone-400">Desde</p>
+                <p className="text-base font-bold text-stone-900">
+                  {formatCOP(precioBaseDinamico * 1.15)}
+                  <span className="text-xs font-normal text-stone-400"> / noche</span>
+                </p>
+              </>
+            )}
+          </div>
+          <Button onClick={handleReservar} size="lg" className="shrink-0">
+            Reservar
+          </Button>
+        </div>
       </div>
     </div>
   )

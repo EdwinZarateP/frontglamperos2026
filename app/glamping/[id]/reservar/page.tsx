@@ -242,7 +242,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
             )}
           </div>
 
-          {/* SERVICIOS EXTRAS */}
+          {/* Servicios extras */}
           {extrasDisponibles.length > 0 && (
             <div className="bg-white rounded-2xl border border-stone-200 p-6">
               <h2 className="font-semibold text-stone-800 mb-4">Servicios extras</h2>
