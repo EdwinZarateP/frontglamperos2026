@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Star, MapPin, Users, Dog, Clock, ChevronLeft, Calendar,
+  Star, MapPin, Users, Dog, Clock, ChevronLeft,
   Heart, Share2, CheckCircle, Youtube, Play, X, Copy,
   Plus, XCircle
 } from 'lucide-react'
@@ -41,19 +41,8 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const [showReservationModal, setShowReservationModal] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [])
-
-  // Bloquear scroll cuando el modal está abierto
-  useEffect(() => {
-    if (showReservationModal || showCalendar || showVideo) {
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = ''
-      }
-    }
-  }, [showReservationModal, showCalendar, showVideo])
 
   const { data: calificaciones } = useCalificaciones(glamping._id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(glamping._id)
@@ -66,6 +55,16 @@ export function GlampingDetailClient({ glamping }: Props) {
     huespedes,
     extras: extrasParam,
   })
+  
+  useEffect(() => {
+    if (cotizacion) {
+      console.log('=== COTIZACIÓN API ===')
+      console.log('subtotalAlojamiento:', cotizacion.subtotalAlojamiento)
+      console.log('subtotalExtras:', cotizacion.subtotalExtras)
+      console.log('total:', cotizacion.total)
+      console.log('=======================\n')
+    }
+  }, [cotizacion])
 
   const noches = fechaInicio && fechaFin ? calcularNoches(fechaInicio, fechaFin) : 0
   const imagenes = glamping.imagenes?.length
@@ -80,11 +79,14 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   const getPrecioPorNoche = (fecha: string): number => {
     if (!glamping.tarifasNoche) {
+      console.log('Sin tarifasNoche, usando precioNoche:', glamping.precioNoche)
       return glamping.precioNoche
     }
     
     const dia = getDiaSemana(fecha)
     const precioDia = (glamping.tarifasNoche as Record<string, number>)[dia]
+    
+    console.log(`Fecha: ${fecha}, Día: ${dia}, Precio del día: ${precioDia}, Precio base: ${glamping.precioNoche}`)
     
     if (precioDia && precioDia > 0) {
       return precioDia
@@ -92,9 +94,11 @@ export function GlampingDetailClient({ glamping }: Props) {
     
     const preciosValidos = Object.values(glamping.tarifasNoche).filter((p: any) => p > 0) as number[]
     if (preciosValidos.length > 0) {
+      console.log('Usando precio mínimo de días válidos:', Math.min(...preciosValidos))
       return Math.min(...preciosValidos)
     }
     
+    console.log('Usando precioNoche como fallback:', glamping.precioNoche)
     return glamping.precioNoche
   }
 
@@ -111,11 +115,17 @@ export function GlampingDetailClient({ glamping }: Props) {
       return getPrecioPorNoche(fechaInicio)
     }
     
+    console.log('Usando glamping.precioNoche:', glamping.precioNoche)
     return glamping.precioNoche
   })()
 
   const calcularTotalLocal = () => {
     if (!fechaInicio || !fechaFin) return { subtotalAlojamiento: 0, subtotalExtras: 0, precioTotal: 0 }
+    
+    console.log('=== CÁLCULO LOCAL ===')
+    console.log('Fecha inicio:', fechaInicio)
+    console.log('Fecha fin:', fechaFin)
+    console.log('Noches:', noches)
     
     let subtotalAlojamiento = 0
     const fechaActual = new Date(fechaInicio + 'T00:00:00')
@@ -128,14 +138,21 @@ export function GlampingDetailClient({ glamping }: Props) {
       subtotalAlojamiento += precioNoche
     }
     
+    console.log('Subtotal alojamiento:', subtotalAlojamiento)
+    
     const subtotalExtras = extrasSeleccionados.reduce((total, key) => {
       const extra = glamping.extras?.find(e => e.key === key)
       if (!extra) return total
       const cantidad = extra.unidad === 'por_noche' ? noches : 
                        extra.unidad === 'por_persona' ? huespedes : 1
       const precioExtra = extra.precioPublico * cantidad
+      console.log(`Extra ${extra.nombre}: ${cantidad} x $${extra.precioPublico} = $${precioExtra}`)
       return total + precioExtra
     }, 0)
+    
+    console.log('Subtotal extras:', subtotalExtras)
+    console.log('Total:', subtotalAlojamiento + subtotalExtras)
+    console.log('=====================\n')
     
     return {
       subtotalAlojamiento,
@@ -145,10 +162,17 @@ export function GlampingDetailClient({ glamping }: Props) {
   }
 
   const cotizacionDisplay = (() => {
+    console.log('=== DECIDIENDO COTIZACIÓN ===')
+    console.log('Hay datos de API:', !!cotizacion)
+    console.log('La API tiene total > 0:', cotizacion?.total && cotizacion.total > 0)
+    console.log('Calculo local:', calcularTotalLocal())
+
     if (cotizacion && cotizacion.total && cotizacion.total > 0) {
+      console.log('Usando cotización de API\n')
       return { ...cotizacion, precioTotal: cotizacion.total }
     }
     
+    console.log('Usando cálculo local\n')
     return calcularTotalLocal()
   })()
 
@@ -158,20 +182,18 @@ export function GlampingDetailClient({ glamping }: Props) {
   const precioAdicional = (() => {
     if (adicionales <= 0 || noches <= 0) return 0
     const precioAdic = glamping.precioPersonaAdicional ?? 0
-    // Para adicionales usamos directamente 1.16 (16% de comisión)
-    // No aplicamos la escala progresiva ya que es un adicional
-    const factor = 1.16
+    // El backend combina alojamiento + adicional antes de aplicar la escalonada
+    // Usamos precioBaseDinamico como tarifa representativa por noche
+    const combinadoPorNoche = precioBaseDinamico + precioAdic * adicionales
+    const factor = combinadoPorNoche > 0
+      ? calcularComision(combinadoPorNoche) / combinadoPorNoche
+      : 1.16
     return Math.round(precioAdic * adicionales * factor * noches)
   })()
   const precioMascota = cantidadMascotas > 0 && noches > 0
     ? Math.round((glamping.precioMascotas ?? 0) * cantidadMascotas * noches * 1.10)
     : 0
   const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional + precioMascota
-  
-  // Calcular el precio por noche dinámico basado en todo lo seleccionado
-  const precioPorNocheDinamico = noches > 0 && fechaInicio && fechaFin
-    ? Math.round(totalFinal / noches)
-    : Math.round(calcularComision(precioBaseDinamico))
 
   const toggleFavorito = useMutation({
     mutationFn: async () => {
@@ -305,17 +327,6 @@ export function GlampingDetailClient({ glamping }: Props) {
     return glamping.extras?.find(e => e.key === key)
   }).filter(Boolean)
 
-  // Formato de fecha para el modal (sin año si es el mismo)
-  const formatFechaCompacta = (fecha: string): string => {
-    if (!fecha) return ''
-    const date = new Date(fecha + 'T00:00:00')
-    const dia = date.getDate()
-    const mes = date.toLocaleDateString('es-ES', { month: 'short' })
-    const anio = date.getFullYear()
-    const anioActual = new Date().getFullYear()
-    return anio === anioActual ? `${dia} ${mes}` : `${dia} ${mes} ${anio}`
-  }
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
       {/* Breadcrumb */}
@@ -330,7 +341,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       </nav>
 
       {/* Título */}
-      <div className={`flex items-start justify-between gap-4 mb-4 order-3 lg:order-2 ${showReservationModal ? 'z-0' : 'z-auto'}`}>
+      <div className="flex items-start justify-between gap-4 mb-4 order-3 lg:order-2">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">
             {tipoGlampingLabels[glamping.tipoGlamping] ?? glamping.tipoGlamping} en {glamping.ciudadDepartamento.split(',')[0].trim()}
@@ -346,9 +357,12 @@ export function GlampingDetailClient({ glamping }: Props) {
             <span className="flex items-center gap-1">
               <MapPin size={13} /> {glamping.ciudadDepartamento}
             </span>
+            <span className="capitalize bg-stone-100 px-2.5 py-0.5 rounded-full text-xs font-medium">
+              {glamping.tipoGlamping}
+            </span>
           </div>
         </div>
-        <div className={`flex items-center gap-2 shrink-0 ${showReservationModal ? 'hidden z-0' : 'flex z-10'}`}>
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={copiarInfo}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-200 hover:bg-stone-50 text-sm text-stone-600 transition-colors"
@@ -411,7 +425,33 @@ export function GlampingDetailClient({ glamping }: Props) {
             </div>
           </div>
         </div>
-        )}
+      )}
+
+      {/* Modal calendario */}
+      {showCalendar && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-6"
+          onClick={() => setShowCalendar(false)}
+        >
+          <div
+            className="w-full sm:w-auto sm:max-w-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DateRangePicker
+              startDate={fechaInicio}
+              endDate={fechaFin}
+              blockedDates={fechasBloqueadas}
+              minNights={glamping.minimoNoches || 1}
+              onChange={(s, e) => {
+                setFechaInicio(s)
+                setFechaFin(e)
+                if (s && e) setShowCalendar(false)
+              }}
+              onClose={() => setShowCalendar(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Galería — móvil: carrusel / desktop: grid */}
       <div className="mb-4 lg:mb-8 order-1 lg:order-3">
@@ -732,9 +772,9 @@ export function GlampingDetailClient({ glamping }: Props) {
           <div className="sticky top-20">
             <div className="bg-white rounded-2xl shadow-lg border border-stone-200 p-6">
               <div className="mb-4">
-                <span className="text-xs text-stone-400">{noches > 0 && fechaInicio && fechaFin ? 'Por noche' : 'Desde'}</span>
+                <span className="text-xs text-stone-400">Desde</span>
                 <p className="text-2xl font-bold text-stone-900">
-                  {formatCOP(precioPorNocheDinamico)}
+                  {formatCOP(Math.round(calcularComision(precioBaseDinamico)))}
                   <span className="text-sm font-normal text-stone-400"> / noche</span>
                 </p>
                 {glamping.calificacion > 0 && (
@@ -765,59 +805,147 @@ export function GlampingDetailClient({ glamping }: Props) {
                 )}
               </button>
 
-              {/* Resumen rápido */}
-              {fechaInicio && fechaFin && (
-                <div className="bg-stone-50 rounded-xl p-3 mb-3 space-y-2 text-sm">
-                  <div 
-                    className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                    onClick={() => setShowReservationModal(true)}
+              {/* Huéspedes */}
+              <div className={`mb-3 transition-opacity ${!fechaInicio || !fechaFin ? 'opacity-40 pointer-events-none' : ''}`}>
+                <label className="text-xs font-medium text-stone-500">Huéspedes</label>
+                <div className="flex items-center gap-3 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
+                    className="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-50"
                   >
-                    <span className="text-stone-600">Huéspedes</span>
-                    <span className="font-medium text-stone-900">{huespedes}</span>
+                    −
+                  </button>
+                  <span className="font-medium text-stone-800">{huespedes}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHuespedes((h) =>
+                        Math.min(glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales, h + 1)
+                      )
+                    }
+                    className="w-8 h-8 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-50"
+                  >
+                    +
+                  </button>
+                  <span className="text-xs text-stone-400">
+                    (máx {glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales})
+                  </span>
+                </div>
+              </div>
+
+              {/* Mascotas */}
+              {glamping.aceptaMascotas && (
+                <div className={`flex items-center justify-between py-2 mb-3 border-t border-stone-100 transition-opacity ${!fechaInicio || !fechaFin ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <div className="flex items-center gap-2 text-sm text-stone-700">
+                    <Dog size={14} className="text-brand" />
+                    <div>
+                      <span>Mascotas</span>
+                      {glamping.precioMascotas && glamping.precioMascotas > 0 && (
+                        <p className="text-xs text-stone-400">{formatCOP(Math.round(glamping.precioMascotas * 1.10))} / mascota / noche</p>
+                      )}
+                    </div>
                   </div>
-                  {glamping.aceptaMascotas && (
-                    <div 
-                      className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                      onClick={() => setShowReservationModal(true)}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setCantidadMascotas((v) => Math.max(0, v - 1))}
+                      disabled={cantidadMascotas === 0}
+                      className="w-7 h-7 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 disabled:opacity-30 hover:border-stone-500 transition-colors"
                     >
-                      <span className="text-stone-600">Mascotas</span>
-                      <span className="font-medium text-stone-900">{cantidadMascotas}</span>
-                    </div>
-                  )}
-                  {extrasSeleccionados.length > 0 && (
-                    <div 
-                      className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                      onClick={() => setShowReservationModal(true)}
+                      <span className="text-lg leading-none">−</span>
+                    </button>
+                    <span className="w-4 text-center text-sm font-semibold text-stone-800">{cantidadMascotas}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCantidadMascotas((v) => Math.min(2, v + 1))}
+                      disabled={cantidadMascotas >= 2}
+                      className="w-7 h-7 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 disabled:opacity-30 hover:border-stone-500 transition-colors"
                     >
-                      <span className="text-stone-600">Extras</span>
-                      <span className="font-medium text-stone-900">{extrasSeleccionados.length}</span>
+                      <span className="text-lg leading-none">+</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Extras seleccionados - animados */}
+              <AnimatePresence>
+                {extrasSeleccionadosInfo.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-3 space-y-2"
+                  >
+                    <p className="text-xs font-medium text-stone-500">Extras seleccionados:</p>
+                    {extrasSeleccionadosInfo.map((extra) => (
+                      <motion.div
+                        key={extra!.key}
+                        initial={{ x: 100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 100, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        className="flex items-center justify-between bg-emerald-50 border border-brand rounded-lg px-3 py-2"
+                      >
+                        <span className="text-sm text-stone-700">{extra!.nombre}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleExtra(extra!.key)
+                          }}
+                          className="text-brand hover:text-red-500 transition-colors"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Cotización */}
+              {loadingCotizacion && (
+                <div className="text-center py-3 text-sm text-stone-400">Calculando...</div>
+              )}
+              {cotizacionDisplay && !loadingCotizacion && fechaInicio && fechaFin && (
+                <div className="bg-stone-50 rounded-xl p-4 mb-4 space-y-2 text-sm">
+                  <div className="flex justify-between text-stone-600">
+                    <span>Alojamiento ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
+                    <span>{formatCOP(cotizacionDisplay.subtotalAlojamiento)}</span>
+                  </div>
+                  {(cotizacionDisplay.subtotalExtras || 0) > 0 && (
+                    <div className="flex justify-between text-stone-600">
+                      <span>Extras</span>
+                      <span>{formatCOP(cotizacionDisplay.subtotalExtras)}</span>
                     </div>
                   )}
-                  {cotizacionDisplay && !loadingCotizacion && (
-                    <hr className="border-stone-200" />
-                  )}
-                  {cotizacionDisplay && !loadingCotizacion && (
-                    <div className="flex justify-between font-bold text-stone-900 text-base">
-                      <span>Total</span>
-                      <span>{formatCOP(totalFinal)}</span>
+                  {precioAdicional > 0 && (
+                    <div className="flex justify-between text-stone-600">
+                      <span>+{adicionales} huésped{adicionales > 1 ? 'es' : ''} adicional{adicionales > 1 ? 'es' : ''}</span>
+                      <span>{formatCOP(precioAdicional)}</span>
                     </div>
                   )}
+                  {precioMascota > 0 && (
+                    <div className="flex justify-between text-stone-600">
+                      <span>🐾 {cantidadMascotas === 1 ? '1 mascota' : `${cantidadMascotas} mascotas`}</span>
+                      <span>{formatCOP(precioMascota)}</span>
+                    </div>
+                  )}
+                  <hr className="border-stone-200" />
+                  <div className="flex justify-between font-bold text-stone-900">
+                    <span>Total</span>
+                    <span>{formatCOP(totalFinal)}</span>
+                  </div>
                 </div>
               )}
 
               <Button
                 fullWidth
                 size="lg"
-                onClick={() => {
-                  if (!fechaInicio || !fechaFin) {
-                    toast.error('Selecciona las fechas')
-                    return
-                  }
-                  setShowReservationModal(true)
-                }}
-                disabled={!fechaInicio || !fechaFin}
+                onClick={handleReservar}
+                disabled={!disponible}
               >
-                {fechaInicio && fechaFin ? 'Gestionar reserva' : 'Reservar ahora'}
+                Reservar ahora
               </Button>
 
               <p className="text-center text-xs text-stone-400 mt-3">
@@ -826,306 +954,63 @@ export function GlampingDetailClient({ glamping }: Props) {
             </div>
           </div>
         </div>
-
-        {/* Modal de reserva completo */}
-        {showReservationModal && (
-          <div
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-            onClick={() => setShowReservationModal(false)}
-          >
-            <div
-              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between z-10">
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-stone-900 mb-2">Completa tu reserva</h2>
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="flex-1">
-                      {fechaInicio && fechaFin ? (
-                        <div className="text-sm">
-                          <p className="font-medium text-stone-800">
-                            {formatFechaCompacta(fechaInicio)} → {formatFechaCompacta(fechaFin)}
-                          </p>
-                          <p className="text-xs text-stone-500">
-                            {noches} {noches === 1 ? 'noche' : 'noches'}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-stone-400">Selecciona las fechas</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setShowCalendar(true)}
-                      className="flex items-center gap-2 px-3 py-2 border border-stone-300 rounded-lg text-sm text-stone-700 hover:border-brand hover:text-brand transition-all shrink-0"
-                    >
-                      <Calendar size={14} />
-                      Cambiar
-                    </button>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowReservationModal(false)}
-                  className="p-2 hover:bg-stone-100 rounded-full transition-colors ml-4"
-                >
-                  <X size={20} className="text-stone-500" />
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="p-6 space-y-6">
-                {/* Huéspedes */}
-                <div>
-                  <label className="text-sm font-medium text-stone-700 mb-2 block">Huéspedes</label>
-                  <div className="flex items-center justify-between bg-stone-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <Users size={20} className="text-brand sm:hidden" />
-                      <Users size={24} className="text-brand hidden sm:block" />
-                      <div>
-                        <p className="font-medium text-stone-800 text-sm sm:text-base">Huéspedes</p>
-                        <p className="text-xs text-stone-500">
-                          Máx {glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales}
-                        </p>
-                        {glamping.precioPersonaAdicional && glamping.precioPersonaAdicional > 0 && huespedes > glamping.cantidadHuespedes && (
-                          <p className="text-xs text-stone-500">
-                            {formatCOP(Math.round(glamping.precioPersonaAdicional * 1.16))} / huésped adicional / noche
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors"
-                      >
-                        −
-                      </button>
-                      <span className="text-xl sm:text-2xl font-bold text-stone-900 w-12 sm:w-16 text-center">{huespedes}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setHuespedes((h) =>
-                            Math.min(glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales, h + 1)
-                          )
-                        }
-                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mascotas */}
-                {glamping.aceptaMascotas && (
-                  <div>
-                    <label className="text-sm font-medium text-stone-700 mb-2 block">Mascotas</label>
-                    <div className="flex items-center justify-between bg-stone-50 rounded-xl p-3 sm:p-4">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <Dog size={20} className="text-brand sm:hidden" />
-                        <Dog size={24} className="text-brand hidden sm:block" />
-                        <div>
-                          <p className="font-medium text-stone-800 text-sm sm:text-base">Mascotas</p>
-                          {glamping.precioMascotas && glamping.precioMascotas > 0 && (
-                            <p className="text-xs text-stone-500">{formatCOP(Math.round(glamping.precioMascotas * 1.10))} / mascota / noche</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setCantidadMascotas((v) => Math.max(0, v - 1))}
-                          disabled={cantidadMascotas === 0}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="text-xl sm:text-2xl font-bold text-stone-900 w-12 sm:w-16 text-center">{cantidadMascotas}</span>
-                        <button
-                          type="button"
-                          onClick={() => setCantidadMascotas((v) => Math.min(2, v + 1))}
-                          disabled={cantidadMascotas >= 2}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Extras */}
-                {glamping.extras?.filter((e) => e.disponible).length > 0 && (
-                  <div>
-                    <label className="text-sm font-medium text-stone-700 mb-3 block">Extras (opcionales)</label>
-                    <div className="space-y-2">
-                      {glamping.extras
-                        .filter((e) => e.disponible)
-                        .map((extra) => {
-                          const selected = extrasSeleccionados.includes(extra.key)
-                          return (
-                            <button
-                              key={extra.key}
-                              onClick={() => toggleExtra(extra.key)}
-                              className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                                selected
-                                  ? 'border-brand bg-emerald-50'
-                                  : 'border-stone-200 hover:border-stone-300'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                  selected ? 'border-brand bg-brand' : 'border-stone-300'
-                                }`}>
-                                  {selected && <CheckCircle size={14} className="text-white" />}
-                                </div>
-                                <div className="text-left">
-                                  <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
-                                  <p className="text-xs text-stone-500 capitalize">
-                                    {extra.unidad.replace(/_/g, ' ')}
-                                    {extra.descripcion && ` · ${extra.descripcion}`}
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="font-semibold text-stone-700 text-sm">
-                                {formatCOP(extra.precioPublico)}
-                              </span>
-                            </button>
-                          )
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Cotización */}
-                {loadingCotizacion && (
-                  <div className="text-center py-4 text-sm text-stone-400">Calculando...</div>
-                )}
-                {cotizacionDisplay && !loadingCotizacion && (
-                  <div className="bg-stone-50 rounded-xl p-5 space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-stone-600">Alojamiento ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
-                      <span className="font-semibold text-stone-900">{formatCOP(cotizacionDisplay.subtotalAlojamiento)}</span>
-                    </div>
-                    {(cotizacionDisplay.subtotalExtras || 0) > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-stone-600">Extras</span>
-                        <span className="font-semibold text-stone-900">{formatCOP(cotizacionDisplay.subtotalExtras)}</span>
-                      </div>
-                    )}
-                    {precioAdicional > 0 && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-stone-600">+{adicionales} huésped{adicionales > 1 ? 'es' : ''} adicional{adicionales > 1 ? 'es' : ''} ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
-                          <span className="font-semibold text-stone-900">{formatCOP(precioAdicional)}</span>
-                        </div>
-                        <div className="text-right text-xs text-stone-400">
-                          {formatCOP(Math.round(precioAdicional / noches))} / noche
-                        </div>
-                      </div>
-                    )}
-                    {precioMascota > 0 && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-stone-600">🐾 {cantidadMascotas === 1 ? '1 mascota' : `${cantidadMascotas} mascotas`} ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
-                          <span className="font-semibold text-stone-900">{formatCOP(precioMascota)}</span>
-                        </div>
-                        <div className="text-right text-xs text-stone-400">
-                          {formatCOP(Math.round(precioMascota / noches))} / noche
-                        </div>
-                      </div>
-                    )}
-                    <hr className="border-stone-200" />
-                    <div className="flex justify-between font-bold text-stone-900 text-xl">
-                      <span>Total</span>
-                      <span>{formatCOP(totalFinal)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer - Total fijo y botón verde */}
-              <div className="sticky bottom-0 bg-white border-t border-stone-200 px-4 sm:px-6 py-3 sm:py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs text-stone-400">Total</p>
-                    <p className="text-xl sm:text-2xl font-bold text-stone-900">{formatCOP(totalFinal)}</p>
-                  </div>
-                  <button
-                    onClick={handleReservar}
-                    disabled={!disponible}
-                    className="flex-1 sm:w-64 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold px-3 sm:px-6 py-2.5 sm:py-4 rounded-xl transition-all shadow-lg hover:shadow-xl"
-                  >
-                    Confirmar reserva
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Modal calendario */}
-      {showCalendar && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 sm:p-6"
-          onClick={() => setShowCalendar(false)}
-        >
-          <div
-            className="w-full sm:w-auto sm:max-w-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+      {/* Barra fija inferior — solo móvil */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 px-4 pt-3 pb-4 space-y-2">
+        {/* Fila 1: fechas + huéspedes */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCalendar(true)}
+            className="flex-1 border border-stone-300 rounded-xl px-3 py-2 text-xs text-left hover:border-emerald-400 transition-colors"
           >
-            <DateRangePicker
-              startDate={fechaInicio}
-              endDate={fechaFin}
-              blockedDates={fechasBloqueadas}
-              minNights={glamping.minimoNoches || 1}
-              onChange={(s, e) => {
-                setFechaInicio(s)
-                setFechaFin(e)
-                if (s && e) setShowCalendar(false)
-              }}
-              onClose={() => setShowCalendar(false)}
-            />
+            {fechaInicio && fechaFin ? (
+              <span className="font-medium text-stone-800">
+                {formatDate(fechaInicio)} → {formatDate(fechaFin)}
+                <span className="text-stone-400 font-normal"> · {noches} {noches === 1 ? 'noche' : 'noches'}</span>
+
+              </span>
+            ) : (
+              <span className="text-stone-400">📅 Seleccionar fechas</span>
+            )}
+          </button>
+
+          <div className="flex items-center gap-1.5 border border-stone-300 rounded-xl px-2 py-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
+              className="w-6 h-6 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 text-sm hover:bg-stone-50"
+            >−</button>
+            <span className="text-xs font-medium text-stone-800 w-4 text-center">{huespedes}</span>
+            <button
+              type="button"
+              onClick={() => setHuespedes((h) => Math.min(glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales, h + 1))}
+              className="w-6 h-6 rounded-full border border-stone-300 flex items-center justify-center text-stone-600 text-sm hover:bg-stone-50"
+            >+</button>
+            <span className="text-xs text-stone-400">hués.</span>
           </div>
         </div>
-      )}
 
-      {/* Barra fija inferior — solo móvil (simplificado: solo total + botón) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 px-4 pt-3 pb-4">
+        {/* Fila 2: precio + reservar */}
         <div className="flex items-center justify-between gap-3">
-          <div 
-            className="flex-1 cursor-pointer"
-            onClick={() => {
-              if (!fechaInicio || !fechaFin) {
-                toast.error('Selecciona las fechas')
-                return
-              }
-              setShowReservationModal(true)
-            }}
-          >
+          <div>
             {cotizacionDisplay && fechaInicio && fechaFin ? (
               <>
-                <p className="text-xs text-stone-400">Total</p>
-                <p className="text-xl font-bold text-stone-900">{formatCOP(totalFinal)}</p>
+                <p className="text-xs text-stone-400">Total estimado</p>
+                <p className="text-base font-bold text-stone-900">{formatCOP(totalFinal)}</p>
               </>
             ) : (
               <>
-                <p className="text-xs text-stone-400">{noches > 0 && fechaInicio && fechaFin ? 'Por noche' : 'Desde'}</p>
+                <p className="text-xs text-stone-400">Desde</p>
                 <p className="text-base font-bold text-stone-900">
-                  {formatCOP(precioPorNocheDinamico)}
+                  {formatCOP(Math.round(calcularComision(precioBaseDinamico)))}
                   <span className="text-xs font-normal text-stone-400"> / noche</span>
                 </p>
               </>
             )}
           </div>
-          <Button 
-            onClick={() => setShowReservationModal(true)}
-            size="lg" 
-            className="shrink-0 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:cursor-not-allowed"
-          >
+          <Button onClick={handleReservar} size="lg" className="shrink-0">
             Reservar
           </Button>
         </div>

@@ -87,6 +87,8 @@ export interface Glamping {
   propietarioId: string
   calificacion: number
   totalCalificaciones: number
+  precioMascotas?: number
+  precioPersonaAdicional?: number
   createdAt: string
   updatedAt: string
 }
@@ -117,23 +119,26 @@ export interface HomeResponse {
 }
 
 // ─── Cotización ──────────────────────────────────────────────────────────────
-export interface DesgloseCotizacion {
+export interface DesgloseCotizacionNoche {
   fecha: string
-  dia: string
-  tarifaBase: number
-  tarifaConComision: number
+  diaSemana: string
+  precioNocheAnfitrion: number
+  precioNoche: number
 }
 
 export interface Cotizacion {
+  glampingId: string
+  nombreGlamping: string
   fechaInicio: string
   fechaFin: string
   noches: number
   huespedes: number
-  desglose: DesgloseCotizacion[]
+  huespedesAdicionales: number
+  desgloseNoches: DesgloseCotizacionNoche[]
   subtotalAlojamiento: number
   subtotalExtras: number
-  precioTotal: number
-  disponible: boolean
+  comisionTotal: number
+  total: number
 }
 
 // ─── Reserva ─────────────────────────────────────────────────────────────────

@@ -9,6 +9,16 @@ export function cn(...inputs: ClassValue[]) {
 export const toTitleCase = (str: string) =>
   str.trim().replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
 
+// ─── Comisión escalonada Glamperos (igual que el backend) ────────────────────
+export function calcularComision(precioAnfitrion: number): number {
+  if (precioAnfitrion < 300_000) return precioAnfitrion * 1.20
+  if (precioAnfitrion < 400_000) return precioAnfitrion * 1.16
+  if (precioAnfitrion < 500_000) return precioAnfitrion * 1.15
+  if (precioAnfitrion < 600_000) return precioAnfitrion * 1.13
+  if (precioAnfitrion < 800_000) return precioAnfitrion * 1.11
+  return precioAnfitrion * 1.10
+}
+
 // ─── Formateo de precios COP ─────────────────────────────────────────────────
 export const formatCOP = (amount: number): string =>
   new Intl.NumberFormat('es-CO', {

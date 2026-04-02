@@ -1,56 +1,57 @@
-## Error Type
-Console Error
+🏕️ *Chalet en San Francisco*
+📍 San Francisco, Cundinamarca
 
-## Error Message
-A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+*Este glamping te ofrece*
+🏡✨ Ven y disfruta de una experiencia única en nuestro Chalet,rodeado de naturaleza 🌿 y con todas las comodidades para una estadía inolvidable al mejor estilo campestre.
 
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="es"
-+                         className="inter_2fe1ab3d-module__-T-KAq__variable"
--                         className="inter_2fe1ab3d-module__-T-KAq__variable js-enabled"
-                        >
-                  ...
+✅ Tu reserva INCLUYE:
+Jacuzzi
+Desayuno (zona restaurante) 🍽️
+Cafetera ☕ (ilimitado)
+Mini nevera (valor adicional) 🧊
+Baño privado
+Piscina 🏊
+Zonas verdes 🌳
+Zonas de estar comunes y hamacas 🍃
+Servicio de parqueadero 🅿️
+Seguro hotelero 🏥
+WIFI 📶
 
 
+💰 *Precios por noche:*
+• Lunes: $ 348.000
+• Martes: $ 348.000
+• Miércoles: $ 348.000
+• Jueves: $ 348.000
+• Viernes: $ 371.200
+• Sábado: $ 371.200
+• Domingo: $ 348.000
 
-    at html (<anonymous>:null:null)
-    at RootLayout (app\layout.tsx:49:5)
+🕐 Check-in: 15:00 | Check-out: 12:00
+🐾 Acepta mascotas
 
-## Code Frame
-  47 | export default function RootLayout({ children }: { children: React.ReactNode }) {
-  48 |   return (
-> 49 |     <html lang="es" className={inter.variable}>
-     |     ^
-  50 |       <body suppressHydrationWarning className="font-sans bg-white text-stone-900 antialiased">
-  51 |         <Providers>
-  52 |           <ConditionalLayout>{children}</ConditionalLayout>
+➕ *Extras disponibles (con costo adicional):*
+• Cabalgata: $ 187.000 (por pareja)
 
-Next.js version: 16.1.6 (Turbopack)
+❌ No admite cancelaciones
+
+📸 *Ver collage de fotos:*
+http://localhost:3000/glamping/69b8b1a4776b87a18af6b6f8/fotos
+
+🎥 *Ver video:*
+https://www.youtube.com/watch?v=LfvKkrVSO-U
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+💌 *Proceso de reserva*
+Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha.
+La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.
+_Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️._
+
+*Datos de pago:*
+🏦 Cuenta Bancolombia – Glamperos SAS
+📂 Tipo: Ahorros
+🔢 Nº 292-000059-43
+📂 Nuestra Llave
+🔢 0089996468
+
+_Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios._

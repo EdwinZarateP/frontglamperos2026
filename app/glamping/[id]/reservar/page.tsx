@@ -1,13 +1,17 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { Upload, Plus, Trash2, Dog, ChevronDown, CheckCircle, Pencil, X, CreditCard, Banknote, ShieldCheck, AlertCircle } from 'lucide-react'
+import {
+  Upload, Plus, Trash2, ChevronDown, CheckCircle, ChevronLeft,
+  CreditCard, Banknote, ShieldCheck, AlertCircle, CalendarDays,
+  Users, PawPrint, X, Info,
+} from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { useGlamping, useCotizacion, useFechasBloqueadas } from '@/hooks/useGlampings'
@@ -18,6 +22,7 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate } from '@/lib/utils'
 import type { Reserva } from '@/types'
 
+// ─── Schema ──────────────────────────────────────────────────────────────────
 const schema = z.object({
   nombreTitular: z.string().min(3, 'Nombre requerido'),
   cedulaTitular: z.string().min(5, 'Cédula requerida'),
@@ -36,37 +41,44 @@ type FormData = {
   montoPagado: number
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function precioMaxTarifas(tarifas?: Record<string, number>, fallback = 0): number {
+  if (!tarifas) return fallback
+  const vals = Object.values(tarifas).filter((v) => typeof v === 'number' && v > 0)
+  return vals.length ? Math.max(...vals) : fallback
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function ReservarPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user, isAuthenticated } = useAuthStore()
 
-  // ── Estado editable (inicializado desde URL params) ─────────────────────────
-  const [editFechaInicio, setEditFechaInicio] = useState(searchParams.get('fechaInicio') || '')
-  const [editFechaFin, setEditFechaFin] = useState(searchParams.get('fechaFin') || '')
-  const [editHuespedes, setEditHuespedes] = useState(Number(searchParams.get('huespedes') || 2))
-  const [tieneMascota, setTieneMascota] = useState(searchParams.get('mascota') === '1')
+  const [fechaInicio, setFechaInicio] = useState(searchParams.get('fechaInicio') || '')
+  const [fechaFin, setFechaFin]       = useState(searchParams.get('fechaFin') || '')
+  const [huespedes, setHuespedes]     = useState(Number(searchParams.get('huespedes') || 2))
+  const [cantidadMascotas, setCantidadMascotas] = useState(Number(searchParams.get('mascotas') || 0))
   const [extrasSeleccionados, setExtrasSeleccionados] = useState<string[]>(
     (searchParams.get('extras') || '').split(',').filter(Boolean)
   )
-  const [showCalendar, setShowCalendar] = useState(!searchParams.get('fechaInicio'))
-  const [editingDetails, setEditingDetails] = useState(false)
+  const [showCalendar, setShowCalendar]     = useState(!searchParams.get('fechaInicio'))
+  const [showDetalles, setShowDetalles]     = useState(false)
+  const [metodoPago, setMetodoPago]         = useState<'transferencia' | 'wompi'>('transferencia')
+  const [comprobante, setComprobante]       = useState<File | null>(null)
+  const [acompanantes, setAcompanantes]     = useState<{ nombreCompleto: string; telefono: string }[]>([])
+  const [showResumenMobile, setShowResumenMobile] = useState(false)
 
-  const { data: glamping, isLoading: loadingGlamping } = useGlamping(id)
+  const { data: glamping, isLoading } = useGlamping(id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(id)
-
   const extrasStr = extrasSeleccionados.join(',')
+
   const { data: cotizacion } = useCotizacion(id, {
-    fecha_inicio: editFechaInicio,
-    fecha_fin: editFechaFin,
-    huespedes: editHuespedes,
+    fecha_inicio: fechaInicio,
+    fecha_fin: fechaFin,
+    huespedes,
     extras: extrasStr || undefined,
   })
-
-  const [metodoPago, setMetodoPago] = useState<'transferencia' | 'wompi'>('transferencia')
-  const [comprobante, setComprobante] = useState<File | null>(null)
-  const [acompanantes, setAcompanantes] = useState<{ nombreCompleto: string; telefono: string }[]>([])
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
     resolver: zodResolver(schema) as import('react-hook-form').Resolver<FormData>,
@@ -84,12 +96,12 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
       const fd = new FormData()
       fd.append('glampingId', id)
       fd.append('tipo', 'NOCHES')
-      fd.append('fechaInicio', editFechaInicio)
-      fd.append('fechaFin', editFechaFin)
-      fd.append('huespedes', String(editHuespedes))
+      fd.append('fechaInicio', fechaInicio)
+      fd.append('fechaFin', fechaFin)
+      fd.append('huespedes', String(huespedes))
       fd.append('huespedesAdicionales', '0')
       fd.append('extrasSeleccionados', extrasStr)
-      fd.append('tieneMascota', tieneMascota ? '1' : '0')
+      fd.append('cantidadMascotas', String(cantidadMascotas))
       fd.append('nombreTitular', data.nombreTitular)
       fd.append('cedulaTitular', data.cedulaTitular)
       fd.append('celularTitular', data.celularTitular)
@@ -113,426 +125,637 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
-  const toggleExtra = (key: string) => {
+  const toggleExtra = useCallback((key: string) => {
     setExtrasSeleccionados((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     )
-  }
+  }, [])
 
-  if (!isAuthenticated) {
-    router.push('/auth/login')
-    return null
-  }
-  if (loadingGlamping) return <Spinner />
-  if (!glamping) return <div className="p-8 text-center">Glamping no encontrado</div>
+  // ─── Guards ────────────────────────────────────────────────────────────────
+  if (!isAuthenticated) { router.push('/auth/login'); return null }
+  if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Spinner /></div>
+  if (!glamping) return <div className="p-8 text-center text-stone-500">Glamping no encontrado</div>
 
-  const maxHuespedes = glamping.cantidadHuespedes + glamping.cantidadHuespedesAdicionales
+  // ─── Derived values ────────────────────────────────────────────────────────
+  const maxHuespedes     = glamping.cantidadHuespedes + (glamping.cantidadHuespedesAdicionales ?? 0)
   const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
+  const precioDefecto    = precioMaxTarifas(glamping.tarifasNoche as Record<string, number> | undefined, glamping.precioNoche)
+  const noches           = cotizacion?.noches ?? 0
+  const precioMascota    = tieneMascota && glamping.aceptaMascotas ? Math.round((glamping.precioMascotas ?? 0) * Math.max(noches, 1) * 1.10) : 0
+  const totalBase        = cotizacion ? cotizacion.total + precioMascota : 0
+  const totalWompi       = Math.round(totalBase * 1.05)
+  const totalMostrar     = metodoPago === 'wompi' ? totalWompi : totalBase
+  const hayFechas        = !!fechaInicio && !!fechaFin
+
+  // ─── Componente resumen (reutilizado en desktop y mobile sheet) ────────────
+  const ResumenContent = () => (
+    <div className="space-y-1">
+      {/* Imagen */}
+      {glamping.imagenes?.[0] && (
+        <img
+          src={glamping.imagenes[0]}
+          alt={glamping.nombreGlamping}
+          className="w-full h-36 object-cover rounded-xl mb-4"
+        />
+      )}
+      <p className="font-semibold text-stone-800 text-sm">{glamping.nombreGlamping}</p>
+      <p className="text-xs text-stone-400 mb-3">{glamping.ciudadDepartamento}</p>
+
+      {/* Fechas y huéspedes */}
+      <div className="text-sm space-y-2 text-stone-600">
+        <div className="flex justify-between">
+          <span className="text-stone-400">Llegada</span>
+          <span className="font-medium">{fechaInicio ? formatDate(fechaInicio) : '—'}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-stone-400">Salida</span>
+          <span className="font-medium">{fechaFin ? formatDate(fechaFin) : '—'}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-stone-400">Huéspedes</span>
+          <span className="font-medium">{huespedes}</span>
+        </div>
+        {tieneMascota && (
+          <div className="flex justify-between text-emerald-700">
+            <span className="flex items-center gap-1"><PawPrint size={12} /> Mascota</span>
+            <span className="font-medium">Incluida</span>
+          </div>
+        )}
+      </div>
+
+      {/* Desglose cotización */}
+      {cotizacion ? (
+        <div className="border-t border-stone-100 mt-3 pt-3 space-y-2 text-sm">
+          <div className="flex justify-between text-stone-600">
+            <span>Alojamiento ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
+            <span>{formatCOP(cotizacion.subtotalAlojamiento)}</span>
+          </div>
+          {cotizacion.subtotalExtras > 0 && (
+            <div className="flex justify-between text-stone-600">
+              <span>Extras</span>
+              <span>{formatCOP(cotizacion.subtotalExtras)}</span>
+            </div>
+          )}
+          {precioMascota > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <span>Tarifa mascota</span>
+              <span>{formatCOP(precioMascota)}</span>
+            </div>
+          )}
+          {metodoPago === 'wompi' && (
+            <div className="flex justify-between text-amber-600 text-xs">
+              <span>Recargo Wompi (5%)</span>
+              <span>+{formatCOP(Math.round(totalBase * 0.05))}</span>
+            </div>
+          )}
+          <hr className="border-stone-100" />
+          <div className="flex justify-between font-bold text-stone-900 text-base">
+            <span>Total</span>
+            <span>{formatCOP(totalMostrar)}</span>
+          </div>
+          {metodoPago === 'wompi' && (
+            <p className="text-xs text-amber-500 text-right">Incluye 5% comisión Wompi</p>
+          )}
+        </div>
+      ) : (
+        <div className="border-t border-stone-100 mt-3 pt-3">
+          {!hayFechas ? (
+            <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
+              <Info size={13} />
+              <span>Selecciona fechas para ver el total exacto</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-2">
+              <Spinner />
+            </div>
+          )}
+          <div className="mt-2 text-center">
+            <p className="text-xs text-stone-400">Precio referencial</p>
+            <p className="font-bold text-stone-900">
+              {formatCOP(precioDefecto)}
+              <span className="text-xs font-normal text-stone-400"> / noche para 2</span>
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl font-bold text-stone-900 mb-2">Completa tu reserva</h1>
-      <p className="text-stone-500 mb-8">{glamping.nombreGlamping} · {glamping.ciudadDepartamento}</p>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-8">
+      {/* Back */}
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 mb-5 transition-colors"
+      >
+        <ChevronLeft size={16} /> Volver al glamping
+      </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* ── Formulario ─────────────────────────────────────────────────────── */}
-        <form onSubmit={handleSubmit((d) => crearReserva.mutate(d))} className="lg:col-span-2 space-y-6">
+      <h1 className="text-2xl font-bold text-stone-900 mb-1">Completa tu reserva</h1>
+      <p className="text-stone-400 text-sm mb-7">{glamping.nombreGlamping} · {glamping.ciudadDepartamento}</p>
 
-          {/* FECHAS Y DETALLES EDITABLES */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-stone-800">Tu viaje</h2>
-              {!editingDetails && (
-                <button
-                  type="button"
-                  onClick={() => setEditingDetails(true)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 underline"
-                >
-                  <Pencil size={13} /> Editar
-                </button>
-              )}
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        {/* ── Formulario (izquierda) ─────────────────────────────────────── */}
+        <form
+          onSubmit={handleSubmit((d) => crearReserva.mutate(d))}
+          className="lg:col-span-2 space-y-5"
+        >
+
+          {/* PASO 1 — TU VIAJE */}
+          <Section title="1. Tu viaje">
 
             {/* Fechas */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Fechas</p>
-              </div>
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => setShowCalendar((v) => !v)}
+                className="w-full flex items-center justify-between text-left px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-400 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <CalendarDays size={16} className="text-stone-400 group-hover:text-stone-600" />
+                  <div>
+                    <p className="text-xs text-stone-400 leading-none mb-0.5">Fechas</p>
+                    <p className="text-sm font-medium text-stone-800">
+                      {hayFechas
+                        ? `${formatDate(fechaInicio)} → ${formatDate(fechaFin)} · ${noches} ${noches === 1 ? 'noche' : 'noches'}`
+                        : 'Seleccionar fechas'}
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown size={16} className={`text-stone-400 transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+              </button>
 
-              {editingDetails || showCalendar ? (
-                <div>
+              {showCalendar && (
+                <div className="mt-2">
                   <DateRangePicker
-                    startDate={editFechaInicio}
-                    endDate={editFechaFin}
+                    startDate={fechaInicio}
+                    endDate={fechaFin}
                     blockedDates={fechasBloqueadas}
                     minNights={glamping.minimoNoches || 1}
                     onChange={(s, e) => {
-                      setEditFechaInicio(s)
-                      setEditFechaFin(e)
+                      setFechaInicio(s)
+                      setFechaFin(e)
                       if (s && e) setShowCalendar(false)
                     }}
-                    onClose={() => { setShowCalendar(false); setEditingDetails(false) }}
+                    onClose={() => setShowCalendar(false)}
                   />
                 </div>
-              ) : (
-                <p className="text-sm font-medium text-stone-800">
-                  {editFechaInicio ? `${formatDate(editFechaInicio)} → ${formatDate(editFechaFin)}` : (
-                    <button type="button" onClick={() => setShowCalendar(true)} className="text-brand underline">
-                      Seleccionar fechas
-                    </button>
-                  )}
-                </p>
               )}
             </div>
 
             {/* Huéspedes */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-2">Huéspedes</p>
-              {editingDetails ? (
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditHuespedes((h) => Math.max(1, h - 1))}
-                    className="w-8 h-8 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-600 hover:border-stone-500 text-lg"
-                  >
-                    −
-                  </button>
-                  <span className="font-semibold text-stone-900 w-6 text-center">{editHuespedes}</span>
-                  <button
-                    type="button"
-                    onClick={() => setEditHuespedes((h) => Math.min(maxHuespedes, h + 1))}
-                    className="w-8 h-8 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-600 hover:border-stone-500 text-lg"
-                  >
-                    +
-                  </button>
-                  <span className="text-xs text-stone-400">(máx {maxHuespedes})</span>
+            <button
+              type="button"
+              onClick={() => setShowDetalles((v) => !v)}
+              className="w-full flex items-center justify-between text-left px-4 py-3 rounded-xl border border-stone-200 hover:border-stone-400 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <Users size={16} className="text-stone-400 group-hover:text-stone-600" />
+                <div>
+                  <p className="text-xs text-stone-400 leading-none mb-0.5">Huéspedes</p>
+                  <p className="text-sm font-medium text-stone-800">
+                    {huespedes} {huespedes === 1 ? 'huésped' : 'huéspedes'}
+                    {glamping.aceptaMascotas && tieneMascota ? ' · 🐾 Con mascota' : ''}
+                  </p>
                 </div>
-              ) : (
-                <p className="text-sm font-medium text-stone-800">
-                  {editHuespedes} {editHuespedes === 1 ? 'huésped' : 'huéspedes'}
-                </p>
-              )}
-            </div>
+              </div>
+              <ChevronDown size={16} className={`text-stone-400 transition-transform ${showDetalles ? 'rotate-180' : ''}`} />
+            </button>
 
-            {/* Mascotas */}
-            {glamping.aceptaMascotas && (
-              <div className="flex items-center justify-between py-3 border-t border-stone-100">
-                <div className="flex items-center gap-2">
-                  <Dog size={15} className="text-stone-500" />
-                  <p className="text-sm text-stone-700">¿Llevas mascota?</p>
+            {showDetalles && (
+              <div className="border border-stone-200 rounded-xl p-4 space-y-4 mt-2">
+                {/* Counter huéspedes */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-stone-800">Huéspedes</p>
+                    <p className="text-xs text-stone-400">Máximo {maxHuespedes}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHuespedes((h) => Math.max(1, h - 1))}
+                      className="w-9 h-9 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-700 hover:border-stone-600 text-lg font-light transition-colors disabled:opacity-40"
+                      disabled={huespedes <= 1}
+                    >
+                      −
+                    </button>
+                    <span className="font-semibold text-stone-900 w-5 text-center">{huespedes}</span>
+                    <button
+                      type="button"
+                      onClick={() => setHuespedes((h) => Math.min(maxHuespedes, h + 1))}
+                      className="w-9 h-9 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-700 hover:border-stone-600 text-lg font-light transition-colors disabled:opacity-40"
+                      disabled={huespedes >= maxHuespedes}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
+
+                {/* Mascotas */}
+                {glamping.aceptaMascotas && (
+                  <div className="flex items-center justify-between pt-3 border-t border-stone-100">
+                    <div className="flex items-center gap-2">
+                      <PawPrint size={16} className="text-stone-500" />
+                      <div>
+                        <p className="text-sm font-medium text-stone-800">¿Llevas mascota?</p>
+                        {(glamping.precioMascotas ?? 0) > 0 && (
+                          <p className="text-xs text-stone-400">
+                            +{formatCOP(glamping.precioMascotas!)} / noche
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTieneMascota((v) => !v)}
+                      className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${tieneMascota ? 'bg-emerald-600' : 'bg-stone-200'}`}
+                      aria-label="Toggle mascota"
+                    >
+                      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                )}
+
                 <button
                   type="button"
-                  onClick={() => setTieneMascota((v) => !v)}
-                  className={`w-11 h-6 rounded-full transition-colors relative ${tieneMascota ? 'bg-brand' : 'bg-stone-200'}`}
+                  onClick={() => setShowDetalles(false)}
+                  className="w-full py-2 text-sm font-medium text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors"
                 >
-                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  Listo
                 </button>
               </div>
             )}
+          </Section>
 
-            {editingDetails && (
-              <button
-                type="button"
-                onClick={() => setEditingDetails(false)}
-                className="mt-3 w-full py-2 text-sm font-medium text-stone-700 border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors"
-              >
-                Confirmar detalles
-              </button>
-            )}
-          </div>
-
-          {/* Servicios extras */}
+          {/* PASO 2 — SERVICIOS EXTRAS */}
           {extrasDisponibles.length > 0 && (
-            <div className="bg-white rounded-2xl border border-stone-200 p-6">
-              <h2 className="font-semibold text-stone-800 mb-4">Servicios extras</h2>
-              <div className="space-y-3">
+            <Section title="2. Agrega extras">
+              <div className="space-y-2">
                 {extrasDisponibles.map((extra) => {
                   const selected = extrasSeleccionados.includes(extra.key)
                   return (
-                    <div
+                    <button
                       key={extra.key}
+                      type="button"
                       onClick={() => toggleExtra(extra.key)}
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        selected ? 'border-brand bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                        selected ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          selected ? 'border-brand bg-brand' : 'border-stone-300'
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          selected ? 'border-emerald-500 bg-emerald-500' : 'border-stone-300'
                         }`}>
-                          {selected && <CheckCircle size={12} className="text-white" />}
+                          {selected && <CheckCircle size={11} className="text-white" />}
                         </div>
                         <div>
-                          <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
+                          <p className="text-sm font-medium text-stone-800">{extra.nombre}</p>
                           <p className="text-xs text-stone-400 capitalize">
-                            {extra.unidad.replace(/_/g, ' ')}
-                            {extra.descripcion && ` · ${extra.descripcion}`}
+                            {extra.unidad === 'por_persona' ? 'Por persona' : 'Por reserva'}
+                            {extra.descripcion ? ` · ${extra.descripcion}` : ''}
                           </p>
                         </div>
                       </div>
-                      <span className="font-semibold text-stone-700 text-sm shrink-0 ml-3">
+                      <span className="text-sm font-semibold text-stone-700 shrink-0 ml-4">
                         {formatCOP(extra.precioPublico)}
                       </span>
-                    </div>
+                    </button>
                   )
                 })}
               </div>
-            </div>
+            </Section>
           )}
 
-          {/* DATOS DEL TITULAR */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6">
-            <h2 className="font-semibold text-stone-800 mb-4">Datos del titular</h2>
+          {/* PASO 3 — DATOS DEL TITULAR */}
+          <Section title={extrasDisponibles.length > 0 ? '3. Tus datos' : '2. Tus datos'}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Nombre completo" placeholder="María García" error={errors.nombreTitular?.message} {...register('nombreTitular')} />
-              <Input label="Cédula / Pasaporte" placeholder="1010213062" error={errors.cedulaTitular?.message} {...register('cedulaTitular')} />
-              <Input label="Celular (con indicativo)" placeholder="+573001234567" error={errors.celularTitular?.message} {...register('celularTitular')} />
-              <Input label="Email de contacto" type="email" placeholder="maria@email.com" error={errors.emailTitular?.message} {...register('emailTitular')} />
+              <Input
+                label="Nombre completo"
+                placeholder="María García"
+                error={errors.nombreTitular?.message}
+                {...register('nombreTitular')}
+              />
+              <Input
+                label="Cédula / Pasaporte"
+                placeholder="1010213062"
+                error={errors.cedulaTitular?.message}
+                {...register('cedulaTitular')}
+              />
+              <Input
+                label="Celular (con indicativo)"
+                placeholder="+573001234567"
+                error={errors.celularTitular?.message}
+                {...register('celularTitular')}
+              />
+              <Input
+                label="Email de contacto"
+                type="email"
+                placeholder="maria@email.com"
+                error={errors.emailTitular?.message}
+                {...register('emailTitular')}
+              />
             </div>
-          </div>
 
-          {/* ACOMPAÑANTES */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-stone-800">Acompañantes (opcional)</h2>
-              <Button type="button" variant="outline" size="sm" onClick={() => setAcompanantes((p) => [...p, { nombreCompleto: '', telefono: '' }])}>
-                <Plus size={14} /> Agregar
-              </Button>
-            </div>
-            {acompanantes.length === 0 && <p className="text-sm text-stone-400">No has agregado acompañantes</p>}
-            {acompanantes.map((a, i) => (
-              <div key={i} className="flex gap-3 items-start mb-3">
-                <div className="flex-1 grid grid-cols-2 gap-3">
-                  <Input placeholder="Nombre completo" value={a.nombreCompleto}
-                    onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, nombreCompleto: e.target.value } : x))} />
-                  <Input placeholder="+573001234567" value={a.telefono}
-                    onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, telefono: e.target.value } : x))} />
-                </div>
-                <button type="button" onClick={() => setAcompanantes((prev) => prev.filter((_, idx) => idx !== i))} className="mt-2 p-2 text-red-400 hover:text-red-600">
-                  <Trash2 size={16} />
+            {/* Acompañantes */}
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-stone-700">Acompañantes <span className="text-stone-400 font-normal">(opcional)</span></p>
+                <button
+                  type="button"
+                  onClick={() => setAcompanantes((p) => [...p, { nombreCompleto: '', telefono: '' }])}
+                  className="flex items-center gap-1 text-xs text-emerald-700 font-medium hover:text-emerald-900 transition-colors"
+                >
+                  <Plus size={13} /> Agregar
                 </button>
               </div>
-            ))}
-          </div>
+              {acompanantes.map((a, i) => (
+                <div key={i} className="flex gap-2 items-start mb-2">
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Nombre"
+                      value={a.nombreCompleto}
+                      onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, nombreCompleto: e.target.value } : x))}
+                    />
+                    <Input
+                      placeholder="+573001234567"
+                      value={a.telefono}
+                      onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, telefono: e.target.value } : x))}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAcompanantes((prev) => prev.filter((_, idx) => idx !== i))}
+                    className="mt-2 p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-          {/* NOTAS */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6">
-            <h2 className="font-semibold text-stone-800 mb-4">Notas especiales</h2>
-            <Textarea placeholder="¿Algún requerimiento especial? Alergias, celebraciones, etc." {...register('notasEspeciales')} />
-          </div>
+            {/* Notas */}
+            <div className="mt-3">
+              <Textarea
+                label="Notas especiales (opcional)"
+                placeholder="¿Algún requerimiento? Alergias, celebraciones, horarios especiales..."
+                {...register('notasEspeciales')}
+              />
+            </div>
+          </Section>
 
-          {/* MÉTODO DE PAGO */}
-          <div className="bg-white rounded-2xl border border-stone-200 p-6">
-            <h2 className="font-semibold text-stone-800 mb-4">¿Cómo deseas pagar?</h2>
+          {/* PASO 4 — MÉTODO DE PAGO */}
+          <Section title={extrasDisponibles.length > 0 ? '4. ¿Cómo deseas pagar?' : '3. ¿Cómo deseas pagar?'}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              {/* Opción Wompi */}
+
+              {/* Wompi */}
               <button
                 type="button"
                 onClick={() => setMetodoPago('wompi')}
                 className={`relative flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
-                  metodoPago === 'wompi'
-                    ? 'border-brand bg-emerald-50'
-                    : 'border-stone-200 hover:border-stone-300'
+                  metodoPago === 'wompi' ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
                 }`}
               >
                 {metodoPago === 'wompi' && (
-                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-brand flex items-center justify-center">
-                    <CheckCircle size={10} className="text-white" />
+                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                    <CheckCircle size={11} className="text-white" />
                   </span>
                 )}
-                <div className="flex items-center gap-2 mb-2">
-                  <CreditCard size={18} className="text-brand" />
+                <div className="flex items-center gap-2 mb-1.5">
+                  <CreditCard size={18} className="text-emerald-600" />
                   <span className="font-semibold text-stone-800 text-sm">Pago en línea</span>
                 </div>
-                <p className="text-xs text-stone-500 mb-2">Tarjeta débito / crédito / PSE vía Wompi</p>
-                <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+                <p className="text-xs text-stone-500 mb-2">Tarjeta débito/crédito · PSE · Efecty</p>
+                <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 w-full">
                   <AlertCircle size={11} className="text-amber-500 shrink-0" />
-                  <span className="text-xs text-amber-700 font-medium">Recargo del 5% por pasarela</span>
+                  <span className="text-xs text-amber-700 font-medium">+5% recargo Wompi</span>
                 </div>
-                {cotizacion && metodoPago === 'wompi' && (
-                  <p className="mt-2 text-sm font-bold text-stone-900">
-                    Total: {formatCOP(Math.round(cotizacion.precioTotal * 1.05))}
-                  </p>
+                {hayFechas && cotizacion && (
+                  <p className="mt-2 text-sm font-bold text-stone-900">{formatCOP(totalWompi)}</p>
                 )}
               </button>
 
-              {/* Opción Transferencia */}
+              {/* Transferencia */}
               <button
                 type="button"
                 onClick={() => setMetodoPago('transferencia')}
                 className={`relative flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
-                  metodoPago === 'transferencia'
-                    ? 'border-brand bg-emerald-50'
-                    : 'border-stone-200 hover:border-stone-300'
+                  metodoPago === 'transferencia' ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
                 }`}
               >
                 {metodoPago === 'transferencia' && (
-                  <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-brand flex items-center justify-center">
-                    <CheckCircle size={10} className="text-white" />
+                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                    <CheckCircle size={11} className="text-white" />
                   </span>
                 )}
-                <div className="flex items-center gap-2 mb-2">
-                  <Banknote size={18} className="text-brand" />
-                  <span className="font-semibold text-stone-800 text-sm">Transferencia / Efectivo</span>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Banknote size={18} className="text-emerald-600" />
+                  <span className="font-semibold text-stone-800 text-sm">Transferencia</span>
                 </div>
-                <p className="text-xs text-stone-500 mb-2">Transfiere directamente al anfitrión</p>
-                <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
-                  <ShieldCheck size={11} className="text-brand shrink-0" />
-                  <span className="text-xs text-brand-light font-medium">Sin comisión adicional</span>
+                <p className="text-xs text-stone-500 mb-2">Nequi · Daviplata · Banco</p>
+                <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 w-full">
+                  <ShieldCheck size={11} className="text-emerald-600 shrink-0" />
+                  <span className="text-xs text-emerald-700 font-medium">Sin recargo adicional</span>
                 </div>
-                {cotizacion && metodoPago === 'transferencia' && (
-                  <p className="mt-2 text-sm font-bold text-stone-900">
-                    Total: {formatCOP(cotizacion.precioTotal)}
-                  </p>
+                {hayFechas && cotizacion && (
+                  <p className="mt-2 text-sm font-bold text-stone-900">{formatCOP(totalBase)}</p>
                 )}
               </button>
             </div>
 
-            {/* Instrucciones según método */}
+            {/* Instrucciones wompi */}
             {metodoPago === 'wompi' && (
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
                 <p className="font-medium mb-1 flex items-center gap-2">
-                  <CreditCard size={14} /> Pago seguro con Wompi</p>
+                  <CreditCard size={14} /> Pago seguro con Wompi
+                </p>
                 <p className="text-xs text-blue-600">
-                  Al enviar la solicitud serás redirigido a la pasarela de pago Wompi para completar el pago con tarjeta, PSE o efectivo (Efecty/Baloto). El recargo del 5% cubre los costos de la plataforma de pagos.
+                  Al enviar la solicitud serás redirigido a Wompi para pagar con tarjeta, PSE, Efecty o Baloto.
+                  El recargo del 5% es cobrado por la pasarela de pagos.
                 </p>
               </div>
             )}
 
+            {/* Instrucciones transferencia */}
             {metodoPago === 'transferencia' && (
               <div className="space-y-3">
-                <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-sm text-stone-700">
-                  <p className="font-medium mb-1 flex items-center gap-2">
-                    <Banknote size={14} /> Instrucciones de pago</p>
+                <div className="bg-stone-50 border border-stone-200 rounded-xl p-4">
+                  <p className="font-medium text-sm mb-1 flex items-center gap-2 text-stone-700">
+                    <Banknote size={14} /> Instrucciones
+                  </p>
                   <p className="text-xs text-stone-500">
-                    El anfitrión te enviará los datos bancarios al confirmar tu reserva. Adjunta aquí el comprobante si ya tienes uno.
+                    El anfitrión te enviará los datos bancarios al confirmar tu reserva.
+                    Si ya realizaste un abono, adjunta el comprobante aquí.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input label="Monto abonado (COP)" type="number" placeholder="0" min={0} {...register('montoPagado')} />
+                  <Input
+                    label="Monto abonado (COP)"
+                    type="number"
+                    placeholder="0"
+                    min={0}
+                    {...register('montoPagado')}
+                  />
                   <div>
-                    <label className="text-sm font-medium text-stone-700 block mb-1">Comprobante (imagen/PDF)</label>
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-stone-300 rounded-xl p-4 cursor-pointer hover:border-emerald-400 transition-colors">
-                      <Upload size={20} className="text-stone-400 mb-2" />
-                      <span className="text-xs text-stone-400">{comprobante ? comprobante.name : 'Seleccionar archivo'}</span>
-                      <input type="file" accept="image/*,.pdf" className="sr-only" onChange={(e) => setComprobante(e.target.files?.[0] || null)} />
+                    <label className="text-sm font-medium text-stone-700 block mb-1.5">
+                      Comprobante <span className="text-stone-400 font-normal">(opcional)</span>
+                    </label>
+                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-stone-300 rounded-xl p-4 cursor-pointer hover:border-emerald-400 transition-colors bg-stone-50 hover:bg-emerald-50">
+                      <Upload size={20} className="text-stone-400 mb-1.5" />
+                      <span className="text-xs text-stone-500 text-center">
+                        {comprobante ? comprobante.name : 'Imagen o PDF · máx 10MB'}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        className="sr-only"
+                        onChange={(e) => setComprobante(e.target.files?.[0] || null)}
+                      />
                     </label>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </Section>
 
-          <Button type="submit" fullWidth size="lg" loading={crearReserva.isPending}
-            disabled={!editFechaInicio || !editFechaFin}>
-            {metodoPago === 'wompi' ? (
-              <span className="flex items-center gap-2"><CreditCard size={16} /> Reservar y pagar en línea</span>
-            ) : (
-              <span className="flex items-center gap-2"><Banknote size={16} /> Enviar solicitud de reserva</span>
-            )}
-          </Button>
-          <p className="text-xs text-stone-400 text-center">
-            {metodoPago === 'wompi'
-              ? 'Serás redirigido a Wompi para completar el pago de forma segura.'
-              : 'Tu solicitud quedará PENDIENTE hasta que el administrador la confirme. Recibirás email y WhatsApp.'}
-          </p>
+          {/* Botón submit — visible en desktop */}
+          <div className="hidden lg:block">
+            <SubmitButton
+              metodoPago={metodoPago}
+              loading={crearReserva.isPending}
+              disabled={!hayFechas}
+            />
+            <SubmitNote metodoPago={metodoPago} />
+          </div>
         </form>
 
-        {/* ── Resumen sticky ──────────────────────────────────────────────────── */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 sticky top-20">
+        {/* ── Resumen sticky (desktop) ───────────────────────────────────── */}
+        <div className="hidden lg:block lg:col-span-1">
+          <div className="bg-white rounded-2xl border border-stone-200 p-5 sticky top-20">
             <h2 className="font-semibold text-stone-800 mb-4">Resumen</h2>
-
-            {glamping.imagenes?.[0] && (
-              <img src={glamping.imagenes[0]} alt={glamping.nombreGlamping} className="w-full h-36 object-cover rounded-xl mb-4" />
-            )}
-
-            <p className="font-semibold text-stone-800 text-sm">{glamping.nombreGlamping}</p>
-            <p className="text-xs text-stone-400 mb-4">{glamping.ciudadDepartamento}</p>
-
-            <div className="text-sm space-y-1.5 text-stone-600 mb-4">
-              <div className="flex justify-between">
-                <span>Llegada</span>
-                <span className="font-medium">{editFechaInicio ? formatDate(editFechaInicio) : '—'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Salida</span>
-                <span className="font-medium">{editFechaFin ? formatDate(editFechaFin) : '—'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Huéspedes</span>
-                <span className="font-medium">{editHuespedes}</span>
-              </div>
-              {tieneMascota && (
-                <div className="flex items-center gap-1 text-stone-500 text-xs">
-                  <Dog size={12} /> Viaja con mascota
-                </div>
-              )}
-            </div>
-
-            {/* Extras seleccionados */}
-            {extrasSeleccionados.length > 0 && extrasDisponibles.length > 0 && (
-              <div className="border-t border-stone-100 pt-3 pb-1">
-                <p className="text-xs font-medium text-stone-500 mb-2">Extras</p>
-                {extrasSeleccionados.map((key) => {
-                  const extra = extrasDisponibles.find((e) => e.key === key)
-                  if (!extra) return null
-                  return (
-                    <div key={key} className="flex justify-between text-xs text-stone-500 mb-1">
-                      <span>{extra.nombre}</span>
-                      <span>{formatCOP(extra.precioPublico)}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {/* Cotización total */}
-            {cotizacion && (
-              <div className="border-t border-stone-100 pt-4 space-y-2 text-sm">
-                <div className="flex justify-between text-stone-600">
-                  <span>Alojamiento</span>
-                  <span>{formatCOP(cotizacion.subtotalAlojamiento)}</span>
-                </div>
-                {cotizacion.subtotalExtras > 0 && (
-                  <div className="flex justify-between text-stone-600">
-                    <span>Subtotal extras</span>
-                    <span>{formatCOP(cotizacion.subtotalExtras)}</span>
-                  </div>
-                )}
-                {metodoPago === 'wompi' && (
-                  <div className="flex justify-between text-amber-600 text-xs">
-                    <span>Comisión Wompi (5%)</span>
-                    <span>+{formatCOP(Math.round(cotizacion.precioTotal * 0.05))}</span>
-                  </div>
-                )}
-                <hr className="border-stone-100" />
-                <div className="flex justify-between font-bold text-stone-900 text-base">
-                  <span>Total</span>
-                  <span>
-                    {metodoPago === 'wompi'
-                      ? formatCOP(Math.round(cotizacion.precioTotal * 1.05))
-                      : formatCOP(cotizacion.precioTotal)}
-                  </span>
-                </div>
-                {metodoPago === 'wompi' && (
-                  <p className="text-xs text-amber-600 text-center">Incluye 5% de comisión Wompi</p>
-                )}
-                {!cotizacion.disponible && (
-                  <p className="text-red-500 text-xs font-medium text-center">
-                    No disponible en esas fechas
-                  </p>
-                )}
-              </div>
-            )}
-
-            {!editFechaInicio && (
-              <p className="text-xs text-amber-600 text-center mt-2">Selecciona las fechas para ver el total</p>
-            )}
+            <ResumenContent />
           </div>
         </div>
       </div>
+
+      {/* ── Barra fija mobile (bottom) ─────────────────────────────────────── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 px-4 py-3 z-40 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowResumenMobile(true)}
+          className="flex-1 flex items-center gap-2 min-w-0"
+        >
+          <div className="min-w-0">
+            <p className="text-xs text-stone-400 leading-none">
+              {hayFechas && cotizacion ? `${noches} ${noches === 1 ? 'noche' : 'noches'}` : 'Total estimado'}
+            </p>
+            <p className="font-bold text-stone-900 text-sm flex items-center gap-1">
+              {hayFechas && cotizacion ? formatCOP(totalMostrar) : `Desde ${formatCOP(precioDefecto)}`}
+              <ChevronDown size={14} className="text-stone-400" />
+            </p>
+          </div>
+        </button>
+        <SubmitButton
+          metodoPago={metodoPago}
+          loading={crearReserva.isPending}
+          disabled={!hayFechas}
+          onClickOverride={() => {
+            if (!hayFechas) { setShowCalendar(true); window.scrollTo({ top: 0, behavior: 'smooth' }); return }
+            document.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+          }}
+          compact
+        />
+      </div>
+
+      {/* ── Sheet resumen mobile ───────────────────────────────────────────── */}
+      {showResumenMobile && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowResumenMobile(false)} />
+          <div className="relative bg-white rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-stone-800">Resumen de tu reserva</h2>
+              <button
+                onClick={() => setShowResumenMobile(false)}
+                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <ResumenContent />
+            <div className="mt-5">
+              <SubmitButton
+                metodoPago={metodoPago}
+                loading={crearReserva.isPending}
+                disabled={!hayFechas}
+                onClickOverride={() => {
+                  setShowResumenMobile(false)
+                  if (!hayFechas) { setShowCalendar(true); return }
+                  document.querySelector('form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+                }}
+              />
+              <SubmitNote metodoPago={metodoPago} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+// ─── Sub-componentes ──────────────────────────────────────────────────────────
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-2xl border border-stone-200 p-5">
+      <h2 className="font-semibold text-stone-800 mb-4">{title}</h2>
+      {children}
+    </div>
+  )
+}
+
+function SubmitButton({
+  metodoPago,
+  loading,
+  disabled,
+  onClickOverride,
+  compact = false,
+}: {
+  metodoPago: 'wompi' | 'transferencia'
+  loading: boolean
+  disabled: boolean
+  onClickOverride?: () => void
+  compact?: boolean
+}) {
+  return (
+    <Button
+      type={onClickOverride ? 'button' : 'submit'}
+      onClick={onClickOverride}
+      fullWidth={!compact}
+      size={compact ? 'sm' : 'lg'}
+      loading={loading}
+      disabled={disabled}
+    >
+      {metodoPago === 'wompi' ? (
+        <span className="flex items-center gap-2">
+          <CreditCard size={15} />
+          {compact ? 'Pagar' : 'Reservar y pagar en línea'}
+        </span>
+      ) : (
+        <span className="flex items-center gap-2">
+          <Banknote size={15} />
+          {compact ? 'Enviar' : 'Enviar solicitud de reserva'}
+        </span>
+      )}
+    </Button>
+  )
+}
+
+function SubmitNote({ metodoPago }: { metodoPago: 'wompi' | 'transferencia' }) {
+  return (
+    <p className="text-xs text-stone-400 text-center mt-2">
+      {metodoPago === 'wompi'
+        ? 'Serás redirigido a Wompi para completar el pago de forma segura.'
+        : 'Tu solicitud quedará pendiente hasta que el admin la confirme. Recibirás email y WhatsApp.'}
+    </p>
   )
 }

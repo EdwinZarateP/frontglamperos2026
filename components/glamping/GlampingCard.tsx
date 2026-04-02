@@ -2,12 +2,15 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
-import { Heart, Star, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FaPaw } from 'react-icons/fa'
+import { AiTwotoneHeart } from 'react-icons/ai'
+import { BsBalloonHeartFill } from 'react-icons/bs'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { formatCOP, amenidadIconos, tipoGlampingLabels, placeholderImg } from '@/lib/utils'
+import { formatCOP, tipoGlampingLabels, placeholderImg } from '@/lib/utils'
 import type { GlampingCard as GlampingCardType } from '@/types'
 
 interface Props {
@@ -71,11 +74,31 @@ export function GlampingCard({ glamping }: Props) {
   const dots = Math.min(total, MAX_DOTS)
   const activeDot = currentImg % MAX_DOTS
 
+  // Amenidades destacadas que se mencionan en el título
+  const AMENIDADES_TITULO: Record<string, string> = {
+    'jacuzzi':          'Jacuzzi',
+    'piscina':          'Piscina',
+    'malla-catamaran':  'Malla Catamarán',
+    'tina':             'Tina',
+    'vista-al-lago':    'Vista al Lago',
+  }
+  const amenidadDestacada = glamping.amenidades?.find((a) => AMENIDADES_TITULO[a])
+  const tituloTipo = tipoGlampingLabels[glamping.tipo] ?? glamping.tipo
+  const titulo = amenidadDestacada
+    ? `${tituloTipo} con ${AMENIDADES_TITULO[amenidadDestacada]}`
+    : tituloTipo
+
+  // Ciudad - Departamento con guión
+  const [ciudad, departamento] = glamping.ciudadDepartamento.split(',').map((s) => s.trim())
+  const ciudadLabel = departamento ? `${ciudad} - ${departamento}` : ciudad
+
+  const incluyeDesayuno = glamping.amenidades?.includes('incluye-desayuno')
+
   return (
     <article className="group rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-lg border border-stone-100 transition-all duration-300 flex flex-col h-full">
-      {/* Carrusel con deslizamiento real */}
+      {/* Carrusel cuadrado */}
       <div
-        className="relative aspect-video overflow-hidden"
+        className="relative aspect-square overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -92,7 +115,7 @@ export function GlampingCard({ glamping }: Props) {
             {imagenes.map((src, i) => (
               <div key={i} className="h-full flex-shrink-0" style={{ width: `${100 / total}%` }}>
                 <img
-                  src={imgError ? placeholderImg(600, 400) : src}
+                  src={imgError ? placeholderImg(600, 600) : src}
                   alt={`${glamping.nombreSeo} ${i + 1}`}
                   className="w-full h-full object-cover"
                   onError={() => setImgError(true)}
@@ -135,6 +158,18 @@ export function GlampingCard({ glamping }: Props) {
           </>
         )}
 
+        {/* Huella — inferior izquierda, solo si acepta mascotas */}
+        {glamping.aceptaMascotas && (
+          <FaPaw size={26} className="absolute bottom-2 left-2 text-white drop-shadow" />
+        )}
+
+        {/* Badge desayuno — inferior derecha sobre la imagen */}
+        {incluyeDesayuno && (
+          <div className="absolute bottom-2 right-2 bg-emerald-600 text-white text-[10px] font-semibold px-2 py-1 rounded-md shadow-sm leading-none">
+            Incluye desayuno
+          </div>
+        )}
+
         {/* Botón favorito — siempre visible */}
         <button
           onClick={(e) => {
@@ -145,19 +180,22 @@ export function GlampingCard({ glamping }: Props) {
             }
             toggleFavorito.mutate()
           }}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow hover:scale-110 transition-transform"
+          className="absolute top-3 right-3 p-2 hover:scale-110 transition-transform"
           aria-label={glamping.esFavorito ? 'Quitar de favoritos' : 'Guardar en favoritos'}
         >
-          <Heart size={16} className={glamping.esFavorito ? 'fill-red-500 text-red-500' : 'text-stone-400'} />
+          {glamping.esFavorito
+            ? <BsBalloonHeartFill size={26} className="text-red-500" />
+            : <AiTwotoneHeart size={26} className="text-stone-400" />
+          }
         </button>
       </div>
 
       {/* Contenido */}
       <Link href={`/glamping/${glamping.id}`} className="flex flex-col flex-1 p-4">
+        {/* Tipo + amenidad destacada | Calificación */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-stone-900 text-sm leading-tight line-clamp-1">
-            {tipoGlampingLabels[glamping.tipo] ?? glamping.tipo} en{' '}
-            {glamping.ciudadDepartamento.split(',')[0].trim()}
+            {titulo}
           </h3>
           {glamping.calificacion > 0 && (
             <div className="flex items-center gap-1 shrink-0">
@@ -169,44 +207,15 @@ export function GlampingCard({ glamping }: Props) {
           )}
         </div>
 
-        <div className="flex items-center gap-1 mt-1 text-stone-500">
-          <MapPin size={12} />
-          <span className="text-xs truncate">{glamping.ciudadDepartamento}</span>
-          {glamping.distanciaKm && (
-            <span className="text-xs text-stone-400 ml-auto shrink-0">
-              {glamping.distanciaKm < 1
-                ? `${(glamping.distanciaKm * 1000).toFixed(0)}m`
-                : `${glamping.distanciaKm.toFixed(0)}km`}
-            </span>
-          )}
-        </div>
+        {/* Ciudad - Departamento */}
+        <p className="text-xs text-stone-500 mt-1 truncate">{ciudadLabel}</p>
 
-        {/* Amenidades */}
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {glamping.amenidades?.slice(0, 4).map((a) => (
-            <span key={a} className="text-base" title={a}>
-              {amenidadIconos[a] || '✓'}
-            </span>
-          ))}
-          {glamping.aceptaMascotas && <span className="text-base" title="Acepta mascotas">🐾</span>}
-        </div>
-
-        {/* Precio base + desayuno */}
-        <div className="mt-auto pt-3 flex items-end justify-between gap-2">
-          <div>
-            <p className="text-xs text-stone-400">Desde</p>
-            <p className="font-bold text-stone-900 text-base">
-              {formatCOP(glamping.precioSabado)}
-              <span className="text-xs font-normal text-stone-400"> / noche</span>
-            </p>
-          </div>
-          <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-            glamping.amenidades?.includes('incluye-desayuno')
-              ? 'bg-emerald-50 text-brand-light'
-              : 'bg-stone-100 text-stone-400'
-          }`}>
-            {glamping.amenidades?.includes('incluye-desayuno') ? '☕ Con desayuno' : 'Sin desayuno'}
-          </span>
+        {/* Precio más alto (sábado) — noche para 2 */}
+        <div className="mt-auto pt-3">
+          <p className="font-bold text-stone-900 text-base leading-tight">
+            {formatCOP(glamping.precioSabado)}
+            <span className="text-xs font-normal text-stone-400"> / noche para 2</span>
+          </p>
         </div>
       </Link>
     </article>

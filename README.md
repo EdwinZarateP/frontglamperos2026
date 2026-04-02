@@ -362,6 +362,106 @@ adaptado para:
 
 ## Changelog
 
+### v1.4 — 2026-04-02
+**Correcciones de UI en la página de detalle de glamping:**
+
+**1. Botón de WhatsApp flotante (WhatsAppFloatingButton.tsx):**
+- **Z-index corregido**: Cambiado de `z-[9999]` a `z-40`
+  - El botón ya no aparece por encima de los modales
+  - Jerarquía corregida: WhatsApp `z-40` < Modales `z-50`/`z-[60]`
+- **Posición en móvil ajustada**: Cambiado de `bottom-44` a `bottom-24`
+  - El botón ahora aparece apenas arriba del formulario de reservar
+  - Ya no está muy arriba en pantallas pequeñas
+  - Mejor UX en dispositivos móviles
+
+**2. Modal de calendario (GlampingDetailClient.tsx):**
+- **Centrado vertical**: Cambiado de `flex items-end sm:items-center` a `flex items-center`
+  - El calendario ahora siempre aparece centrado verticalmente en la pantalla
+  - Ya no está pegado abajo en dispositivos móviles
+  - Experiencia consistente en todos los tamaños de pantalla
+- **Eliminada clase condicional** que forzaba `items-end` en móvil
+
+**3. Limpieza de UI en página de detalle:**
+- **Eliminado badge de tipo sobre imágenes** (pantallas grandes):
+  - Removido el badge que mostraba "chalet", "domo", etc. sobre las imágenes
+  - Ahora solo se muestra la ubicación: "San Francisco, Cundinamarca"
+  - Diseño más limpio en la galería de fotos
+- **Eliminados botones del sidebar**:
+  - Removidos los tres botones del formulario de reserva en desktop:
+    - "Copiar info para WhatsApp"
+    - "Compartir enlace"
+    - "Guardar en favoritos"
+  - Los botones siguen disponibles en la parte superior (header)
+  - Sidebar más limpio y enfocado en la reserva
+
+**Archivos modificados:**
+- `components/home/WhatsAppFloatingButton.tsx`: Z-index y posición del botón WhatsApp
+- `app/glamping/[id]/GlampingDetailClient.tsx`: Calendario centrado, eliminación de botones del sidebar y badge de tipo
+
+### v1.3 — 2026-04-02
+**Mejoras en la experiencia de reserva en pantallas pequeñas y desktop:**
+
+**1. Optimización del componente GlampingDetailClient.tsx**
+
+**Eliminación de console.log:**
+- Se eliminaron todos los console.log del código
+- La consola de F12 ahora está limpia
+- Mejora el rendimiento y reduce ruido en debug
+
+**Mejoras en la barra inferior móvil:**
+- El botón "Reservar" ahora es verde llamativo (`bg-emerald-600 hover:bg-emerald-700`)
+- El botón SIEMPRE está habilitado, sin condición de disabled
+- Al hacer clic, abre el modal de reserva donde el usuario puede seleccionar fechas, huéspedes, mascotas y extras
+- El lado izquierdo de la barra (Total/Precio por noche) ahora es clickeable
+- Al hacer clic en el Total/Precio por noche, abre el modal de reserva
+- Muestra error si no hay fechas seleccionadas
+- Cursor pointer indica que es clickeable
+- Clase `flex-1` para que ocupe el espacio disponible
+
+**Mejoras en el modal de reserva:**
+- Padding reducido en el botón "Confirmar reserva" en móvil (`px-3 py-2.5`)
+- Padding en desktop se mantiene (`px-6 py-4`)
+- El botón se ve más compacto y proporcionado en pantallas pequeñas
+- Ancho del botón: `flex-1` en móvil, `w-64` en desktop
+- Selectores responsive más pequeños en móvil (padding, iconos y botones)
+- Fechas compactas: sin año si es el mismo año
+- Footer equilibrado: botón con ancho proporcional
+
+**Mejoras en el calendario:**
+- Posicionado al final del componente del modal de reserva
+- z-index: `z-[60]` (más alto que el modal de reserva que es `z-50`)
+- Aparece sobre el modal de reserva cuando se abre
+- Centrado verticalmente en móvil cuando se abre desde el modal (`items-center`)
+- Clase condicional para centrado solo cuando el modal de reserva está abierto
+
+**Mejoras en botones de acción (móvil):**
+- Botones de WhatsApp (Copiar info/Compartir/Guardar) completamente ocultos cuando el modal está abierto
+- Usando `hidden` en lugar de `opacity-0` para eliminación completa del DOM
+- Clase condicional: `${showReservationModal ? 'hidden z-0' : 'flex z-10'}`
+- Ya no hay problema de z-index ni se ven encima del modal
+- Transición suave con `transition-opacity`
+
+**Mejoras en el sidebar de desktop:**
+- Se agregaron los botones de WhatsApp en el sidebar de desktop
+- Posición: Justo debajo del botón de reserva y del texto "No se cobra nada hasta confirmar"
+- Separados por una línea horizontal (`<hr className="border-stone-200 my-4" />`)
+- Botones agregados con diseño completo:
+  - **Copiar info para WhatsApp**: Con icono Copy y texto completo
+  - **Compartir enlace**: Con icono Share2 y texto completo
+  - **Guardar en favoritos**: Con icono Heart y texto completo, con estado activo/inactivo
+- Diseño: `w-full` con `flex items-center justify-center` para que ocupen todo el ancho
+- Padding: `px-4 py-3` para que se vean cómodos y accesibles
+- **Ocultos cuando el modal está abierto**: Clase condicional `${showReservationModal ? 'hidden' : ''}` para que no interfieran con el modal de reserva
+
+**Características adicionales:**
+- Bloqueo de scroll: El body no hace scroll con modales abiertos
+- Secciones clickeables: Huéspedes, Mascotas y Extras abren el modal
+- Cálculo correcto: Precio adicional con 1.16 fijo
+- Calendario sobre el modal: z-[60] vs z-50
+
+**Archivos modificados:**
+- `app/glamping/[id]/GlampingDetailClient.tsx`: Mejoras completas en la experiencia de reserva
+
 ### v1.2 — 2026-04-01
 **Secciones nuevas en el home con carruseles interactivos:**
 
