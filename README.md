@@ -363,30 +363,55 @@ adaptado para:
 ## Changelog
 
 ### v1.2 — 2026-04-01
-**Secciones nuevas en el home:**
-- Agregado carrusel interactivo "Los 10 glampings más buscados en Colombia" ubicado después de la sección de beneficios
-  - 10 tarjetas con categorías (CABAÑA, CHALET, DOMO repetidas)
-  - Navegación con flechas izquierda/derecha
-  - 10 indicadores (dots) inferiores clickeables
-  - Animación suave de 500ms entre slides
-  - Responsive: 3 tarjetas en desktop (≥1024px), 1 tarjeta en mobile/tablet
-  - Imagen del glamping con ID: 69b8b1a4776b87a18af6b6f8 como fondo de las tarjetas
-  - Placeholder image: fondo general de home cuando no está disponible la imagen del glamping
-  - Dots se expanden (de 8px a 24px) cuando están activos
-  - Hover effects en botones (scale 1.1)
-  - Enlaces a `/glamping/69b8b1a4776b87a18af6b6f8`
-- Agregado componente de FAQ "Todo lo que necesitas saber antes de reservar un glamping en Colombia"
-  - 4 tarjetas informativas con preguntas frecuentes
-  - Grid responsivo: 1 columna en mobile, 2 columnas en desktop
-  - Diseño limpio con borde suave y fondo claro (`bg-stone-50`)
-  - Preguntas incluidas:
-    1. ¿Cuánto cuesta un glamping en Colombia?
-    2. ¿Qué llevar a un glamping?
-    3. ¿Cuál es la mejor zona para hacer glamping?
-    4. ¿Es seguro hacer glamping en Colombia?
-  - Hover effects: borde cambia a color brand y sombra aumenta
-  - Transición suave de 300ms
-  - Buena separación entre tarjetas (gap-6)
+**Secciones nuevas en el home con carruseles interactivos:**
+
+**1. Carrusel de Beneficios "¿Por qué reservar glampings en Glamperos?"**
+- 6 tarjetas de beneficios con iconos
+- Navegación con flechas izquierda/derecha
+- 6 indicadores (dots) inferiores clickeables
+- Animación suave de 500ms entre slides
+- Responsive: 3 tarjetas en desktop (≥1024px), 1 tarjeta en mobile/tablet
+- Beneficios incluidos:
+  1. Reserva segura y alojamientos verificados
+  2. Flexibilidad total para pagar
+  3. Habla directamente con tu anfitrión
+  4. Soporte inmediato por WhatsApp
+  5. Experiencias y servicios personalizados
+  6. Un lugar dedicado a Colombia
+- Iconos con hover effect (fondo cambia de emerald-50 a brand)
+- Dots se expanden (de 8px a 24px) cuando están activos
+- Hover effects en botones de navegación (scale 1.1)
+- Límites de navegación para no mostrar tarjetas vacías
+
+**2. Carrusel de Categorías "Los 10 glampings más buscados en Colombia"**
+- 10 tarjetas con categorías (CABAÑA, CHALET, DOMO repetidas)
+- Navegación con flechas izquierda/derecha
+- 10 indicadores (dots) inferiores clickeables
+- Animación suave de 500ms entre slides
+- Responsive: 3 tarjetas en desktop (≥1024px), 1 tarjeta en mobile/tablet
+- Imagen del glamping con ID: 69b8b1a4776b87a18af6b6f8 como fondo de las tarjetas
+- Placeholder image: fondo general de home cuando no está disponible la imagen del glamping
+- Dots se expanden (de 8px a 24px) cuando están activos
+- Hover effects en botones (scale 1.1)
+- Enlaces a `/glamping/69b8b1a4776b87a18af6b6f8`
+- Límites de navegación para no mostrar tarjetas vacías
+
+**3. Carrusel de FAQ "Todo lo que necesitas saber antes de reservar un glamping en Colombia"**
+- 4 tarjetas informativas con preguntas frecuentes
+- Navegación con flechas izquierda/derecha
+- 4 indicadores (dots) inferiores clickeables
+- Animación suave de 500ms entre slides
+- Responsive: 2 tarjetas en desktop (≥768px), 1 tarjeta en mobile
+- Diseño limpio con borde suave y fondo claro (`bg-stone-50`)
+- Preguntas incluidas:
+  1. ¿Cuánto cuesta un glamping en Colombia?
+  2. ¿Qué llevar a un glamping?
+  3. ¿Cuál es la mejor zona para hacer glamping?
+  4. ¿Es seguro hacer glamping en Colombia?
+- Hover effects: borde cambia a color brand y sombra aumenta
+- Transición suave de 300ms
+- Buena separación entre tarjetas (gap-6)
+- Límites de navegación para no mostrar tarjetas vacías
 
 **Componentes nuevos:**
 - `components/home/CategoriasCarouselClient.tsx`:

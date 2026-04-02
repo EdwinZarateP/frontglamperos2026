@@ -81,11 +81,17 @@ export function CategoriasCarouselClient({ glampingImage }: Props) {
   }, [])
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === CATEGORIAS.length - 1 ? 0 : prev + 1))
+    setCurrentIndex((prev) => {
+      const maxIndex = Math.max(0, CATEGORIAS.length - itemsPerView)
+      return prev >= maxIndex ? 0 : prev + 1
+    })
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? CATEGORIAS.length - 1 : prev - 1))
+    setCurrentIndex((prev) => {
+      const maxIndex = Math.max(0, CATEGORIAS.length - itemsPerView)
+      return prev === 0 ? maxIndex : prev - 1
+    })
   }
 
   const goToSlide = (index: number) => {
