@@ -57,11 +57,14 @@ const CATEGORIAS = [
   }
 ]
 
+const PLACEHOLDER_IMAGE = 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
+
 interface Props {
   glampingImage?: string
 }
 
 export function CategoriasCarouselClient({ glampingImage }: Props) {
+  const imageUrl = glampingImage || PLACEHOLDER_IMAGE
   const [currentIndex, setCurrentIndex] = useState(0)
   const [itemsPerView, setItemsPerView] = useState(3)
 
@@ -121,13 +124,11 @@ export function CategoriasCarouselClient({ glampingImage }: Props) {
                 <Link href="/glamping/69b8b1a4776b87a18af6b6f8">
                   <div className="relative rounded-2xl overflow-hidden group cursor-pointer">
                     {/* Imagen de fondo */}
-                    {glampingImage && (
-                      <img
-                        src={glampingImage}
-                        alt={categoria.tipo}
-                        className="w-full h-80 object-cover"
-                      />
-                    )}
+                    <img
+                      src={imageUrl}
+                      alt={categoria.tipo}
+                      className="w-full h-80 object-cover"
+                    />
                     
                     {/* Overlay oscuro */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

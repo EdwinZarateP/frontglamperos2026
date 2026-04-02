@@ -362,6 +362,60 @@ adaptado para:
 
 ## Changelog
 
+### v1.2 — 2026-04-01
+**Secciones nuevas en el home:**
+- Agregado carrusel interactivo "Los 10 glampings más buscados en Colombia" ubicado después de la sección de beneficios
+  - 10 tarjetas con categorías (CABAÑA, CHALET, DOMO repetidas)
+  - Navegación con flechas izquierda/derecha
+  - 10 indicadores (dots) inferiores clickeables
+  - Animación suave de 500ms entre slides
+  - Responsive: 3 tarjetas en desktop (≥1024px), 1 tarjeta en mobile/tablet
+  - Imagen del glamping con ID: 69b8b1a4776b87a18af6b6f8 como fondo de las tarjetas
+  - Placeholder image: fondo general de home cuando no está disponible la imagen del glamping
+  - Dots se expanden (de 8px a 24px) cuando están activos
+  - Hover effects en botones (scale 1.1)
+  - Enlaces a `/glamping/69b8b1a4776b87a18af6b6f8`
+- Agregado componente de FAQ "Todo lo que necesitas saber antes de reservar un glamping en Colombia"
+  - 4 tarjetas informativas con preguntas frecuentes
+  - Grid responsivo: 1 columna en mobile, 2 columnas en desktop
+  - Diseño limpio con borde suave y fondo claro (`bg-stone-50`)
+  - Preguntas incluidas:
+    1. ¿Cuánto cuesta un glamping en Colombia?
+    2. ¿Qué llevar a un glamping?
+    3. ¿Cuál es la mejor zona para hacer glamping?
+    4. ¿Es seguro hacer glamping en Colombia?
+  - Hover effects: borde cambia a color brand y sombra aumenta
+  - Transición suave de 300ms
+  - Buena separación entre tarjetas (gap-6)
+
+**Componentes nuevos:**
+- `components/home/CategoriasCarouselClient.tsx`:
+  - Componente de cliente con el carrusel interactivo completo
+  - Usa hooks de React (`useState`, `useEffect`)
+  - Manejo responsivo de items per view con listener de resize
+  - Lógica de navegación (next, prev, goToSlide)
+  - Importa iconos ChevronLeft y ChevronRight de lucide-react
+- `components/home/CategoriasCarouselServer.tsx`:
+  - Wrapper simple de cliente que renderiza CategoriasCarouselClient
+  - Diseñado para futura implementación de fallback sin JavaScript
+- `components/home/CategoriasCarouselStatic.tsx`:
+  - Grid estático de 10 tarjetas para fallback sin JavaScript
+  - Disponible para implementar progressive enhancement en el futuro
+
+**Modificaciones en HomeClient.tsx:**
+- Agregado hook `useGlamping('69b8b1a4776b87a18af6b6f8')` para obtener imagen del glamping
+- Pasado la imagen a `CategoriasCarouselServer` via prop `glampingImage`
+- Agregado array `FAQ_ITEMS` con 4 preguntas frecuentes
+- Renderizado de la sección de FAQ después del carrusel de categorías
+
+**Archivos nuevos:**
+- `components/home/CategoriasCarouselClient.tsx`
+- `components/home/CategoriasCarouselServer.tsx`
+- `components/home/CategoriasCarouselStatic.tsx`
+
+**Archivos modificados:**
+- `app/HomeClient.tsx`: Agregado carrusel de categorías y sección de FAQ
+
 ### v1.1 — 2026-04-01
 **Mejoras en el diseño del buscador del home (`SearchFilters.tsx`):**
 - Reducido el ancho máximo del contenedor del buscador de `max-w-4xl` (896px) a `max-w-3xl` (768px) para mejor proporción en pantallas grandes
