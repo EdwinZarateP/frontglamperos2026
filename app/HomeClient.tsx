@@ -16,6 +16,7 @@ import { buildUrlFromFiltros } from '@/lib/filtros'
 import { CategoriasCarouselServer } from '@/components/home/CategoriasCarouselServer'
 import { FaqCarousel } from '@/components/home/FaqCarousel'
 import { BenefitsCarousel } from '@/components/home/BenefitsCarousel'
+import { TierramontSection } from '@/components/home/TierramontSection'
 import type { FiltrosHome, HomeResponse } from '@/types'
 
 const ORDER_LABELS: Record<string, string> = {
@@ -256,6 +257,9 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
 
       {/* ── FAQ / Contenido Informativo ───────────────────────────────────── */}
       <FaqCarousel />
+
+      {/* ── Productos Tierramont ─────────────────────────────────────────── */}
+      <TierramontSection />
     </div>
   )
 }
