@@ -101,7 +101,7 @@ export const estadoLabel: Record<string, string> = {
   CONFIRMADA: 'Confirmada',
   CANCELADA: 'Cancelada',
   COMPLETADA: 'Completada',
-  PAGO_RECIBIDO: 'Pago recibido',
+  PAGO_RECIBIDO: 'Pago recibido · Pendiente aprobación',
 }
 
 // ─── Iconos de amenidades ─────────────────────────────────────────────────────

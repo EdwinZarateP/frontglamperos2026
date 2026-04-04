@@ -180,6 +180,8 @@ export interface Reserva {
   precioTotal: number
   montoPagado: number
   saldoPendiente: number
+  metodoPago?: 'transferencia' | 'wompi'
+  valorUsoWompi?: number
   comision: number
   precioAnfitrion: number
   montoAnfitrion: number

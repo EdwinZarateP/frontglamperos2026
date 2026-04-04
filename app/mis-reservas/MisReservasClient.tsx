@@ -89,13 +89,25 @@ export function MisReservasClient() {
                         {reserva.glamping?.ciudadDepartamento}
                       </p>
                     </div>
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${
-                        estadoColors[reserva.estado] || 'bg-stone-100 text-stone-700'
-                      }`}
-                    >
-                      {estadoLabel[reserva.estado] || reserva.estado}
-                    </span>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                          estadoColors[reserva.estado] || 'bg-stone-100 text-stone-700'
+                        }`}
+                      >
+                        {estadoLabel[reserva.estado] || reserva.estado}
+                      </span>
+                      {reserva.metodoPago === 'wompi' && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                          💳 Wompi
+                        </span>
+                      )}
+                      {reserva.metodoPago === 'transferencia' && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-stone-50 text-stone-500 border border-stone-200">
+                          🏦 Transferencia
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-4 text-sm text-stone-600 mb-4">

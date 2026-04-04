@@ -113,6 +113,19 @@ export default function AdminReservasPage() {
                     )}
                   </div>
 
+                  {/* Detalle Wompi */}
+                  {reserva.metodoPago === 'wompi' && (
+                    <div className="mt-1 text-xs text-blue-600 flex flex-wrap gap-2 items-center">
+                      <span className="font-medium">💳 Wompi</span>
+                      {reserva.valorUsoWompi > 0 && (
+                        <>
+                          <span>Cobrado al cliente: {formatCOP(Math.ceil((reserva.montoPagado + (reserva.valorUsoWompi ?? 0)) / 50) * 50)}</span>
+                          <span className="text-blue-400">· Recargo pasarela: {formatCOP(Math.ceil((reserva.valorUsoWompi ?? 0) / 50) * 50)}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   {/* Comisión (solo admin) */}
                   <div className="mt-1 text-xs text-stone-400">
                     Comisión Glamperos: {formatCOP(reserva.comision)} ·
