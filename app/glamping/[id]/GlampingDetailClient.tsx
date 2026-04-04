@@ -1122,14 +1122,6 @@ export function GlampingDetailClient({ glamping }: Props) {
         )}
       </div>
 
-      {/* Glampings cercanos */}
-      <NearbyGlampings
-        currentId={glamping._id}
-        lat={glamping.ubicacion?.lat}
-        lng={glamping.ubicacion?.lng}
-        ciudad={glamping.ciudadDepartamento}
-      />
-
       {/* Modal calendario */}
       {showCalendar && (
         <div
@@ -1185,9 +1177,9 @@ export function GlampingDetailClient({ glamping }: Props) {
               </>
             )}
           </div>
-          <Button 
+          <Button
             onClick={() => setShowReservationModal(true)}
-            size="lg" 
+            size="lg"
             className="shrink-0 bg-emerald-600 hover:bg-emerald-700 disabled:bg-stone-300 disabled:cursor-not-allowed"
           >
             Reservar
@@ -1195,5 +1187,15 @@ export function GlampingDetailClient({ glamping }: Props) {
         </div>
       </div>
     </div>
+
+    {/* Glampings cercanos — fuera del contenedor principal para quedar al final */}
+    <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
+      <NearbyGlampings
+        currentId={glamping._id}
+        lat={glamping.ubicacion?.lat}
+        lng={glamping.ubicacion?.lng}
+        ciudad={glamping.ciudadDepartamento}
+      />
+    </section>
   )
 }
