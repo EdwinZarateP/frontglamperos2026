@@ -330,6 +330,7 @@ export function GlampingDetailClient({ glamping }: Props) {
   }
 
   return (
+    <>
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4 order-2 lg:order-1 px-0 pt-3 lg:pt-0">
@@ -1197,5 +1198,6 @@ export function GlampingDetailClient({ glamping }: Props) {
         ciudad={glamping.ciudadDepartamento}
       />
     </section>
+    </>
   )
 }
