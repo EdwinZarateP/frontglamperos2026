@@ -217,7 +217,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   ])
 
   const totalBase         = tipo === 'PASADIA'
-    ? (fechaPasadia ? getPasadiaPrice(glamping as Record<string, unknown>, fechaPasadia) : 0)
+    ? (fechaPasadia ? getPasadiaPrice(glamping as unknown as Record<string, unknown>, fechaPasadia) : 0)
     : (cotizacion ? cotizacion.total + precioMascota : 0)
   const totalWompi        = Math.round(totalBase * 1.05)
   const totalMostrar      = metodoPago === 'wompi' ? totalWompi : totalBase
@@ -272,7 +272,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
         <div className="border-t border-stone-100 mt-3 pt-3 space-y-2 text-sm">
           <div className="flex justify-between text-stone-600">
             <span>Pasadía</span>
-            <span>{formatCOP(getPasadiaPrice(glamping as Record<string, unknown>, fechaPasadia))}</span>
+            <span>{formatCOP(getPasadiaPrice(glamping as unknown as Record<string, unknown>, fechaPasadia))}</span>
           </div>
           {metodoPago === 'wompi' && (
             <div className="flex justify-between text-amber-600 text-xs">
