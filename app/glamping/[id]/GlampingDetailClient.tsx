@@ -18,6 +18,7 @@ import { useCalificaciones, useCotizacion, useFechasBloqueadas } from '@/hooks/u
 import { Button } from '@/components/ui/Button'
 import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
+import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
 import type { Glamping } from '@/types'
 const MapaVista = dynamic(() => import('@/components/ui/MapaVista').then(m => m.MapaVista), { ssr: false })
 
@@ -1120,6 +1121,14 @@ export function GlampingDetailClient({ glamping }: Props) {
           </div>
         )}
       </div>
+
+      {/* Glampings cercanos */}
+      <NearbyGlampings
+        currentId={glamping._id}
+        lat={glamping.ubicacion?.lat}
+        lng={glamping.ubicacion?.lng}
+        ciudad={glamping.ciudadDepartamento}
+      />
 
       {/* Modal calendario */}
       {showCalendar && (
