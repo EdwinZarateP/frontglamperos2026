@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
 
@@ -40,6 +40,30 @@ const BENEFITS = [
 export function BenefitsCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [itemsPerView, setItemsPerView] = useState(3)
+  const touchStartRef = useRef<number>(0)
+  const touchEndRef = useRef<number>(0)
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.targetTouches[0].clientX
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndRef.current = e.targetTouches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    const touchDistance = touchStartRef.current - touchEndRef.current
+    const minSwipeDistance = 50 // Mínimo 50px para considerar swipe
+
+    if (touchDistance > minSwipeDistance) {
+      // Swipe izquierda -> siguiente
+      nextSlide()
+    } else if (touchDistance < -minSwipeDistance) {
+      // Swipe derecha -> anterior
+      prevSlide()
+    }
+  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -93,7 +117,12 @@ export function BenefitsCarousel() {
         </button>
 
         {/* Carrusel */}
-        <div className="overflow-hidden">
+        <div 
+          className="overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div 
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
