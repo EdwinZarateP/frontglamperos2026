@@ -1,12 +1,13 @@
 export interface CatalogoExtra {
   key: string
   nombre: string
-  unidad: 'por_persona' | 'por_pareja'
+  unidad: 'por_persona' | 'por_pareja' | 'por_grupo'
 }
 
 export const UNIDAD_LABELS: Record<string, string> = {
   por_persona: 'por persona',
   por_pareja:  'por pareja',
+  por_grupo:   'por grupo',
 }
 
 export const CATALOGO_EXTRAS: CatalogoExtra[] = [
@@ -33,4 +34,6 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'tour1',               nombre: 'Tour 1',                unidad: 'por_persona' },
   { key: 'tour2',               nombre: 'Tour 2',                unidad: 'por_persona' },
   { key: 'tour3',               nombre: 'Tour 3',                unidad: 'por_persona' },
+  { key: 'descorche',           nombre: 'Descorche',             unidad: 'por_grupo'   },
+  { key: 'kitFogata',           nombre: 'Kit de fogata',         unidad: 'por_grupo'   },
 ]
