@@ -12,7 +12,7 @@ export const toTitleCase = (str: string) =>
 // ─── Comisión escalonada Glamperos (igual que el backend) ────────────────────
 export function calcularComision(precioAnfitrion: number): number {
   if (precioAnfitrion < 300_000) return precioAnfitrion * 1.20
-  if (precioAnfitrion < 400_000) return precioAnfitrion * 1.16
+  if (precioAnfitrion < 400_000) return precioAnfitrion * 1.17
   if (precioAnfitrion < 500_000) return precioAnfitrion * 1.15
   if (precioAnfitrion < 600_000) return precioAnfitrion * 1.13
   if (precioAnfitrion < 800_000) return precioAnfitrion * 1.11
