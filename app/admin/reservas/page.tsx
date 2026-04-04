@@ -48,7 +48,7 @@ export default function AdminReservasPage() {
     { value: '', label: 'Todas' },
     { value: 'PENDIENTE_APROBACION', label: 'Pendientes' },
     { value: 'CONFIRMADA', label: 'Confirmadas' },
-    { value: 'PAGO_RECIBIDO', label: 'Pago recibido' },
+    { value: 'PAGO_RECIBIDO', label: 'Pago Wompi' },
     { value: 'COMPLETADA', label: 'Completadas' },
     { value: 'CANCELADA', label: 'Canceladas' },
   ]
