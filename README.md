@@ -340,27 +340,70 @@ interface HomeResponse {
 
 ## 14. Pendientes y TODOs
 
-### ⚠️ URGENTE: Calendario del formulario de reserva
-
-**Archivo:** `app/glamping/[id]/reservar/page.tsx`
-
-El selector de fechas usa `<input type="date">` nativo que se ve horrible.
-
-**Solución:** Reemplazar con el componente `CalendarioRango` (ya implementado en `SearchFilters.tsx`)
-adaptado para:
-- Bloquear fechas no disponibles (vienen de `GET /glampings/{id}/calendario`)
-- Actualizar el cálculo de precio dinámicamente al cambiar el rango
-
-### Otros pendientes
 - [ ] Vista de mapa (Leaflet/Mapbox) para visualizar glampings geográficamente
 - [ ] Paginación / "Ver más" en el listado (actualmente carga 20 y no pagina)
-- [ ] CalendarioRango en mobile (colapsar a 1 mes en pantallas pequeñas)
+- [ ] Calendario en mobile (colapsar a 1 mes en pantallas pequeñas)
 - [ ] Página 404 personalizada para glampings no encontrados
 - [ ] Optimistic UI en favoritos (toggle inmediato sin esperar la API)
 
 ---
 
 ## Changelog
+
+### v1.5 — 2026-04-03
+
+#### Reserva de Pasadía (día completo sin noche)
+
+**`app/glamping/[id]/reservar/page.tsx`**
+- Nuevo helper `getPasadiaPrice(glamping, fecha)`: obtiene tarifa del día exacto de `tarifasPasadia`, aplica tarifa sábado para fines de semana y festivos colombianos, y aplica comisión Glamperos (`calcularComision`).
+- Estado `tipo: 'NOCHES' | 'PASADIA'` inicializado desde `?tipo=PASADIA` en la URL.
+- `tipoFijoPorUrl`: cuando el tipo viene por URL no se muestra el toggle — el usuario va directo al modo pasadía.
+- Toggle "Por noches / Pasadía" visible solo si `glamping.permitePasadia` y el tipo no viene fijo por URL.
+- Selector de fecha única para pasadía usa el nuevo `SingleDatePicker` con fechas bloqueadas compartidas con noches (reserva de noches bloquea esos días para pasadía y viceversa).
+- Panel resumen lateral adapta etiquetas y desglose de precio según el tipo activo.
+
+**`app/glamping/[id]/GlampingDetailClient.tsx`**
+- Bloque "Acepta pasadía" rediseñado: muestra horario, botón "Reservar pasadía" y tabla con precios entre semana sin festivos vs fin de semana y festivos — ambos con comisión aplicada.
+- Botón navega a `/reservar?tipo=PASADIA` (o login si no autenticado).
+
+#### Nuevo componente `components/ui/SingleDatePicker.tsx`
+- Selector de un solo día basado en la misma lógica visual del `DateRangePicker`.
+- Semana inicia en lunes.
+- Props: `value`, `onChange`, `blockedDates`, `holidays`, `precioDiaSemana`, `precioFinDeSemana`.
+- Días de fin de semana y festivos en naranja ámbar; festivos entre semana con puntito ámbar adicional.
+- Leyenda de precios entre semana vs fin de semana/festivos.
+- Tooltip por día con precio correspondiente.
+
+#### Calendarios — festivos colombianos y semana desde lunes
+
+**`lib/utils.ts`**
+- Nueva función `colombianHolidays(year): Set<string>`: calcula todos los festivos colombianos del año dado (fijos + móviles vía Ley Emiliani + Semana Santa por algoritmo de Pascua).
+
+**`components/ui/DateRangePicker.tsx`**
+- Semana ahora inicia en lunes (`DAYS = ['Lu','Ma','Mi','Ju','Vi','Sá','Do']`, `startOffset = (getDay+6)%7`).
+- Nueva prop `holidays?: Set<string>`: festivos se muestran en naranja ámbar; festivos entre semana tienen puntito ámbar.
+- Recibe festivos desde `GlampingDetailClient` y `reservar/page.tsx`.
+
+**`components/home/SearchFilters.tsx`** (calendario del home)
+- Importa `colombianHolidays` y `isWeekend`; calcula `FESTIVOS_CO` una vez al cargar el módulo.
+- Días de fin de semana y festivos coloreados en naranja ámbar en el calendario de búsqueda.
+- Festivos entre semana con puntito ámbar.
+
+#### Overlay en el buscador del home
+**`components/home/SearchFilters.tsx`**
+- Cuando se abre cualquier panel (destino, fechas, viajeros) en desktop, aparece un overlay `fixed inset-0` con fondo oscuro y `backdrop-blur-sm` que bloquea la interacción con el resto de la página.
+- Clic en el overlay cierra el panel activo.
+- Jerarquía z-index: overlay `z-30` · barra de búsqueda `z-40` · paneles desplegables `z-50`.
+
+**Archivos modificados:**
+- `app/glamping/[id]/reservar/page.tsx`
+- `app/glamping/[id]/GlampingDetailClient.tsx`
+- `components/ui/SingleDatePicker.tsx` ← nuevo
+- `components/ui/DateRangePicker.tsx`
+- `components/home/SearchFilters.tsx`
+- `lib/utils.ts`
+
+---
 
 ### v1.4 — 2026-04-02
 **Correcciones de UI en la página de detalle de glamping:**
