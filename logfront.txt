@@ -1,57 +1,108 @@
-🏕️ *Chalet en San Francisco*
-📍 San Francisco, Cundinamarca
-
-*Este glamping te ofrece*
-🏡✨ Ven y disfruta de una experiencia única en nuestro Chalet,rodeado de naturaleza 🌿 y con todas las comodidades para una estadía inolvidable al mejor estilo campestre.
-
-✅ Tu reserva INCLUYE:
-Jacuzzi
-Desayuno (zona restaurante) 🍽️
-Cafetera ☕ (ilimitado)
-Mini nevera (valor adicional) 🧊
-Baño privado
-Piscina 🏊
-Zonas verdes 🌳
-Zonas de estar comunes y hamacas 🍃
-Servicio de parqueadero 🅿️
-Seguro hotelero 🏥
-WIFI 📶
-
-
-💰 *Precios por noche:*
-• Lunes: $ 348.000
-• Martes: $ 348.000
-• Miércoles: $ 348.000
-• Jueves: $ 348.000
-• Viernes: $ 371.200
-• Sábado: $ 371.200
-• Domingo: $ 348.000
-
-🕐 Check-in: 15:00 | Check-out: 12:00
-🐾 Acepta mascotas
-
-➕ *Extras disponibles (con costo adicional):*
-• Cabalgata: $ 187.000 (por pareja)
-
-❌ No admite cancelaciones
-
-📸 *Ver collage de fotos:*
-http://localhost:3000/glamping/69b8b1a4776b87a18af6b6f8/fotos
-
-🎥 *Ver video:*
-https://www.youtube.com/watch?v=LfvKkrVSO-U
-
-━━━━━━━━━━━━━━━━━━━━━━━━━
-💌 *Proceso de reserva*
-Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha.
-La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.
-_Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️._
-
-*Datos de pago:*
-🏦 Cuenta Bancolombia – Glamperos SAS
-📂 Tipo: Ahorros
-🔢 Nº 292-000059-43
-📂 Nuestra Llave
-🔢 0089996468
-
-_Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios._
+{
+  "_id": {
+    "$oid": "69b8b1a4776b87a18af6b6f8"
+  },
+  "borrador": false,
+  "habilitado": true,
+  "nombreGlamping": "La Choza",
+  "tipoGlamping": "chalet",
+  "propietarioId": {
+    "$oid": "69b88c1fa94526b6311f3fde"
+  },
+  "aceptaMascotas": true,
+  "ubicacion": {
+    "lat": 5.001723,
+    "lng": -74.281208
+  },
+  "direccion": "Vereda San Miguel San Francisco",
+  "precioNoche": 320000,
+  "diasCancelacion": 0,
+  "cantidadHuespedes": 2,
+  "cantidadHuespedesAdicionales": 2,
+  "minimoNoches": 1,
+  "descripcionGlamping": "*Este glamping te ofrece*\n🏡✨ Ven y disfruta de una experiencia única en nuestro Chalet,rodeado de naturaleza 🌿 y con todas las comodidades para una estadía inolvidable al mejor estilo campestre.\n\n✅ Tu reserva INCLUYE:\nJacuzzi\nDesayuno (zona restaurante) 🍽️\nCafetera ☕ (ilimitado)\nMini nevera (valor adicional) 🧊\nBaño privado\nPiscina 🏊\nZonas verdes 🌳\nZonas de estar comunes y hamacas 🍃\nServicio de parqueadero 🅿️\nSeguro hotelero 🏥\nWIFI 📶\n",
+  "amenidades": [
+    "wifi",
+    "jacuzzi",
+    "piscina",
+    "incluye-desayuno",
+    "jabon",
+    "bano-privado",
+    "naturaleza",
+    "caminata",
+    "parqueadero",
+    "mesa-y-sillas"
+  ],
+  "ciudadDepartamento": "San Francisco, Cundinamarca",
+  "imagenes": [
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/99740eef9eeb4d199d9a277ad6e5278f.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/5b4b6b19077a4d7b923ccac9e457db0b.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/e19985fda5364a9b9789c53b35dc6362.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/981cdd0c44f043ebb72f2958fc5f4389.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/ee5baa3c4e3f4d108e3dcb3f27911f39.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/116d60d478be43d788d92b78cd731343.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/cb6fe58df89b4c62ad5aab8c54f6ba5e.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/600e8bfee7f14eb38628de05972acc97.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/fde0f3064b3d420a877e677de979c2d0.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/563a3972298b46449ccbd5080b269b3f.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/5c1b0bf2a5ea40649d49cecfb4574f63.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/764886ffe24243a88d105f033f86bd06.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/39f5b02d20b940039184446d2f7ba874.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/d78dcb4d7bb34b958471b662bd63adb6.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/9ddef0d648b34820b050dc823621d39d.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/1bb75202fb5a460e95c914f1de176d99.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/d7b72b4c7c084542ac9284c9813ff8cf.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/7e07dbdab2954e88bf7cd0ce0b478121.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/d21588ace1b14b4ab2fc7b22f7a78586.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/593e1f1baa124cc0896597912d2bbbc4.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/ae730b3355664b63b4c6147ebb0ef6f5.webp",
+    "https://storage.googleapis.com/glamperos-imagenes/glampings/92660daacc4c4dd3b335f10c6b1ac80f.webp"
+  ],
+  "videoYoutube": "https://www.youtube.com/watch?v=LfvKkrVSO-U",
+  "urlIcal": null,
+  "urlIcalBooking": null,
+  "permitePasadia": true,
+  "pasadiaHorarioInicio": "09:00",
+  "pasadiaHorarioFin": "17:00",
+  "checkInNoche": "15:00",
+  "checkOutNoche": "12:00",
+  "politicasCasa": null,
+  "extras": [
+    {
+      "key": "cabalgata",
+      "nombre": "Cabalgata",
+      "descripcion": "",
+      "precio": 170000,
+      "unidad": "por_pareja",
+      "disponible": true
+    }
+  ],
+  "tarifasNoche": {
+    "lunes": 300000,
+    "martes": 300000,
+    "miercoles": 300000,
+    "jueves": 300000,
+    "viernes": 320000,
+    "sabado": 320000,
+    "domingo": 300000
+  },
+  "tarifasPasadia": {
+    "lunes": 300000,
+    "martes": 300000,
+    "miercoles": 300000,
+    "jueves": 300000,
+    "viernes": 300000,
+    "sabado": 320000,
+    "domingo": 320000
+  },
+  "createdAt": {
+    "$date": "2026-03-17T01:43:00.129Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-01T23:20:45.071Z"
+  },
+  "nombrePropiedad": "El Guadual",
+  "precioPersonaAdicional": 80000,
+  "precioMascotas": 40000,
+  "estadoAprobacion": "aprobado"
+}

@@ -17,7 +17,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useCalificaciones, useCotizacion, useFechasBloqueadas } from '@/hooks/useGlampings'
 import { Button } from '@/components/ui/Button'
 import { DateRangePicker } from '@/components/ui/DateRangePicker'
-import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision } from '@/lib/utils'
+import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
 import type { Glamping } from '@/types'
 const MapaVista = dynamic(() => import('@/components/ui/MapaVista').then(m => m.MapaVista), { ssr: false })
 
@@ -57,6 +57,11 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   const { data: calificaciones } = useCalificaciones(glamping._id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(glamping._id)
+  const _now = new Date()
+  const festivosSet = new Set([
+    ...colombianHolidays(_now.getFullYear()),
+    ...colombianHolidays(_now.getFullYear() + 1),
+  ])
   
   const extrasParam = extrasSeleccionados.length > 0 ? extrasSeleccionados.join(',') : undefined
   
@@ -190,8 +195,15 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   const handleReservar = () => {
     if (!isAuthenticated) {
-      toast.error('Debes iniciar sesión para reservar')
-      router.push('/auth/login')
+      const reservarParams = new URLSearchParams()
+      if (fechaInicio) reservarParams.set('fechaInicio', fechaInicio)
+      if (fechaFin) reservarParams.set('fechaFin', fechaFin)
+      reservarParams.set('huespedes', String(huespedes))
+      if (cantidadMascotas > 0) reservarParams.set('mascotas', String(cantidadMascotas))
+      if (extrasSeleccionados.length > 0) reservarParams.set('extras', extrasSeleccionados.join(','))
+      const qs = reservarParams.toString()
+      const destino = `/glamping/${glamping._id}/reservar${qs ? `?${qs}` : ''}`
+      router.push(`/auth/login?redirect=${encodeURIComponent(destino)}`)
       return
     }
     if (!fechaInicio || !fechaFin) {
@@ -620,14 +632,55 @@ export function GlampingDetailClient({ glamping }: Props) {
           )}
 
           {/* Pasadía */}
-          {glamping.permitePasadia && (
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <h3 className="font-semibold text-amber-800 mb-1">Acepta pasadía</h3>
-              <p className="text-sm text-amber-700">
-                Horario: {glamping.pasadiaHorarioInicio} – {glamping.pasadiaHorarioFin}
-              </p>
-            </div>
-          )}
+          {glamping.permitePasadia && (() => {
+            const tp = glamping.tarifasPasadia as Record<string,number> | undefined
+            const baseEntreSmana = tp?.lunes || tp?.martes || 0
+            const precioEntreSmana = baseEntreSmana > 0 ? Math.round(calcularComision(baseEntreSmana)) : null
+            const baseFinDeSemana = tp?.sabado || glamping.precioNoche as number | undefined
+            const precioFinDeSemana = baseFinDeSemana ? Math.round(calcularComision(baseFinDeSemana)) : undefined
+            return (
+              <div className="bg-amber-50 rounded-xl border border-amber-200 overflow-hidden">
+                <div className="p-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-amber-800 mb-1">Acepta pasadía</h3>
+                    {(glamping.pasadiaHorarioInicio || glamping.pasadiaHorarioFin) && (
+                      <p className="text-sm text-amber-700">
+                        Horario: {glamping.pasadiaHorarioInicio} – {glamping.pasadiaHorarioFin}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const destino = `/glamping/${glamping._id}/reservar?tipo=PASADIA`
+                      if (!isAuthenticated) {
+                        router.push(`/auth/login?redirect=${encodeURIComponent(destino)}`)
+                      } else {
+                        router.push(destino)
+                      }
+                    }}
+                    className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                  >
+                    Reservar pasadía
+                  </button>
+                </div>
+                <div className="border-t border-amber-200 px-4 py-3 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-amber-600 font-medium mb-0.5">Entre semana sin festivos (Lu – Vi)</p>
+                    <p className="font-semibold text-amber-900">
+                      {precioEntreSmana ? formatCOP(precioEntreSmana) : 'Consultar'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-amber-600 font-medium mb-0.5">Fin de semana y festivos (Sá – Do)</p>
+                    <p className="font-semibold text-amber-900">
+                      {precioFinDeSemana ? formatCOP(precioFinDeSemana) : 'Consultar'}
+                      <span className="text-xs font-normal text-amber-700 ml-1">= tarifa noche</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Políticas */}
           {glamping.politicasCasa && (
@@ -805,20 +858,21 @@ export function GlampingDetailClient({ glamping }: Props) {
                 </div>
               )}
 
-              <Button
-                fullWidth
-                size="lg"
-                onClick={() => {
-                  if (!fechaInicio || !fechaFin) {
-                    toast.error('Selecciona las fechas')
-                    return
-                  }
-                  setShowReservationModal(true)
-                }}
-                disabled={!fechaInicio || !fechaFin}
-              >
-                {fechaInicio && fechaFin ? 'Gestionar reserva' : 'Reservar ahora'}
-              </Button>
+  <Button
+    fullWidth
+    size="lg"
+    variant={fechaInicio && fechaFin ? 'brand' : 'primary'}
+    onClick={() => {
+      if (!fechaInicio || !fechaFin) {
+        toast.error('Selecciona las fechas')
+        return
+      }
+      setShowReservationModal(true)
+    }}
+    disabled={!fechaInicio || !fechaFin}
+  >
+    {fechaInicio && fechaFin ? 'Gestionar reserva' : 'Reservar ahora'}
+  </Button>
 
               <p className="text-center text-xs text-stone-400 mt-3">
                 No se cobra nada hasta confirmar
@@ -1081,6 +1135,7 @@ export function GlampingDetailClient({ glamping }: Props) {
               startDate={fechaInicio}
               endDate={fechaFin}
               blockedDates={fechasBloqueadas}
+              holidays={festivosSet}
               minNights={glamping.minimoNoches || 1}
               onChange={(s, e) => {
                 setFechaInicio(s)

@@ -1,8 +1,8 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
-type Size = 'sm' | 'md' | 'lg'
+  type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'brand'
+  type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
@@ -11,18 +11,20 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean
 }
 
-const variants: Record<Variant, string> = {
-  primary:
-    'bg-white text-stone-900 hover:bg-stone-100 focus:ring-stone-400 shadow-sm',
-  secondary:
-    'bg-stone-800 text-white hover:bg-stone-900 focus:ring-stone-500',
-  outline:
-    'border border-stone-300 text-stone-700 hover:bg-stone-50 focus:ring-stone-400 bg-white',
-  ghost:
-    'text-stone-600 hover:bg-stone-100 focus:ring-stone-400',
-  danger:
-    'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-}
+  const variants: Record<Variant, string> = {
+    primary:
+      'bg-white text-stone-900 hover:bg-stone-100 focus:ring-stone-400 shadow-sm',
+    secondary:
+      'bg-stone-800 text-white hover:bg-stone-900 focus:ring-stone-500',
+    outline:
+      'border border-stone-300 text-stone-700 hover:bg-stone-50 focus:ring-stone-400 bg-white',
+    ghost:
+      'text-stone-600 hover:bg-stone-100 focus:ring-stone-400',
+    danger:
+      'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    brand:
+      'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500',
+  }
 
 const sizes: Record<Size, string> = {
   sm: 'px-3 py-1.5 text-sm rounded-lg',

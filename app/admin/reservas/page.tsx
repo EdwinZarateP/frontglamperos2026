@@ -12,6 +12,8 @@ import type { Reserva } from '@/types'
 export default function AdminReservasPage() {
   const [estadoFiltro, setEstadoFiltro] = useState('PENDIENTE_APROBACION')
   const [page, setPage] = useState(1)
+  const [modalRechazo, setModalRechazo] = useState<{ reservaId: string; nombre: string } | null>(null)
+  const [motivoRechazo, setMotivoRechazo] = useState('')
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery<{ data: Reserva[]; total: number }>({
@@ -25,8 +27,8 @@ export default function AdminReservasPage() {
   })
 
   const cambiarEstado = useMutation({
-    mutationFn: async ({ id, estado }: { id: string; estado: string }) => {
-      await api.put(`/reservas/${id}/estado`, { estado })
+    mutationFn: async ({ id, estado, motivoCancelacion }: { id: string; estado: string; motivoCancelacion?: string }) => {
+      await api.put(`/reservas/${id}/estado`, { estado, motivoCancelacion })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-reservas'] })
@@ -34,6 +36,13 @@ export default function AdminReservasPage() {
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   })
+
+  const confirmarRechazo = () => {
+    if (!modalRechazo) return
+    cambiarEstado.mutate({ id: modalRechazo.reservaId, estado: 'CANCELADA', motivoCancelacion: motivoRechazo })
+    setModalRechazo(null)
+    setMotivoRechazo('')
+  }
 
   const ESTADOS = [
     { value: '', label: 'Todas' },
@@ -137,7 +146,10 @@ export default function AdminReservasPage() {
                       <Button
                         size="sm"
                         variant="danger"
-                        onClick={() => cambiarEstado.mutate({ id: reserva._id, estado: 'CANCELADA' })}
+                        onClick={() => {
+                          setMotivoRechazo('')
+                          setModalRechazo({ reservaId: reserva._id, nombre: reserva.nombreTitular })
+                        }}
                       >
                         Rechazar
                       </Button>
@@ -190,6 +202,36 @@ export default function AdminReservasPage() {
               </Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal de rechazo */}
+      {modalRechazo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold text-stone-900 mb-1">Rechazar reserva</h2>
+            <p className="text-sm text-stone-500 mb-4">
+              Cliente: <span className="font-medium text-stone-700">{modalRechazo.nombre}</span>
+            </p>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+              Motivo del rechazo <span className="text-stone-400 font-normal">(se enviará al cliente por email)</span>
+            </label>
+            <textarea
+              rows={4}
+              placeholder="Ej: Las fechas seleccionadas ya no están disponibles..."
+              value={motivoRechazo}
+              onChange={(e) => setMotivoRechazo(e.target.value)}
+              className="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+            />
+            <div className="flex gap-3 mt-5">
+              <Button variant="danger" fullWidth onClick={confirmarRechazo} loading={cambiarEstado.isPending}>
+                Confirmar rechazo
+              </Button>
+              <Button variant="outline" fullWidth onClick={() => setModalRechazo(null)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

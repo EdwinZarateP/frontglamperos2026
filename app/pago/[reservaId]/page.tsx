@@ -1,26 +1,22 @@
 'use client'
 
 import { use, useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import { api, getErrorMessage } from '@/lib/api'
+import { useSearchParams } from 'next/navigation'
+import { useQuery as useTanQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 import { formatCOP } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import type { WompiIniciarResponse } from '@/types'
 
-declare global {
-  interface Window {
-    WidgetCheckout: new (config: Record<string, unknown>) => { open: () => void }
-  }
-}
-
 export default function PagoPage({ params }: { params: Promise<{ reservaId: string }> }) {
   const { reservaId } = use(params)
-  const [porcentaje, setPorcentaje] = useState<50 | 100>(100)
+  const searchParams = useSearchParams()
+  const porcentajeInicial = searchParams.get('porcentaje') === '50' ? 50 : 100
+  const [porcentaje, setPorcentaje] = useState<50 | 100>(porcentajeInicial as 50 | 100)
   const [loading, setLoading] = useState(false)
 
-  const { data: wompiData, isLoading } = useQuery<WompiIniciarResponse>({
+  const { data: wompiData, isLoading } = useTanQuery<WompiIniciarResponse>({
     queryKey: ['wompi', reservaId, porcentaje],
     queryFn: async () => {
       const res = await api.get(`/pagos/wompi/iniciar/${reservaId}`, {
@@ -30,41 +26,11 @@ export default function PagoPage({ params }: { params: Promise<{ reservaId: stri
     },
   })
 
-  const handlePagar = async () => {
-    if (!wompiData) return
+  const handlePagar = () => {
     setLoading(true)
-
-    // Cargar script de Wompi dinámicamente
-    if (!document.querySelector('script[src*="wompi"]')) {
-      await new Promise<void>((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = wompiData.wompi_script_url
-        script.onload = () => resolve()
-        script.onerror = () => reject()
-        document.head.appendChild(script)
-      })
-    }
-
-    try {
-      const checkout = new window.WidgetCheckout({
-        currency: wompiData.currency,
-        amountInCents: wompiData.amount_in_cents,
-        reference: wompiData.referencia,
-        publicKey: wompiData.public_key,
-        redirectUrl: `${window.location.origin}/pago/resultado?reservaId=${reservaId}`,
-        signature: { integrity: wompiData.firma_integridad },
-        customerData: {
-          email: wompiData.customer_email,
-          acceptanceToken: wompiData.acceptance_token,
-          acceptPersonalAuth: wompiData.acceptance_token_personal_auth,
-        },
-      })
-      checkout.open()
-    } catch {
-      toast.error('Error al cargar el método de pago')
-    } finally {
-      setLoading(false)
-    }
+    // Redirigir al checkout de Wompi directamente (más confiable que el widget en local)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+    window.location.href = `${apiUrl}/pagos/wompi/checkout/${reservaId}?porcentaje=${porcentaje}`
   }
 
   if (isLoading) return <Spinner />

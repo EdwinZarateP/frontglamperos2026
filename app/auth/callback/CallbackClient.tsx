@@ -56,7 +56,9 @@ export function CallbackClient() {
         user: { id, nombre, rol: (rol as Rol) || 'usuario', foto: foto || undefined },
       })
       toast.success(`¡Bienvenido de nuevo, ${nombre.split(' ')[0]}!`)
-      router.replace('/')
+      const redirect = localStorage.getItem('auth_redirect') || '/'
+      localStorage.removeItem('auth_redirect')
+      router.replace(redirect)
     }
   }, [searchParams]) // eslint-disable-line
 
@@ -78,7 +80,9 @@ export function CallbackClient() {
       },
     })
     toast.success(`¡Bienvenido a Glamperos, ${pendingAuth.nombre.split(' ')[0]}!`)
-    router.replace('/')
+    const redirect = localStorage.getItem('auth_redirect') || '/'
+    localStorage.removeItem('auth_redirect')
+    router.replace(redirect)
   }
 
   const handleRechazar = () => {

@@ -98,13 +98,17 @@ export function Navbar() {
                   onClick={() => setUserMenuOpen((o) => !o)}
                   className="flex items-center gap-2 pl-1.5 pr-2.5 py-1.5 rounded-full border border-white/30 hover:border-white/50 hover:shadow-md transition-shadow"
                 >
-                  {user?.foto ? (
-                    <img src={user.foto} alt={user.nombre} className="w-7 h-7 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center text-stone-800 text-sm font-bold">
-                      {user?.nombre?.[0]?.toUpperCase()}
-                    </div>
-                  )}
+                  <div className="w-7 h-7 rounded-full relative overflow-hidden bg-white/90 flex items-center justify-center text-stone-800 text-sm font-bold">
+                    {user?.nombre?.[0]?.toUpperCase()}
+                    {user?.foto && (
+                      <img
+                        src={user.foto}
+                        alt={user.nombre}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
+                      />
+                    )}
+                  </div>
                   <ChevronDown
                     size={14}
                     className={`text-stone-300 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
@@ -196,13 +200,17 @@ export function Navbar() {
           {isAuthenticated ? (
             <>
               <div className="flex items-center gap-3 pb-3 mb-2 border-b border-white/20">
-                {user?.foto ? (
-                  <img src={user.foto} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center text-stone-800 text-lg font-bold shrink-0">
-                    {user?.nombre?.[0]?.toUpperCase()}
-                  </div>
-                )}
+                <div className="w-10 h-10 rounded-full relative overflow-hidden bg-white/90 flex items-center justify-center text-stone-800 text-lg font-bold shrink-0">
+                  {user?.nombre?.[0]?.toUpperCase()}
+                  {user?.foto && (
+                    <img
+                      src={user.foto}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    />
+                  )}
+                </div>
                 <div className="min-w-0">
                   <p className="font-medium text-white truncate">{user?.nombre}</p>
                   <p className="text-xs text-white/70 capitalize">{user?.rol}</p>

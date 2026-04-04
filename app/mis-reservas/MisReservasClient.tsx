@@ -21,7 +21,7 @@ export function MisReservasClient() {
   const { data, isLoading } = useQuery<{ data: Reserva[]; total: number }>({
     queryKey: ['mis-reservas'],
     queryFn: async () => {
-      const res = await api.get('/reservas/', { params: { limit: 50 } })
+      const res = await api.get('/reservas/me', { params: { limit: 50 } })
       return res.data
     },
     enabled: isAuthenticated,
@@ -121,11 +121,12 @@ export function MisReservasClient() {
                         </p>
                       )}
                     </div>
-                    {(reserva.estado === 'PENDIENTE_APROBACION' || reserva.estado === 'CONFIRMADA') &&
+                    {reserva.estado === 'CONFIRMADA' &&
                       reserva.saldoPendiente > 0 && (
-                        <Link href={`/pago/${reserva._id}`}>
-                          <Button size="sm" variant="secondary">Pagar en línea</Button>
-                        </Link>
+                        <p className="text-xs text-stone-400 text-right">
+                          Saldo al llegar:<br />
+                          <span className="font-semibold text-stone-600">{formatCOP(reserva.saldoPendiente)}</span>
+                        </p>
                       )}
                   </div>
                 </div>

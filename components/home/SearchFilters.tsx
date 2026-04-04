@@ -9,11 +9,11 @@ import {
 import {
   addMonths, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameDay, isBefore, isAfter, isWithinInterval, startOfDay,
-  getDay, format, parseISO,
+  getDay, format, parseISO, isWeekend,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useSearchStore } from '@/store/searchStore'
-import { cn, formatCOP } from '@/lib/utils'
+import { cn, formatCOP, colombianHolidays } from '@/lib/utils'
 import { buildUrlFromFiltros, FILTROS_TIPOS } from '@/lib/filtros'
 import { CIUDADES_COLOMBIA, getCoordenadas } from '@/lib/colombia'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
@@ -48,6 +48,8 @@ function fmtDate(d: string) {
 
 // ── Calendario estilo Airbnb ──────────────────────────────────────────────────
 const DIAS_SEMANA = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do']
+const _anoActual = new Date().getFullYear()
+const FESTIVOS_CO = new Set([...colombianHolidays(_anoActual), ...colombianHolidays(_anoActual + 1)])
 
 function MesCalendario({
   mes,
@@ -89,14 +91,17 @@ function MesCalendario({
         {Array.from({ length: primerDia }).map((_, i) => <div key={`e${i}`} />)}
 
         {diasMes.map((dia) => {
-          const isPast  = isBefore(dia, today) && !isSameDay(dia, today)
-          const isStart = !!start && isSameDay(dia, start)
-          const isEnd   = !!end   && isSameDay(dia, end)
-          const isHover = !end && !!hover && !!start && isSameDay(dia, hover) && isAfter(hover, start)
-          const inRange = !!start && !!efectivoFin
-                          && isWithinInterval(dia, { start, end: efectivoFin })
-                          && !isStart && !(isEnd || isHover)
-          const isToday = isSameDay(dia, today)
+          const isPast     = isBefore(dia, today) && !isSameDay(dia, today)
+          const isStart    = !!start && isSameDay(dia, start)
+          const isEnd      = !!end   && isSameDay(dia, end)
+          const isHover    = !end && !!hover && !!start && isSameDay(dia, hover) && isAfter(hover, start)
+          const inRange    = !!start && !!efectivoFin
+                             && isWithinInterval(dia, { start, end: efectivoFin })
+                             && !isStart && !(isEnd || isHover)
+          const isToday    = isSameDay(dia, today)
+          const dateStr    = format(dia, 'yyyy-MM-dd')
+          const isFestivo  = FESTIVOS_CO.has(dateStr)
+          const tarifaAlta = isWeekend(dia) || isFestivo
 
           const rangeRight = (isStart || inRange) && !!efectivoFin && !isSameDay(start!, efectivoFin)
           const rangeLeft  = (isEnd || isHover || inRange) && !!start && !!efectivoFin && !isSameDay(start, efectivoFin)
@@ -108,7 +113,6 @@ function MesCalendario({
               onMouseEnter={() => !isPast && onHover(dia)}
               onMouseLeave={() => onHover(null)}
             >
-              {/* Fondo rango: banda horizontal centrada en el botón */}
               {rangeRight && <div className="absolute top-0.5 bottom-0.5 left-1/2 right-0 bg-stone-100" />}
               {rangeLeft  && <div className="absolute top-0.5 bottom-0.5 right-1/2 left-0 bg-stone-100" />}
 
@@ -119,7 +123,8 @@ function MesCalendario({
                 className={cn(
                   'relative z-10 w-9 h-9 shrink-0 flex items-center justify-center text-sm rounded-full transition-colors select-none',
                   isPast  && 'text-stone-300 cursor-not-allowed line-through',
-                  !isPast && !isStart && !isEnd && !isHover && 'cursor-pointer text-stone-700 hover:bg-stone-200',
+                  !isPast && !isStart && !isEnd && !isHover && tarifaAlta && 'cursor-pointer text-amber-600 hover:bg-amber-50',
+                  !isPast && !isStart && !isEnd && !isHover && !tarifaAlta && 'cursor-pointer text-stone-700 hover:bg-stone-200',
                   isToday && !isStart && !isEnd && !isHover && 'font-bold underline underline-offset-2',
                   inRange && 'text-stone-900',
                   (isStart || isEnd) && 'bg-stone-900 text-white font-semibold hover:bg-stone-700',
@@ -127,6 +132,9 @@ function MesCalendario({
                 )}
               >
                 {format(dia, 'd')}
+                {isFestivo && !isWeekend(dia) && !isPast && !isStart && !isEnd && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-400" />
+                )}
               </button>
             </div>
           )
@@ -374,7 +382,16 @@ export function SearchBar() {
   }
 
   return (
-    <div ref={containerRef} className="w-full" style={{ isolation: 'isolate' }}>
+    <>
+      {/* Overlay oscuro detrás del buscador cuando hay un panel activo (solo desktop) */}
+      {activePanel && (
+        <div
+          className="hidden sm:block fixed inset-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity"
+          onClick={() => setActivePanel(null)}
+        />
+      )}
+
+    <div ref={containerRef} className="w-full relative z-40" style={{ isolation: 'isolate' }}>
 
       <button
         type="button"
@@ -795,6 +812,7 @@ export function SearchBar() {
       </div>
 
     </div>
+    </>
   )
 }
 

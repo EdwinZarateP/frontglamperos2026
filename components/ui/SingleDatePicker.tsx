@@ -4,19 +4,21 @@ import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, format,
-  isBefore, isAfter, isSameDay, addMonths, subMonths,
-  getDay, differenceInCalendarDays, parseISO, isToday, isWeekend,
+  isBefore, isSameDay, addMonths, subMonths,
+  getDay, parseISO, isToday, isWeekend,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface Props {
-  startDate: string
-  endDate: string
-  onChange: (start: string, end: string) => void
+  value: string
+  onChange: (date: string) => void
   blockedDates?: string[]
   holidays?: Set<string>
-  minNights?: number
   onClose?: () => void
+  /** Precio pasadía entre semana (COP) */
+  precioDiaSemana?: number
+  /** Precio pasadía fin de semana y festivos (COP) */
+  precioFinDeSemana?: number
 }
 
 const DAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do']
@@ -28,93 +30,57 @@ function buildMonth(date: Date) {
   return { days, startOffset: (getDay(first) + 6) % 7, label: format(date, 'MMMM yyyy', { locale: es }) }
 }
 
-export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [], holidays, minNights = 1, onClose }: Props) {
+function formatCOP(v: number) {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v)
+}
+
+export function SingleDatePicker({ value, onChange, blockedDates = [], holidays, onClose, precioDiaSemana, precioFinDeSemana }: Props) {
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d }, [])
 
   const [baseMonth, setBaseMonth] = useState<Date>(() =>
-    startDate ? startOfMonth(parseISO(startDate)) : startOfMonth(today)
+    value ? startOfMonth(parseISO(value)) : startOfMonth(today)
   )
-  const [hoverDate, setHoverDate] = useState<Date | null>(null)
 
   const blockedSet = useMemo(() => new Set(blockedDates), [blockedDates])
   const month1 = useMemo(() => buildMonth(baseMonth), [baseMonth])
   const month2 = useMemo(() => buildMonth(addMonths(baseMonth, 1)), [baseMonth])
 
-  const startParsed = startDate ? parseISO(startDate) : null
-  const endParsed   = endDate   ? parseISO(endDate)   : null
+  const selected = value ? parseISO(value) : null
 
   const isBlocked = (d: Date) => blockedSet.has(format(d, 'yyyy-MM-dd')) || isBefore(d, today)
-
-  const isInRange = (d: Date) => {
-    const rangeEnd = endParsed || hoverDate
-    if (!startParsed || !rangeEnd) return false
-    const lo = isBefore(startParsed, rangeEnd) ? startParsed : rangeEnd
-    const hi = isBefore(startParsed, rangeEnd) ? rangeEnd   : startParsed
-    return isAfter(d, lo) && isBefore(d, hi)
-  }
 
   const handleClick = (d: Date) => {
     if (isBlocked(d)) return
     const fmt = format(d, 'yyyy-MM-dd')
-    if (!startDate || (startDate && endDate)) { onChange(fmt, ''); return }
-    if (isBefore(d, parseISO(startDate))) { onChange(fmt, ''); return }
-    if (differenceInCalendarDays(d, parseISO(startDate)) < minNights) return
-    onChange(startDate, fmt)
-  }
-
-  const nightsLabel = () => {
-    if (!startDate || !endDate) return null
-    const n = differenceInCalendarDays(parseISO(endDate), parseISO(startDate))
-    return n > 0 ? `${n} ${n === 1 ? 'noche' : 'noches'}` : null
+    onChange(fmt === value ? '' : fmt)
   }
 
   const renderDay = (d: Date) => {
-    const blocked  = isBlocked(d)
-    const isStart  = startParsed ? isSameDay(d, startParsed) : false
-    const isEnd    = endParsed   ? isSameDay(d, endParsed)   : false
-    const inRange  = isInRange(d)
-    const isHov    = hoverDate   ? isSameDay(d, hoverDate)   : false
-    const dateStr  = format(d, 'yyyy-MM-dd')
-    const isFestivo = holidays?.has(dateStr) ?? false
+    const blocked    = isBlocked(d)
+    const isSelected = selected ? isSameDay(d, selected) : false
+    const dateStr    = format(d, 'yyyy-MM-dd')
+    const isFestivo  = holidays?.has(dateStr) ?? false
     const tarifaAlta = isWeekend(d) || isFestivo
 
-    // Para el rango: mostrar media franja a la derecha del inicio y a la izquierda del fin
-    const rangeEnd = endParsed || hoverDate
-    const hasRange = startParsed && rangeEnd && !isSameDay(startParsed, rangeEnd ?? startParsed)
-    const showRightHalf = isStart && hasRange && (rangeEnd ? isAfter(rangeEnd, startParsed) : false)
-    const showLeftHalf  = isEnd   && hasRange
-
     return (
-      <div
-        key={dateStr}
-        className="relative flex items-center justify-center h-9"
-        onMouseEnter={() => !blocked && setHoverDate(d)}
-        onMouseLeave={() => setHoverDate(null)}
-      >
-        {showRightHalf && (
-          <div className="absolute top-0.5 bottom-0.5 left-1/2 right-0 bg-stone-100 pointer-events-none" />
-        )}
-        {showLeftHalf && (
-          <div className="absolute top-0.5 bottom-0.5 right-1/2 left-0 bg-stone-100 pointer-events-none" />
-        )}
-        {inRange && !isStart && !isEnd && (
-          <div className="absolute top-0.5 bottom-0.5 left-0 right-0 bg-stone-100 pointer-events-none" />
-        )}
-
+      <div key={dateStr} className="relative flex items-center justify-center h-9">
         <button
           type="button"
           disabled={blocked}
           onClick={() => handleClick(d)}
+          title={
+            !blocked
+              ? tarifaAlta
+                ? (precioFinDeSemana ? `Fin de semana / festivo · ${formatCOP(precioFinDeSemana)}` : 'Fin de semana / festivo')
+                : (precioDiaSemana ? `Entre semana · ${formatCOP(precioDiaSemana)}` : 'Entre semana')
+              : undefined
+          }
           className={[
             'relative z-10 w-9 h-9 shrink-0 flex items-center justify-center text-sm rounded-full transition-colors select-none',
             blocked
               ? 'text-stone-300 cursor-not-allowed line-through'
-              : (isStart || isEnd)
+              : isSelected
               ? 'bg-stone-900 text-white font-semibold'
-              : isHov && !startDate
-              ? 'bg-stone-200 text-stone-800'
-              : inRange || isHov
-              ? 'hover:bg-stone-200 text-stone-700'
               : tarifaAlta
               ? isToday(d)
                 ? 'font-bold text-amber-500 hover:bg-amber-50'
@@ -138,7 +104,6 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
       <p className="text-center text-sm font-semibold text-stone-800 mb-3 capitalize">
         {month.label}
       </p>
-      {/* Días de la semana */}
       <div className="grid grid-cols-7 mb-1">
         {DAYS.map((d) => (
           <div key={d} className="h-9 flex items-center justify-center text-xs text-stone-400 font-medium">
@@ -146,7 +111,6 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
           </div>
         ))}
       </div>
-      {/* Días del mes */}
       <div className="grid grid-cols-7">
         {Array.from({ length: month.startOffset }).map((_, i) => <div key={`e${i}`} className="h-9" />)}
         {month.days.map((d) => renderDay(d))}
@@ -158,22 +122,19 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-stone-200 p-4 w-full">
-      {/* Header — estado de selección */}
-      <div className="flex items-center justify-between mb-3">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
         <div className="text-sm">
-          {!startDate && <span className="text-stone-400">Selecciona tu fecha de llegada</span>}
-          {startDate && !endDate && <span className="text-emerald-600 font-medium">Selecciona tu fecha de salida</span>}
-          {startDate && endDate && (
-            <span className="font-medium text-stone-800">
-              {format(parseISO(startDate), 'd MMM', { locale: es })} →{' '}
-              {format(parseISO(endDate),   'd MMM', { locale: es })}
-              {nightsLabel() && <span className="text-stone-400 font-normal"> · {nightsLabel()}</span>}
-            </span>
-          )}
+          {!value
+            ? <span className="text-stone-400">Selecciona la fecha del pasadía</span>
+            : <span className="font-medium text-stone-800">
+                {format(parseISO(value), "EEEE d 'de' MMMM", { locale: es })}
+              </span>
+          }
         </div>
         <div className="flex items-center gap-2">
-          {(startDate || endDate) && (
-            <button type="button" onClick={() => onChange('', '')} className="text-xs text-stone-400 hover:text-stone-700 underline">
+          {value && (
+            <button type="button" onClick={() => onChange('')} className="text-xs text-stone-400 hover:text-stone-700 underline">
               Limpiar
             </button>
           )}
@@ -183,6 +144,18 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
             </button>
           )}
         </div>
+      </div>
+
+      {/* Leyenda precios */}
+      <div className="flex gap-3 text-xs mb-3">
+        <span className="flex items-center gap-1 text-stone-500">
+          <span className="w-2.5 h-2.5 rounded-full bg-stone-700 inline-block" />
+          Entre semana sin festivos{precioDiaSemana ? ` · ${formatCOP(precioDiaSemana)}` : ''}
+        </span>
+        <span className="flex items-center gap-1 text-amber-600">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+          Fines de semana y festivos{precioFinDeSemana ? ` · ${formatCOP(precioFinDeSemana)}` : ' · tarifa noche'}
+        </span>
       </div>
 
       {/* Navegación de meses */}
@@ -213,11 +186,9 @@ export function DateRangePicker({ startDate, endDate, onChange, blockedDates = [
         </div>
       </div>
 
-      {minNights > 1 && (
-        <p className="mt-3 text-xs text-stone-400 text-center">
-          Mínimo {minNights} {minNights === 1 ? 'noche' : 'noches'}
-        </p>
-      )}
+      <p className="mt-3 text-xs text-stone-400 text-center">
+        Los días en <span className="text-amber-600 font-medium">naranja</span> son fines de semana y festivos (tarifa noche sábado)
+      </p>
     </div>
   )
 }
