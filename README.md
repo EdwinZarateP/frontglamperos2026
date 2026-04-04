@@ -611,6 +611,48 @@ interface HomeResponse {
 - `app/HomeClient.tsx`: Reducción del ancho máximo del contenedor del buscador
 - `components/home/SearchFilters.tsx`: Mejoras de diseño, ciudades sugeridas, color de iconos, y corrección del calendario
 
+### v1.4 — 2026-04-04
+
+#### Sección Tierramont (aliados)
+Nueva sección en el home debajo del FAQ con productos outdoor de [tierramont.com](https://tierramont.com).
+
+**Archivo nuevo:** `components/home/TierramontSection.tsx`
+- Tabs de categorías: **Mujer** (default), Hombre, Accesorios
+- Móvil: grid 2 columnas (6 productos) + enlace "Ver toda la categoría"
+- Desktop: carrusel horizontal con flechas + tarjeta CTA al final
+- Badge "OFERTA" cuando `compare_at_price > price`
+- Fondo oscuro (`bg-stone-900`) con imagen hero y gradiente
+- SSR: `page.tsx` fetcha productos "mujer" en servidor (ISR 30 min) y los pasa como `initialData` — visible sin JavaScript
+
+**Modificaciones:**
+- `app/HomeClient.tsx` — agrega prop `tierramontProducts` y renderiza `<TierramontSection />`
+- `app/page.tsx` — `fetchTierramontMujer()` con `next: { revalidate: 1800 }`, `Promise.all` con SSR de glampings
+
+#### Glampings cercanos en detalle de glamping
+Carrusel de hasta 10 glampings cercanos al final de la página de detalle, entre el mapa/reseñas y el footer.
+
+**Archivo nuevo:** `components/glamping/NearbyGlampings.tsx`
+- Si el glamping tiene coordenadas: busca en radio 200 km ordenado por distancia
+- Sin coordenadas: busca por ciudad
+- Filtra el glamping actual de los resultados
+- Mismo componente `GlampingCard` con precios con comisión de plataforma aplicada
+- Scroll horizontal con flechas en desktop, touch-scroll en móvil
+
+**Modificación:** `app/glamping/[id]/GlampingDetailClient.tsx`
+- Envuelto en Fragment `<>...</>` (fix build error)
+- `<NearbyGlampings>` en `<section>` separada FUERA del `max-w-5xl` principal para evitar que apareciera al inicio por conflicto de `order-*` en flexbox
+
+#### Botones WhatsApp apuntan al bot
+- `components/home/WhatsAppFloatingButton.tsx` — número actualizado a `573215658594` (bot)
+- `components/layout/Footer.tsx` — mismo cambio; el humano (+573218695196) solo es contactado desde el bot cuando el cliente lo solicita
+
+#### SEO — mejoras globales
+- `app/sitemap.ts` — ahora incluye `/blog`, `/acerca-de-nosotros` y todos los posts del blog (fetched desde WordPress API con ISR 1h)
+- `app/glamping/[id]/page.tsx` — agregado `twitter: { card: 'summary_large_image' }` con imagen, título y descripción del glamping
+- `app/blog/page.tsx` — agregados `openGraph.images` y `twitter` card
+- `app/blog/[slug]/page.tsx` — agregado Article JSON-LD (`datePublished`, `dateModified`, `publisher`) para rich snippets en Google
+- `app/acerca-de-nosotros/page.tsx` — agregados `openGraph.images` y `twitter` card
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`
