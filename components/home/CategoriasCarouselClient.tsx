@@ -131,13 +131,13 @@ export function CategoriasCarouselClient({ glampingImage }: Props) {
       </div>
 
       <div className="relative">
-        {/* Flecha izquierda */}
+        {/* Flecha izquierda — solo desktop, dentro del boundary */}
         <button
           onClick={prevSlide}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg hidden sm:flex items-center justify-center hover:scale-110 transition-transform"
           aria-label="Anterior"
         >
-          <ChevronLeft size={24} className="text-stone-700" />
+          <ChevronLeft size={22} className="text-stone-700" />
         </button>
 
         {/* Carrusel */}
@@ -194,13 +194,13 @@ export function CategoriasCarouselClient({ glampingImage }: Props) {
           </div>
         </div>
 
-        {/* Flecha derecha */}
+        {/* Flecha derecha — solo desktop, dentro del boundary */}
         <button
           onClick={nextSlide}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg hidden sm:flex items-center justify-center hover:scale-110 transition-transform"
           aria-label="Siguiente"
         >
-          <ChevronRight size={24} className="text-stone-700" />
+          <ChevronRight size={22} className="text-stone-700" />
         </button>
 
         {/* Indicadores (dots) */}
