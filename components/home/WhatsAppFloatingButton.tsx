@@ -11,7 +11,7 @@ export function WhatsAppFloatingButton() {
     setCurrentUrl(window.location.href)
   }, [pathname])
 
-  const whatsappNumber = '573218695196'
+  const whatsappNumber = '573215658594'
   const defaultMessage = 'hola, quiero saber informacion de glamping'
   
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`${defaultMessage}\n\nURL: ${currentUrl}`)}`
