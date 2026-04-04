@@ -120,33 +120,38 @@ export function GlampingDetailClient({ glamping }: Props) {
     return glamping.precioNoche
   })()
 
+  // Subtotal de extras — funciona sin fechas (usa noches || 1 para extras por_noche)
+  const calcularSubtotalExtras = (nochesRef = noches) => {
+    return extrasSeleccionados.reduce((total, key) => {
+      const extra = glamping.extras?.find(e => e.key === key)
+      if (!extra) return total
+      const nochesEfectivas = nochesRef > 0 ? nochesRef : 1
+      const cantidad = extra.unidad === 'por_noche' ? nochesEfectivas
+                     : extra.unidad === 'por_persona' ? huespedes
+                     : 1
+      return total + (extra.precioPublico * cantidad)
+    }, 0)
+  }
+
+  const subtotalExtrasActual = calcularSubtotalExtras()
+
   const calcularTotalLocal = () => {
-    if (!fechaInicio || !fechaFin) return { subtotalAlojamiento: 0, subtotalExtras: 0, precioTotal: 0 }
-    
+    const subtotalExtras = calcularSubtotalExtras()
+    if (!fechaInicio || !fechaFin) return { subtotalAlojamiento: 0, subtotalExtras, precioTotal: subtotalExtras }
+
     let subtotalAlojamiento = 0
     const fechaActual = new Date(fechaInicio + 'T00:00:00')
-    
     for (let i = 0; i < noches; i++) {
       const fechaIteracion = new Date(fechaActual)
       fechaIteracion.setDate(fechaIteracion.getDate() + i)
       const fechaStr = fechaIteracion.toISOString().split('T')[0]
-      const precioNoche = calcularComision(getPrecioPorNoche(fechaStr))
-      subtotalAlojamiento += precioNoche
+      subtotalAlojamiento += calcularComision(getPrecioPorNoche(fechaStr))
     }
-    
-    const subtotalExtras = extrasSeleccionados.reduce((total, key) => {
-      const extra = glamping.extras?.find(e => e.key === key)
-      if (!extra) return total
-      const cantidad = extra.unidad === 'por_noche' ? noches : 
-                       extra.unidad === 'por_persona' ? huespedes : 1
-      const precioExtra = extra.precioPublico * cantidad
-      return total + precioExtra
-    }, 0)
-    
+
     return {
       subtotalAlojamiento,
       subtotalExtras,
-      precioTotal: subtotalAlojamiento + subtotalExtras
+      precioTotal: subtotalAlojamiento + subtotalExtras,
     }
   }
 
@@ -821,17 +826,19 @@ export function GlampingDetailClient({ glamping }: Props) {
               </button>
 
               {/* Resumen rápido */}
-              {fechaInicio && fechaFin && (
+              {(fechaInicio && fechaFin) || extrasSeleccionados.length > 0 ? (
                 <div className="bg-stone-50 rounded-xl p-3 mb-3 space-y-2 text-sm">
-                  <div 
-                    className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                    onClick={() => setShowReservationModal(true)}
-                  >
-                    <span className="text-stone-600">Huéspedes</span>
-                    <span className="font-medium text-stone-900">{huespedes}</span>
-                  </div>
-                  {glamping.aceptaMascotas && (
-                    <div 
+                  {fechaInicio && fechaFin && (
+                    <div
+                      className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
+                      onClick={() => setShowReservationModal(true)}
+                    >
+                      <span className="text-stone-600">Huéspedes</span>
+                      <span className="font-medium text-stone-900">{huespedes}</span>
+                    </div>
+                  )}
+                  {fechaInicio && fechaFin && glamping.aceptaMascotas && (
+                    <div
                       className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
                       onClick={() => setShowReservationModal(true)}
                     >
@@ -840,25 +847,32 @@ export function GlampingDetailClient({ glamping }: Props) {
                     </div>
                   )}
                   {extrasSeleccionados.length > 0 && (
-                    <div 
-                      className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                      onClick={() => setShowReservationModal(true)}
-                    >
-                      <span className="text-stone-600">Extras</span>
-                      <span className="font-medium text-stone-900">{extrasSeleccionados.length}</span>
+                    <div className="space-y-1">
+                      {extrasSeleccionados.map(key => {
+                        const extra = glamping.extras?.find(e => e.key === key)
+                        if (!extra) return null
+                        const nochesEfectivas = noches > 0 ? noches : 1
+                        const cantidad = extra.unidad === 'por_noche' ? nochesEfectivas
+                                       : extra.unidad === 'por_persona' ? huespedes : 1
+                        return (
+                          <div key={key} className="flex justify-between items-center">
+                            <span className="text-stone-500 truncate max-w-[140px]">+ {extra.nombre}</span>
+                            <span className="font-medium text-stone-900 shrink-0">{formatCOP(extra.precioPublico * cantidad)}</span>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
-                  {cotizacionDisplay && !loadingCotizacion && (
-                    <hr className="border-stone-200" />
-                  )}
-                  {cotizacionDisplay && !loadingCotizacion && (
-                    <div className="flex justify-between font-bold text-stone-900 text-base">
-                      <span>Total</span>
-                      <span>{formatCOP(totalFinal)}</span>
-                    </div>
+                  <hr className="border-stone-200" />
+                  <div className="flex justify-between font-bold text-stone-900 text-base">
+                    <span>{fechaInicio && fechaFin ? 'Total' : 'Estimado'}</span>
+                    <span>{formatCOP(fechaInicio && fechaFin ? totalFinal : precioPorNocheDinamico + subtotalExtrasActual)}</span>
+                  </div>
+                  {!fechaInicio && (
+                    <p className="text-xs text-stone-400">1 noche + extras · ajusta al elegir fechas</p>
                   )}
                 </div>
-              )}
+              ) : null}
 
   <Button
     fullWidth
@@ -1168,9 +1182,15 @@ export function GlampingDetailClient({ glamping }: Props) {
                 <p className="text-xs text-stone-400">Total</p>
                 <p className="text-xl font-bold text-stone-900">{formatCOP(totalFinal)}</p>
               </>
+            ) : subtotalExtrasActual > 0 ? (
+              <>
+                <p className="text-xs text-stone-400">Estimado (1 noche + extras)</p>
+                <p className="text-xl font-bold text-stone-900">{formatCOP(precioPorNocheDinamico + subtotalExtrasActual)}</p>
+                <p className="text-[10px] text-stone-400">ajusta al elegir fechas</p>
+              </>
             ) : (
               <>
-                <p className="text-xs text-stone-400">{noches > 0 && fechaInicio && fechaFin ? 'Por noche' : 'Desde'}</p>
+                <p className="text-xs text-stone-400">Desde</p>
                 <p className="text-base font-bold text-stone-900">
                   {formatCOP(precioPorNocheDinamico)}
                   <span className="text-xs font-normal text-stone-400"> / noche</span>

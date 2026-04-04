@@ -213,6 +213,8 @@ export default function EditarGlampingPage({ params }: Props) {
         raw.tarifasPasadia = Object.fromEntries(Object.entries(values.tarifasPasadia).map(([k, v]) => [k, Number(v) || 0]))
       } else { delete raw.tarifasPasadia }
       const payload = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== '' && v !== undefined && v !== null))
+      // Campos que el usuario puede borrar intencionalmente
+      if (!values.videoYoutube?.trim()) payload.videoYoutube = null
       const { data } = await api.put(`/glampings/Datos/${id}`, payload)
       return data
     },
@@ -524,7 +526,7 @@ export default function EditarGlampingPage({ params }: Props) {
 
       {/* Botón flotante sticky — se queda en el fondo del form, nunca sale del padre */}
       <div className="sticky bottom-4 flex justify-end pointer-events-none">
-        <Button type="submit" size="lg" loading={guardar.isPending || guardandoFotos}
+        <Button type="submit" size="lg" variant="brand" loading={guardar.isPending || guardandoFotos}
           className="pointer-events-auto shadow-lg">
           <Save size={16} /> Guardar cambios
         </Button>

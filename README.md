@@ -653,6 +653,40 @@ Carrusel de hasta 10 glampings cercanos al final de la página de detalle, entre
 - `app/blog/[slug]/page.tsx` — agregado Article JSON-LD (`datePublished`, `dateModified`, `publisher`) para rich snippets en Google
 - `app/acerca-de-nosotros/page.tsx` — agregados `openGraph.images` y `twitter` card
 
+### v1.5 — 2026-04-04
+
+#### Comisiones centralizadas (fuente única)
+- `lib/utils.ts` — `calcularComision()` ya no usa constantes locales; carga los tramos desde `GET /catalogos/comisiones` al arrancar la app (`providers.tsx → cargarTramosComision()`)
+- Fallback hardcodeado en `FALLBACK_TRAMOS` si la API no responde (ISR 1h)
+- Tramo 300k-400k actualizado a **17%** (antes 16%)
+- Para cambiar comisiones en el futuro: solo editar `core/comision.py` en el backend
+
+#### Catálogo de extras sincronizado
+- `lib/catalogoExtras.ts` — añadidos `descorche` (por grupo, $50.000) y `kitFogata` (por grupo, $45.000) al final del catálogo, después de `tour3`
+- Añadida `'por_grupo'` a la unión de tipos y a `UNIDAD_LABELS`
+
+#### Precio estimado en sidebar sin fechas
+- `app/glamping/[id]/GlampingDetailClient.tsx` — seleccionar extras actualiza el sidebar con un total estimado (`1 noche base + extras`) aunque no se hayan elegido fechas
+- Label `"Estimado"` con nota "1 noche + extras · ajusta al elegir fechas"
+- Barra inferior móvil también muestra el estimado combinado
+
+#### Admin — edición de imágenes via JSON
+- `app/admin/glampings/page.tsx` — botón de ícono en cada glamping abre `ModalImagenes`
+- Textarea pre-cargada con el JSON actual de imágenes; preview de miniaturas (hasta 10)
+- Valida JSON antes de enviar; llama `PATCH /glampings/{id}/reorganizar_imagenes`
+
+#### Corrección video anfitrión
+- `app/anfitrion/glampings/[id]/page.tsx` — borrar el campo de video ahora envía `null` al backend (antes el string vacío era filtrado y el campo no se limpiaba)
+
+#### Scroll horizontal eliminado
+- `app/layout.tsx` — `overflow-x-hidden` en `body` como red de seguridad global
+- Botones de flechas en carruseles (`BenefitsCarousel`, `FaqCarousel`, `CategoriasCarouselClient`) reposicionados de `-translate-x-1/2` / `translate-x-1/2` a `left-1` / `right-1` para mantenerse dentro del viewport
+
+#### BenefitsCarousel
+- Eliminada la opción "Habla directamente con tu anfitrión"
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`
