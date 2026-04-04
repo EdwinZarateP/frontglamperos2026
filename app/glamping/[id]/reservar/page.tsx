@@ -221,8 +221,18 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const totalBase         = tipo === 'PASADIA'
     ? (fechaPasadia ? getPasadiaPrice(glamping as unknown as Record<string, unknown>, fechaPasadia) : 0)
     : (cotizacion ? cotizacion.total + precioMascota : 0)
-  const totalWompi        = Math.round(totalBase * 1.05)
+  // Redondear al múltiplo de 50 (denominación mínima COP)
+  const floor50 = (x: number) => Math.floor(x / 50) * 50
+  const ceil50  = (x: number) => Math.ceil(x / 50) * 50
+  // totalWompi: base redondeado abajo + fee redondeado arriba
+  const wompiBase         = floor50(totalBase)
+  const wompiFee          = ceil50(wompiBase * 0.05)
+  const totalWompi        = wompiBase + wompiFee   // siempre múltiplo de 50
   const totalMostrar      = metodoPago === 'wompi' ? totalWompi : totalBase
+
+  // Para el selector de porcentaje: el abono debe ser múltiplo de 50
+  const wompiAbono50      = floor50(totalWompi * 0.5)
+  const wompiAbono100     = totalWompi
 
   // ─── Componente resumen (reutilizado en desktop y mobile sheet) ────────────
   const ResumenContent = () => (
@@ -279,7 +289,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           {metodoPago === 'wompi' && (
             <div className="flex justify-between text-amber-600 text-xs">
               <span>Recargo Wompi (5%)</span>
-              <span>+{formatCOP(Math.round(totalBase * 0.05))}</span>
+              <span>+{formatCOP(wompiFee)}</span>
             </div>
           )}
           <hr className="border-stone-100" />
@@ -312,7 +322,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           {metodoPago === 'wompi' && (
             <div className="flex justify-between text-amber-600 text-xs">
               <span>Recargo Wompi (5%)</span>
-              <span>+{formatCOP(Math.round(totalBase * 0.05))}</span>
+              <span>+{formatCOP(wompiFee)}</span>
             </div>
           )}
           <hr className="border-stone-100" />
@@ -776,7 +786,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                         </p>
                         {hayFechas && cotizacion && (
                           <p className="text-sm font-bold text-amber-600 mt-1">
-                            {formatCOP(Math.round(totalWompi * p / 100))}
+                            {formatCOP(p === 50 ? wompiAbono50 : wompiAbono100)}
                           </p>
                         )}
                       </button>
