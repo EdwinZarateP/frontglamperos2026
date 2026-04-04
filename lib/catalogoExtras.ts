@@ -19,7 +19,6 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'decoracionEspecial',  nombre: 'Decoración especial',   unidad: 'por_pareja' },
   { key: 'picnic',              nombre: 'Picnic',                unidad: 'por_pareja' },
   { key: 'pelicula',            nombre: 'Noche de película',     unidad: 'por_pareja' },
-  { key: 'descorche',           nombre: 'Descorche',             unidad: 'por_pareja' },
   { key: 'paseoLancha',         nombre: 'Paseo en lancha',       unidad: 'por_pareja' },
   { key: 'paseoBicicleta',      nombre: 'Paseo en bicicleta',    unidad: 'por_persona' },
   { key: 'caminataGuiada',      nombre: 'Caminata guiada',       unidad: 'por_persona' },
