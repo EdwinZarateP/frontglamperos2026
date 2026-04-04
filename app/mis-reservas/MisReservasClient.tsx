@@ -125,11 +125,26 @@ export function MisReservasClient() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-lg font-bold text-stone-900">
-                        {formatCOP(reserva.precioTotal)}
+                        Total reserva: {formatCOP(reserva.precioTotal)}
                       </p>
+                      {reserva.metodoPago === 'wompi' && reserva.montoPagado > 0 && (
+                        <div className="mt-1 space-y-0.5 text-xs">
+                          {(() => {
+                            const fee = Math.ceil(((reserva.valorUsoWompi ?? 0) / 50)) * 50
+                            const cobrado = Math.ceil((reserva.montoPagado + (reserva.valorUsoWompi ?? 0)) / 50) * 50
+                            const porcentaje = Math.round(reserva.montoPagado / reserva.precioTotal * 100)
+                            return <>
+                              <p className="text-blue-600 font-medium">💳 Pagado por Wompi ({porcentaje}% abono)</p>
+                              <p className="text-stone-500">· Cobrado por pasarela: <span className="font-medium text-stone-700">{formatCOP(cobrado)}</span></p>
+                              <p className="text-stone-500">· Abonado a tu reserva: <span className="font-medium text-stone-700">{formatCOP(reserva.montoPagado)}</span></p>
+                              {fee > 0 && <p className="text-stone-400">· Recargo pasarela (5%): {formatCOP(fee)}</p>}
+                            </>
+                          })()}
+                        </div>
+                      )}
                       {reserva.saldoPendiente > 0 && (
-                        <p className="text-xs text-amber-600">
-                          Saldo pendiente: {formatCOP(reserva.saldoPendiente)}
+                        <p className={`text-xs mt-1 font-medium ${reserva.metodoPago === 'wompi' ? 'text-emerald-700' : 'text-amber-600'}`}>
+                          {reserva.metodoPago === 'wompi' ? '💵 Saldo a pagar al llegar (efectivo):' : 'Saldo pendiente:'} {formatCOP(reserva.saldoPendiente)}
                         </p>
                       )}
                     </div>
