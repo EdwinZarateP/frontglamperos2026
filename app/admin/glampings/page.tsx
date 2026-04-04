@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { Search, Pencil, Eye, MapPin, Download, Users, X, Trash2, UserPlus, Plus } from 'lucide-react'
+import { Search, Pencil, Eye, MapPin, Download, Users, X, Trash2, UserPlus, Plus, ImageIcon } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { formatCOP, tipoGlampingLabels } from '@/lib/utils'
 import { Spinner } from '@/components/ui/Spinner'
@@ -184,9 +184,125 @@ function ModalAnfitriones({
   )
 }
 
+function ModalImagenes({
+  glamping,
+  onClose,
+}: {
+  glamping: GlampingAdmin
+  onClose: () => void
+}) {
+  const queryClient = useQueryClient()
+  const [texto, setTexto] = useState(JSON.stringify(glamping.imagenes ?? [], null, 2))
+  const [parseError, setParseError] = useState('')
+
+  const guardar = useMutation({
+    mutationFn: async (imagenes: string[]) => {
+      await api.patch(`/glampings/${glamping._id}/reorganizar_imagenes`, { imagenes })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-glampings-lista'] })
+      toast.success('Imágenes actualizadas')
+      onClose()
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
+  const handleGuardar = () => {
+    setParseError('')
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(texto)
+    } catch {
+      setParseError('JSON inválido. Asegúrate de que sea un array de strings.')
+      return
+    }
+    if (!Array.isArray(parsed) || parsed.some((v) => typeof v !== 'string')) {
+      setParseError('Debe ser un array de strings (URLs). Ejemplo: ["https://...", "https://..."]')
+      return
+    }
+    guardar.mutate(parsed as string[])
+  }
+
+  // Preview: parse silently para mostrar miniaturas
+  let preview: string[] = []
+  try { preview = JSON.parse(texto) } catch { /* noop */ }
+  const validPreview = Array.isArray(preview) && preview.every((v) => typeof v === 'string') ? preview : []
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-stone-900">Editar imágenes</h3>
+            <p className="text-xs text-stone-400 mt-0.5 line-clamp-1">{glamping.nombreGlamping}</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-stone-100"><X size={18} /></button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
+            Array de URLs (JSON)
+          </label>
+          <textarea
+            value={texto}
+            onChange={(e) => { setTexto(e.target.value); setParseError('') }}
+            rows={12}
+            spellCheck={false}
+            className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand resize-y"
+            placeholder='["https://storage.googleapis.com/...", "https://storage.googleapis.com/..."]'
+          />
+          {parseError && (
+            <p className="text-xs text-red-500">{parseError}</p>
+          )}
+          <p className="text-xs text-stone-400">
+            {validPreview.length} imagen{validPreview.length !== 1 ? 'es' : ''} detectada{validPreview.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+
+        {/* Preview miniaturas */}
+        {validPreview.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {validPreview.slice(0, 10).map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                alt={`Preview ${i + 1}`}
+                className="w-16 h-16 rounded-lg object-cover border border-stone-200"
+                onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0.3' }}
+              />
+            ))}
+            {validPreview.length > 10 && (
+              <div className="w-16 h-16 rounded-lg bg-stone-100 flex items-center justify-center text-xs text-stone-400 font-medium">
+                +{validPreview.length - 10}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 pt-2 border-t border-stone-100">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-stone-600 hover:bg-stone-100 transition-colors">
+            Cancelar
+          </button>
+          <button
+            onClick={handleGuardar}
+            disabled={guardar.isPending}
+            className="px-4 py-2 rounded-xl bg-brand hover:bg-brand-light text-white text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {guardar.isPending ? 'Guardando...' : 'Guardar imágenes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminGlampingsPage() {
   const [busqueda, setBusqueda] = useState('')
   const [modalAnfitriones, setModalAnfitriones] = useState<GlampingAdmin | null>(null)
+  const [modalImagenes, setModalImagenes] = useState<GlampingAdmin | null>(null)
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -331,6 +447,13 @@ export default function AdminGlampingsPage() {
                   </select>
                   <div className="flex items-center gap-1">
                     <button
+                      onClick={() => setModalImagenes(g)}
+                      className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                      title="Editar imágenes"
+                    >
+                      <ImageIcon size={15} />
+                    </button>
+                    <button
                       onClick={() => setModalAnfitriones(g)}
                       className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-brand transition-colors"
                       title="Gestionar anfitriones"
@@ -408,6 +531,13 @@ export default function AdminGlampingsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 justify-end">
                         <button
+                          onClick={() => setModalImagenes(g)}
+                          className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-emerald-600 transition-colors"
+                          title="Editar imágenes"
+                        >
+                          <ImageIcon size={15} />
+                        </button>
+                        <button
                           onClick={() => setModalAnfitriones(g)}
                           className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-brand transition-colors"
                           title="Gestionar anfitriones"
@@ -436,6 +566,13 @@ export default function AdminGlampingsPage() {
         <ModalAnfitriones
           glamping={modalAnfitriones}
           onClose={() => setModalAnfitriones(null)}
+        />
+      )}
+
+      {modalImagenes && (
+        <ModalImagenes
+          glamping={modalImagenes}
+          onClose={() => setModalImagenes(null)}
         />
       )}
     </div>
