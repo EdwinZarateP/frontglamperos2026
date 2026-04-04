@@ -687,6 +687,44 @@ Carrusel de hasta 10 glampings cercanos al final de la página de detalle, entre
 
 ---
 
+### v1.6 — 2026-04-04
+
+#### Wompi — reservas como borradores temporales (wompiIntent)
+
+Al seleccionar Wompi como método de pago y hacer clic en "Reservar y pagar en línea":
+1. Se crea la reserva en MongoDB con `wompiIntent: true` y `expiraAt: now + 2h`
+2. Esa reserva es **invisible** en el panel admin y en `/mis-reservas`
+3. El usuario es redirigido al checkout de Wompi (`/pagos/wompi/checkout/{id}`)
+4. Si abandona sin pagar → MongoDB TTL index la elimina sola en 2 horas
+5. Si paga → webhook APPROVED la convierte en reserva real (elimina `wompiIntent` y `expiraAt`)
+
+Impacto en frontend: ninguno — el flujo de UI no cambia. El cambio es puramente en el backend.
+
+#### Bloqueo de fechas diferido a confirmación
+
+El calendario solo se bloquea cuando el admin cambia el estado a `CONFIRMADA`.
+Antes se bloqueaba al recibir el pago Wompi, lo que causaba fechas fantasma si el admin rechazaba.
+
+Flujo de estados:
+```
+PENDIENTE_APROBACION → PAGO_RECIBIDO (Wompi paga, fechas AÚN NO bloqueadas)
+PAGO_RECIBIDO → CONFIRMADA (admin aprueba → fechas se bloquean)
+```
+
+#### `admin/reservas` — filtro "Pago Wompi"
+- Renombrado el tab "Pago Recibido" a **"Pago Wompi"** para mayor claridad
+- `lib/utils.ts`: `estadoLabel.PAGO_RECIBIDO = '💳 Pago Wompi · Pendiente aprobación'`
+
+#### `mis-reservas` — desglose Wompi
+- Muestra badge **💳 Wompi** / **🏦 Transferencia** según `metodoPago`
+- Cuando metodoPago es wompi muestra: cobrado por Wompi, abonado a la reserva, recargo pasarela (5%), saldo a pagar al llegar en efectivo
+
+#### Formulario de reserva — mejoras UX
+- Si el usuario llega desde una URL con `?fechaInicio=...` el selector de tipo (noches/pasadía) queda oculto automáticamente — ya no puede cambiar a pasadía cuando vino con fechas de noches preseleccionadas
+- Montos Wompi calculados con `floor50` / `ceil50` (múltiplos de 50 COP) para que el total siempre sea denominación válida en Colombia
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`
