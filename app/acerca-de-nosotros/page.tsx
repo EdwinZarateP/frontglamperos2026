@@ -12,6 +12,14 @@ export const metadata: Metadata = {
     description:
       'Glamperos nació para conectar a los colombianos con la naturaleza a través del glamping. Conoce nuestro propósito y el respaldo institucional que nos impulsa.',
     type: 'website',
+    images: [{ url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Acerca de Nosotros | Glamperos Colombia',
+    description:
+      'Glamperos nació para conectar a los colombianos con la naturaleza a través del glamping. Conoce nuestro propósito y el respaldo institucional que nos impulsa.',
+    images: ['https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'],
   },
 }
 

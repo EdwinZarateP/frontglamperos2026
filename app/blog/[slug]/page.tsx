@@ -71,7 +71,30 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const mins  = readingTime(post.content?.rendered || '')
   const date  = new Date(post.date).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://glamperos.com'
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: stripHtml(post.title?.rendered),
+    description: stripHtml(post.excerpt?.rendered).slice(0, 160),
+    image: img ? [img] : undefined,
+    datePublished: post.date,
+    dateModified: post.modified ?? post.date,
+    url: `${SITE_URL}/blog/${slug}`,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Glamperos',
+      url: SITE_URL,
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
+  }
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+    />
     <div className="min-h-screen bg-white">
 
       {/* ── Encabezado del artículo ────────────────────────────────────── */}
@@ -149,5 +172,6 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
       <GalleryEnhancer />
     </div>
+    </>
   )
 }

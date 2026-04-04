@@ -37,6 +37,12 @@ export async function generateMetadata({
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: glamping.nombreGlamping,
+      description: glamping.descripcionGlamping?.slice(0, 160),
+      images: firstImage ? [firstImage] : undefined,
+    },
     alternates: { canonical: `/glamping/${id}` },
   }
 }
