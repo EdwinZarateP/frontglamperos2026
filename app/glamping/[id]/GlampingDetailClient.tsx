@@ -258,6 +258,7 @@ export function GlampingDetailClient({ glamping }: Props) {
         const p = (t as Record<string,number>)[key] || glamping.precioNoche
         lines.push(`• ${label}: ${comision(p)}`)
       }
+      lines.push('📅 _Los festivos tienen tarifa de sábado_')
     } else {
       lines.push(`💰 *Precio por noche:* ${comision(glamping.precioNoche)}`)
     }
