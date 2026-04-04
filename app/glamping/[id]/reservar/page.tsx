@@ -83,6 +83,8 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     (searchParams.get('extras') || '').split(',').filter(Boolean)
   )
   const tipoFijoPorUrl = searchParams.get('tipo') === 'PASADIA'
+  // Ocultar el selector si ya vienen fechas de noche en la URL
+  const ocultarSelectorTipo = tipoFijoPorUrl || !!searchParams.get('fechaInicio')
   const [tipo, setTipo]                     = useState<'NOCHES' | 'PASADIA'>(tipoFijoPorUrl ? 'PASADIA' : 'NOCHES')
   const [fechaPasadia, setFechaPasadia]     = useState(searchParams.get('fecha') || '')
   const [showCalendar, setShowCalendar]     = useState(!searchParams.get('fechaInicio'))
@@ -477,8 +479,8 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           {/* PASO 2 — TU VIAJE */}
           <Section title="2. Tu viaje">
 
-            {/* Selector de tipo (solo si el glamping permite pasadía Y el tipo no vino fijo por URL) */}
-            {glamping.permitePasadia && !tipoFijoPorUrl && (
+            {/* Selector de tipo (solo si el glamping permite pasadía Y no vino con fechas o tipo fijo por URL) */}
+            {glamping.permitePasadia && !ocultarSelectorTipo && (
               <div className="flex gap-2 mb-4">
                 <button
                   type="button"
