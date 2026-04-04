@@ -101,7 +101,7 @@ export const estadoLabel: Record<string, string> = {
   CONFIRMADA: 'Confirmada',
   CANCELADA: 'Cancelada',
   COMPLETADA: 'Completada',
-  PAGO_RECIBIDO: 'Pago recibido · Pendiente aprobación',
+  PAGO_RECIBIDO: '💳 Pago Wompi · Pendiente aprobación',
 }
 
 // ─── Iconos de amenidades ─────────────────────────────────────────────────────
