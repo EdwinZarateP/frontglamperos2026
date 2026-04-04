@@ -9,14 +9,46 @@ export function cn(...inputs: ClassValue[]) {
 export const toTitleCase = (str: string) =>
   str.trim().replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
 
-// ─── Comisión escalonada Glamperos (igual que el backend) ────────────────────
+// ─── Comisión escalonada Glamperos ───────────────────────────────────────────
+// Fuente de verdad: apiglamperos2026/core/comision.py
+// El frontend carga los tramos desde GET /catalogos/comisiones al arrancar.
+// Si la carga falla, usa estos valores de fallback (deben coincidir con el backend).
+
+interface TramoComision { desde: number; hasta: number | null; multiplicador: number }
+
+const FALLBACK_TRAMOS: TramoComision[] = [
+  { desde: 0,       hasta: 300_000, multiplicador: 1.20 },
+  { desde: 300_000, hasta: 400_000, multiplicador: 1.17 },
+  { desde: 400_000, hasta: 500_000, multiplicador: 1.15 },
+  { desde: 500_000, hasta: 600_000, multiplicador: 1.13 },
+  { desde: 600_000, hasta: 800_000, multiplicador: 1.11 },
+  { desde: 800_000, hasta: null,    multiplicador: 1.10 },
+]
+
+let _tramos: TramoComision[] = FALLBACK_TRAMOS
+
+export async function cargarTramosComision(): Promise<void> {
+  try {
+    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const res = await fetch(`${API}/catalogos/comisiones`, { next: { revalidate: 3600 } })
+    if (!res.ok) return
+    const data = await res.json()
+    if (Array.isArray(data.tramos) && data.tramos.length > 0) {
+      _tramos = data.tramos
+    }
+  } catch {
+    // fallback silencioso
+  }
+}
+
 export function calcularComision(precioAnfitrion: number): number {
-  if (precioAnfitrion < 300_000) return precioAnfitrion * 1.20
-  if (precioAnfitrion < 400_000) return precioAnfitrion * 1.17
-  if (precioAnfitrion < 500_000) return precioAnfitrion * 1.15
-  if (precioAnfitrion < 600_000) return precioAnfitrion * 1.13
-  if (precioAnfitrion < 800_000) return precioAnfitrion * 1.11
-  return precioAnfitrion * 1.10
+  if (precioAnfitrion <= 0) return 0
+  for (const tramo of _tramos) {
+    if (tramo.hasta === null || precioAnfitrion < tramo.hasta) {
+      return precioAnfitrion * tramo.multiplicador
+    }
+  }
+  return precioAnfitrion * _tramos[_tramos.length - 1].multiplicador
 }
 
 // ─── Formateo de precios COP ─────────────────────────────────────────────────

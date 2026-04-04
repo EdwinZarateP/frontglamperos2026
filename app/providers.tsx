@@ -2,9 +2,12 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { cargarTramosComision } from '@/lib/utils'
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => { cargarTramosComision() }, [])
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
