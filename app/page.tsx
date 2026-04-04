@@ -43,6 +43,20 @@ const websiteJsonLd = {
   },
 }
 
+async function fetchTierramontMujer() {
+  try {
+    const res = await fetch(
+      'https://tierramont.com/collections/mujer/products.json?limit=10',
+      { next: { revalidate: 1800 } } // ISR 30 min
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.products ?? []
+  } catch {
+    return []
+  }
+}
+
 export default async function HomePage({
   searchParams,
 }: {
@@ -50,7 +64,11 @@ export default async function HomePage({
 }) {
   const sp = await searchParams
   const initialFiltros: Partial<FiltrosHome> = parseFiltrosFromSearchParams(sp)
-  const serverData = await fetchGlampingsSSR(initialFiltros)
+
+  const [serverData, tierramontProducts] = await Promise.all([
+    fetchGlampingsSSR(initialFiltros),
+    fetchTierramontMujer(),
+  ])
 
   return (
     <>
@@ -62,7 +80,11 @@ export default async function HomePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
-      <HomeClient serverData={serverData} initialFiltros={initialFiltros} />
+      <HomeClient
+        serverData={serverData}
+        initialFiltros={initialFiltros}
+        tierramontProducts={tierramontProducts}
+      />
     </>
   )
 }

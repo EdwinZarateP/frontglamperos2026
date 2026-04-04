@@ -94,9 +94,10 @@ function FilterBreadcrumb({
 interface Props {
   initialFiltros?: Partial<FiltrosHome>
   serverData?: HomeResponse
+  tierramontProducts?: unknown[]
 }
 
-export function HomeClient({ initialFiltros, serverData }: Props) {
+export function HomeClient({ initialFiltros, serverData, tierramontProducts }: Props) {
   const { filtros, setFiltros, resetFiltros } = useSearchStore()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -259,7 +260,7 @@ export function HomeClient({ initialFiltros, serverData }: Props) {
       <FaqCarousel />
 
       {/* ── Productos Tierramont ─────────────────────────────────────────── */}
-      <TierramontSection />
+      <TierramontSection initialProducts={tierramontProducts} />
     </div>
   )
 }
