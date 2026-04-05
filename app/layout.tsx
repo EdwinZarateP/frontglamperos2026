@@ -44,10 +44,57 @@ export const metadata: Metadata = {
   },
 }
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Glamperos',
+  url: 'https://glamperos.com',
+  logo: 'https://glamperos.com/logos/glamperos-logo.png',
+  description: 'Plataforma colombiana de glamping. Reserva domos, cabañas, treehouses y experiencias únicas en la naturaleza de Colombia.',
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer service',
+    availableLanguage: 'Spanish',
+    contactOption: 'TollFree',
+  },
+  sameAs: [
+    'https://www.instagram.com/glamperos',
+    'https://www.facebook.com/glamperos',
+    'https://www.tiktok.com/@glamperos',
+  ],
+  areaServed: {
+    '@type': 'Country',
+    name: 'Colombia',
+  },
+}
+
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Glamperos',
+  url: 'https://glamperos.com',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://glamperos.com/?ciudad={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={inter.variable}>
       <body suppressHydrationWarning className="font-sans bg-white text-stone-900 antialiased overflow-x-hidden">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <Providers>
           <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>

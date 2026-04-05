@@ -95,9 +95,11 @@ interface Props {
   initialFiltros?: Partial<FiltrosHome>
   serverData?: HomeResponse
   tierramontProducts?: unknown[]
+  heroTitle?: string
+  heroIntro?: string
 }
 
-export function HomeClient({ initialFiltros, serverData, tierramontProducts }: Props) {
+export function HomeClient({ initialFiltros, serverData, tierramontProducts, heroTitle, heroIntro }: Props) {
   const { filtros, setFiltros, resetFiltros } = useSearchStore()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -156,11 +158,13 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts }: P
           : esMedellin
           ? 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/piedra_guatape.webp'
           : 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
-        const heroText = esBogota
+        const defaultHeroText = esBogota
           ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE BOGOTÁ'
           : esMedellin
           ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE MEDELLÍN'
           : 'DESCUBRE GLAMPING Y ALOJAMIENTOS RURALES INCREÍBLES PARA RESERVAR EN COLOMBIA'
+
+        const displayTitle = heroTitle ? heroTitle.toUpperCase() : defaultHeroText
 
         return (
           <div className="pt-6 pb-2">
@@ -171,11 +175,16 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts }: P
                 aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/30" />
+              <div className="absolute inset-0 bg-black/40" />
               <div className="relative z-10 text-center pt-12 pb-16 sm:pt-16 sm:pb-20 px-6">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
-                  {heroText}
+                  {displayTitle}
                 </h1>
+                {heroIntro && (
+                  <p className="mt-3 text-sm sm:text-base text-white/85 drop-shadow max-w-2xl mx-auto">
+                    {heroIntro}
+                  </p>
+                )}
               </div>
             </div>
             {/* SearchBar fuera del overflow-hidden: paneles se abren libremente sin clipping */}

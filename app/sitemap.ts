@@ -59,6 +59,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
+  // Páginas de ciudad/zona — alta prioridad para SEO orgánico
+  const ZONE_SLUGS = [
+    // Bogotá / Cundinamarca
+    'bogota', 'guatavita', 'la-calera', 'tabio', 'suesca', 'villeta',
+    'fusagasuga', 'girardot', 'la-mesa', 'anapoima',
+    // Medellín / Antioquia
+    'medellin', 'guatape', 'el-retiro', 'jardin', 'santa-fe-de-antioquia',
+    'girardota', 'caldas-antioquia', 'san-jeronimo', 'la-estrella',
+    // Boyacá
+    'paipa', 'villa-de-leyva', 'raquira', 'nobsa', 'mongui', 'tinjaca',
+    // Santander
+    'barichara', 'san-gil', 'lebrija', 'velez',
+    // Eje Cafetero
+    'salento', 'filandia', 'santa-rosa-de-cabal', 'armenia',
+    // Costa
+    'cartagena', 'santa-marta',
+    // Meta / Llanos
+    'villavicencio', 'restrepo-meta',
+  ]
+
+  const zoneUrls: MetadataRoute.Sitemap = ZONE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
+  }))
+
+  // Combinaciones tipo + ciudad más buscadas
+  const COMBO_SLUGS = [
+    'bogota/domo', 'bogota/cabana', 'bogota/jacuzzi',
+    'medellin/domo', 'medellin/jacuzzi',
+    'boyaca/domo', 'villa-de-leyva/domo',
+    'santander/domo', 'barichara/cabana',
+    'salento/domo',
+  ]
+
+  const comboUrls: MetadataRoute.Sitemap = COMBO_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.85,
+  }))
+
   const staticUrls: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
@@ -92,5 +135,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  return [...staticUrls, ...glampingUrls, ...blogPostUrls]
+  return [...staticUrls, ...zoneUrls, ...comboUrls, ...glampingUrls, ...blogPostUrls]
 }

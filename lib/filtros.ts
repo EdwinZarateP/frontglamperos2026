@@ -150,6 +150,67 @@ export function parseFiltrosFromSearchParams(sp: Record<string, string>): Partia
   return f
 }
 
+// Textos intro específicos por ciudad (slug → intro)
+const CITY_INTROS: Record<string, string> = {
+  bogota: 'Escápate de la ciudad sin alejarte demasiado. A menos de 2 horas de Bogotá encontrarás cúpulas geodésicas, domos y cabañas de lujo rodeadas de la naturaleza de Cundinamarca.',
+  medellin: 'Montañas, embalses y pueblos coloniales a pocas horas de Medellín. Antioquia ofrece algunas de las experiencias de glamping más espectaculares de Colombia.',
+  paipa: 'Aguas termales, historia y paisajes boyacenses de ensueño. Paipa es uno de los destinos de glamping más buscados de Colombia por su clima y gastronomía.',
+  'villa-de-leyva': 'El pueblo colonial más bello de Colombia te espera. Domos y cabañas de lujo rodeados del paisaje árido y mágico de Villa de Leyva, Boyacá.',
+  tinjaca: 'Entre viñedos y paisajes boyacenses, Tinjacá ofrece retiros de glamping únicos a pocos kilómetros de Villa de Leyva.',
+  guatape: 'La Piedra del Peñol y el colorido zócalo de Guatapé te esperan. Glampings frente al embalse con vistas que no olvidarás.',
+  barichara: 'El pueblo más lindo de Colombia tiene glampings de ensueño entre naturaleza, silencio y arquitectura colonial.',
+  'san-gil': 'Capital del turismo de aventura en Colombia. Glamping en San Gil combina adrenalina, naturaleza y descanso total.',
+  lebrija: 'Rodeado de cañones y ríos, Lebrija es el destino secreto de glamping en Santander para quienes buscan naturaleza sin multitudes.',
+  velez: 'La tierra de la bocadillo veléño y los bosques santandereanos esconde glampings tranquilos ideales para desconectarse.',
+  salento: 'Entre palmas de cera y cafetales, Salento es el corazón del Eje Cafetero. Glamping rodeado de naturaleza cafetera única en el mundo.',
+  filandia: 'Uno de los pueblos patrimonio más encantadores del Quindío. Glampings con vista al valle del Cauca y los Andes colombianos.',
+  cartagena: 'El Caribe colombiano en su máxima expresión. Glamping cerca a Cartagena para disfrutar sol, mar y cultura costeña.',
+  'santa-marta': 'Entre la Sierra Nevada y el Caribe, Santa Marta ofrece glampings únicos cerca de Tayrona y Palomino.',
+  girardota: 'A solo 30 minutos de Medellín, Girardota es el destino de glamping perfecto para un fin de semana en el norte antioqueño.',
+  caldas: 'Sur del Valle de Aburrá con paisajes verdes y fincas tradicionales. Glamping en Caldas, Antioquia para descansar cerca a Medellín.',
+  'la-estrella': 'Municipio del sur de Medellín con fácil acceso y naturaleza exuberante. Glamping en La Estrella para escapadas cortas.',
+  'san-jeronimo': 'A orillas del río Cauca, San Jerónimo es el destino de glamping favorito de los paisas para escapadas de fin de semana.',
+}
+
+// Nombre corto de amenidad para usar en títulos (sin "Glamping con")
+const AMENIDAD_SHORT: Record<string, string> = {
+  jacuzzi: 'Jacuzzi',
+  piscina: 'Piscina',
+}
+
+export interface CityPageContent {
+  h1: string      // para el hero banner
+  intro: string   // subtítulo debajo del h1
+  hasFilters: boolean  // true si hay tipo o amenidades (no solo ciudad)
+}
+
+export function buildCityPageContent(
+  filtros: Partial<FiltrosHome>,
+  citySlug?: string,
+): CityPageContent {
+  const tieneFilters = !!(filtros.tipo || filtros.amenidades)
+  const ciudadNombre = filtros.ciudad?.split(',')[0] ?? ''   // solo "Medellín", no "Medellín, Antioquia"
+  const ciudadLabel  = ciudadNombre ? ` cerca a ${ciudadNombre}` : ' en Colombia'
+
+  // Construir h1 limpio solo cuando hay filtros activos
+  let h1 = ''
+  if (tieneFilters) {
+    const base = filtros.tipo ? (FILTROS_TIPOS[filtros.tipo] ?? 'Glamping') : 'Glamping'
+    const amens = filtros.amenidades
+      ? filtros.amenidades.split(',').map(a => AMENIDAD_SHORT[a] ?? a).join(' y ')
+      : ''
+    h1 = amens ? `${base} con ${amens}${ciudadLabel}` : `${base}${ciudadLabel}`
+  }
+
+  const intro = (citySlug && CITY_INTROS[citySlug])
+    ? CITY_INTROS[citySlug]
+    : ciudadNombre
+      ? `Encuentra los mejores glampings cerca a ${ciudadNombre}. Domos geodésicos, cabañas de lujo y experiencias únicas en la naturaleza colombiana.`
+      : 'Descubre glamping en Colombia. Domos, cabañas de lujo y experiencias únicas en la naturaleza. Reserva fácil y seguro en Glamperos.'
+
+  return { h1, intro, hasFilters: tieneFilters }
+}
+
 export function buildSeoMeta(filtros: Partial<FiltrosHome>): { title: string; description: string } {
   const tipoLabel   = filtros.tipo ? (FILTROS_TIPOS[filtros.tipo] ?? 'Glamping') : 'Glamping'
   const ciudadLabel = filtros.ciudad ? ` cerca a ${filtros.ciudad}` : ' en Colombia'
