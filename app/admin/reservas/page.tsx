@@ -3,18 +3,38 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { Star, Copy, X } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { formatCOP, formatDate, estadoColors, estadoLabel } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import type { Reserva } from '@/types'
 
+interface LinkCalificacion {
+  link: string
+  mensajeWhatsApp: string
+}
+
 export default function AdminReservasPage() {
   const [estadoFiltro, setEstadoFiltro] = useState('PENDIENTE_APROBACION')
   const [page, setPage] = useState(1)
   const [modalRechazo, setModalRechazo] = useState<{ reservaId: string; nombre: string } | null>(null)
   const [motivoRechazo, setMotivoRechazo] = useState('')
+  const [modalLink, setModalLink] = useState<LinkCalificacion | null>(null)
+  const [generandoLink, setGenerandoLink] = useState<string | null>(null)
   const queryClient = useQueryClient()
+
+  async function generarLinkCalificacion(reservaId: string) {
+    setGenerandoLink(reservaId)
+    try {
+      const res = await api.post(`/calificaciones/link/${reservaId}`)
+      setModalLink({ link: res.data.link, mensajeWhatsApp: res.data.mensajeWhatsApp })
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setGenerandoLink(null)
+    }
+  }
 
   const { data, isLoading } = useQuery<{ data: Reserva[]; total: number }>({
     queryKey: ['admin-reservas', estadoFiltro, page],
@@ -185,6 +205,16 @@ export default function AdminReservasPage() {
                       Marcar completada
                     </Button>
                   )}
+                  {reserva.estado === 'COMPLETADA' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={generandoLink === reserva._id}
+                      onClick={() => generarLinkCalificacion(reserva._id)}
+                    >
+                      <Star size={14} className="mr-1" /> Link calificación
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,6 +245,44 @@ export default function AdminReservasPage() {
               </Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal link calificación */}
+      {modalLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                <Star size={18} className="text-amber-400" /> Link de calificación
+              </h2>
+              <button onClick={() => setModalLink(null)} className="text-stone-400 hover:text-stone-700">
+                <X size={20} />
+              </button>
+            </div>
+            <div>
+              <p className="text-xs text-stone-400 mb-1">Link directo</p>
+              <div className="flex items-center gap-2 bg-stone-50 rounded-xl px-3 py-2 border border-stone-200">
+                <span className="text-xs text-stone-700 truncate flex-1">{modalLink.link}</span>
+                <button onClick={() => { navigator.clipboard.writeText(modalLink.link); toast.success('Link copiado') }}
+                  className="shrink-0 text-brand hover:text-brand-dark">
+                  <Copy size={15} />
+                </button>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-stone-400 mb-1">Mensaje para WhatsApp</p>
+              <div className="bg-stone-50 rounded-xl px-3 py-2.5 border border-stone-200 text-sm text-stone-700 leading-relaxed">
+                {modalLink.mensajeWhatsApp}
+              </div>
+              <button
+                onClick={() => { navigator.clipboard.writeText(modalLink.mensajeWhatsApp); toast.success('Mensaje copiado') }}
+                className="mt-2 flex items-center gap-1 text-xs text-brand hover:underline"
+              >
+                <Copy size={13} /> Copiar mensaje
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
