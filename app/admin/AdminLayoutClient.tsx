@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Tent, Users, MessageSquare, CalendarDays, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Tent, Users, MessageSquare, CalendarDays, ShieldCheck, Bot } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/admin/glampings', label: 'Glampings', icon: Tent },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/comentarios', label: 'Comentarios', icon: MessageSquare },
+  { href: '/admin/bot',         label: 'Bot WhatsApp', icon: Bot },
 ]
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
