@@ -28,19 +28,30 @@ export async function generateMetadata({
   if (!glamping) return { title: 'Glamping no encontrado' }
 
   const firstImage = glamping.imagenes?.[0]
+
+  // Descripción limpia: quita frases de relleno y muestra precio
+  const rawDesc = (glamping.descripcionGlamping ?? '')
+    .replace(/\*?este glamping te ofrece\*?[\s:,]*/gi, '')
+    .replace(/\*?ven y disfruta\*?[\s,]*/gi, '')
+    .trim()
+  const precioDesc = glamping.precioNoche
+    ? `Desde $${Math.round(glamping.precioNoche).toLocaleString('es-CO')}/noche. `
+    : ''
+  const ogDesc = (precioDesc + rawDesc).slice(0, 160)
+
   return {
     title: `${glamping.nombreGlamping} — ${glamping.ciudadDepartamento}`,
-    description: glamping.descripcionGlamping?.slice(0, 160),
+    description: ogDesc,
     openGraph: {
-      title: glamping.nombreGlamping,
-      description: glamping.descripcionGlamping?.slice(0, 160),
+      title: `${glamping.nombreGlamping} — ${glamping.ciudadDepartamento}`,
+      description: ogDesc,
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: glamping.nombreGlamping,
-      description: glamping.descripcionGlamping?.slice(0, 160),
+      description: ogDesc,
       images: firstImage ? [firstImage] : undefined,
     },
     alternates: { canonical: `/glamping/${id}` },
