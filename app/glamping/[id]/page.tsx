@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import type { Glamping } from '@/types'
+import { calcularComision } from '@/lib/utils'
 import { GlampingDetailClient } from './GlampingDetailClient'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -35,7 +36,7 @@ export async function generateMetadata({
     .replace(/\*?ven y disfruta\*?[\s,]*/gi, '')
     .trim()
   const precioDesc = glamping.precioNoche
-    ? `Desde $${Math.round(glamping.precioNoche).toLocaleString('es-CO')}/noche. `
+    ? `Desde $${Math.round(calcularComision(glamping.precioNoche)).toLocaleString('es-CO')}/noche. `
     : ''
   const ogDesc = (precioDesc + rawDesc).slice(0, 160)
 

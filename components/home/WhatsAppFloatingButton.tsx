@@ -12,9 +12,14 @@ export function WhatsAppFloatingButton() {
   }, [pathname])
 
   const whatsappNumber = '573215658594'
-  const defaultMessage = 'hola, quiero saber informacion de glamping'
-  
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`${defaultMessage}\n\nURL: ${currentUrl}`)}`
+  const hasGlampingId = /\/glamping\/[a-f0-9]{24}/.test(pathname)
+  const message = hasGlampingId
+    ? 'quiero informacion de este glamping'
+    : 'hola, quiero saber informacion de glamping'
+
+  const whatsappUrl = currentUrl
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`${currentUrl}\n\n${message}`)}`
+    : `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
 
   return (
     <div className="fixed right-6 bottom-24 md:bottom-6 z-40">
