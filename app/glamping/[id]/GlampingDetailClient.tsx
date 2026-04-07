@@ -265,7 +265,19 @@ export function GlampingDetailClient({ glamping }: Props) {
     lines.push('')
 
     lines.push(`🕐 Check-in: ${glamping.checkInNoche} | Check-out: ${glamping.checkOutNoche}`)
-    if (glamping.aceptaMascotas) lines.push('🐾 Acepta mascotas')
+    if (glamping.cantidadHuespedes) {
+      let capLine = `👥 Precio base INCLUYE ${glamping.cantidadHuespedes} ${glamping.cantidadHuespedes === 1 ? 'persona' : 'personas'}`
+      if (glamping.cantidadHuespedesAdicionales) capLine += ` · hasta ${glamping.cantidadHuespedesAdicionales} adicionales con cargo extra`
+      lines.push(capLine)
+    }
+    if (glamping.precioPersonaAdicional) {
+      lines.push(`➕ Cargo por persona adicional (sobre las ${glamping.cantidadHuespedes} incluidas): ${comision(glamping.precioPersonaAdicional)}/noche`)
+    }
+    if (glamping.aceptaMascotas) {
+      let mascotaLine = '🐾 Acepta mascotas'
+      if (glamping.precioMascotas) mascotaLine += ` · cargo: ${comision(glamping.precioMascotas)}/mascota/noche`
+      lines.push(mascotaLine)
+    }
     lines.push('')
 
     const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
