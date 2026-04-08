@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { MessageCircle, Phone, Clock, RefreshCw } from 'lucide-react'
+import { MessageCircle, Phone, Clock, RefreshCw, ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -37,6 +37,18 @@ function fmtHora(iso: string) {
 export default function AdminBotPage() {
   const [selected, setSelected] = useState<string | null>(null)
 
+  // En móvil: true = mostrando chat, false = mostrando lista
+  const [showChat, setShowChat] = useState(false)
+
+  function selectConv(telefono: string) {
+    setSelected(telefono)
+    setShowChat(true)
+  }
+
+  function goBack() {
+    setShowChat(false)
+  }
+
   // Lista de conversaciones — refresca cada 15s
   const { data: listaData, isLoading: listaLoading, dataUpdatedAt } = useQuery({
     queryKey: ['bot-lista'],
@@ -57,10 +69,15 @@ export default function AdminBotPage() {
   const mensajes: Mensaje[] = historialData?.mensajes ?? []
 
   return (
-    <div className="h-[calc(100vh-6rem)] flex gap-4">
+    <div className="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-4">
 
       {/* Panel izquierdo: lista de conversaciones */}
-      <div className="w-72 shrink-0 bg-white rounded-2xl border border-stone-200 flex flex-col overflow-hidden">
+      <div className={`
+        md:w-72 md:shrink-0 md:flex flex-col
+        bg-white rounded-2xl border border-stone-200 overflow-hidden
+        ${showChat ? 'hidden' : 'flex flex-1'}
+        md:flex
+      `}>
         <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageCircle size={16} className="text-brand" />
@@ -81,7 +98,7 @@ export default function AdminBotPage() {
             {conversaciones.map((c) => (
               <li key={c.telefono}>
                 <button
-                  onClick={() => setSelected(c.telefono)}
+                  onClick={() => selectConv(c.telefono)}
                   className={`w-full text-left px-4 py-3 hover:bg-stone-50 transition-colors
                     ${selected === c.telefono ? 'bg-emerald-50 border-l-2 border-brand' : ''}`}
                 >
@@ -110,7 +127,11 @@ export default function AdminBotPage() {
       </div>
 
       {/* Panel derecho: historial */}
-      <div className="flex-1 bg-white rounded-2xl border border-stone-200 flex flex-col overflow-hidden">
+      <div className={`
+        flex-1 bg-white rounded-2xl border border-stone-200 flex flex-col overflow-hidden
+        ${showChat ? 'flex' : 'hidden'}
+        md:flex
+      `}>
         {!selected ? (
           <div className="flex-1 flex flex-col items-center justify-center text-stone-300 gap-3">
             <Phone size={40} />
@@ -118,14 +139,22 @@ export default function AdminBotPage() {
           </div>
         ) : (
           <>
-            <div className="px-5 py-3 border-b border-stone-100 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-stone-900">+{selected}</p>
+            <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between gap-3">
+              {/* Botón volver — solo móvil */}
+              <button
+                onClick={goBack}
+                className="md:hidden p-1.5 rounded-lg hover:bg-stone-100 text-stone-500"
+                aria-label="Volver a conversaciones"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-stone-900 truncate">+{selected}</p>
                 <p className="text-xs text-stone-400">{mensajes.length} mensajes</p>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-stone-400">
+              <div className="flex items-center gap-1.5 text-xs text-stone-400 shrink-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                actualizando cada 5s
+                <span className="hidden sm:inline">actualizando cada 5s</span>
               </div>
             </div>
 
@@ -141,12 +170,12 @@ export default function AdminBotPage() {
                     className={`flex ${m.rol === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
+                      className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
                         ${m.rol === 'user'
                           ? 'bg-emerald-500 text-white rounded-br-sm'
                           : 'bg-stone-100 text-stone-800 rounded-bl-sm'}`}
                     >
-                      <p className="whitespace-pre-wrap">{m.mensaje}</p>
+                      <p className="whitespace-pre-wrap break-words">{m.mensaje}</p>
                       <p className={`text-[10px] mt-1 text-right
                         ${m.rol === 'user' ? 'text-emerald-100' : 'text-stone-400'}`}>
                         {fmtHora(m.timestamp)}
