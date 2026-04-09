@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { GoogleMap, Marker, Autocomplete, useJsApiLoader } from '@react-google-maps/api'
 import { GiCampingTent } from 'react-icons/gi'
 import { Search } from 'lucide-react'
@@ -30,6 +30,15 @@ export function MapaPicker({ lat, lng, onChange }: Props) {
   const lngNum = parseFloat(lng) || -74.0721
 
   const [center, setCenter] = useState({ lat: latNum, lng: lngNum })
+
+  // Cuando el parent carga las coordenadas guardadas, centra el mapa en ellas
+  useEffect(() => {
+    if (!lat || !lng) return
+    const newCenter = { lat: parseFloat(lat), lng: parseFloat(lng) }
+    setCenter(newCenter)
+    mapRef.current?.panTo(newCenter)
+    mapRef.current?.setZoom(15)
+  }, [lat, lng])
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map

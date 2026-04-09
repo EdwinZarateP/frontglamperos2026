@@ -195,6 +195,18 @@ function ModalImagenes({
   const [texto, setTexto] = useState(JSON.stringify(glamping.imagenes ?? [], null, 2))
   const [parseError, setParseError] = useState('')
 
+  // Fetch imagen fresca al abrir el modal para no mostrar datos cacheados
+  useQuery({
+    queryKey: ['glamping-imagenes-admin', glamping._id],
+    queryFn: async () => {
+      const { data } = await api.get(`/glampings/${glamping._id}`)
+      const imagenes: string[] = data.imagenes ?? []
+      setTexto(JSON.stringify(imagenes, null, 2))
+      return imagenes
+    },
+    staleTime: 0,
+  })
+
   const guardar = useMutation({
     mutationFn: async (imagenes: string[]) => {
       await api.patch(`/glampings/${glamping._id}/reorganizar_imagenes`, { imagenes })

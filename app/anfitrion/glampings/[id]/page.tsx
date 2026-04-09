@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState, useEffect, useCallback } from 'react'
+import { use, useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -97,6 +97,7 @@ export default function EditarGlampingPage({ params }: Props) {
   const queryClient = useQueryClient()
 
   const [imagenes, setImagenes] = useState<ImagenItem[]>([])
+  const imagenesOriginalesCount = useRef(0)
   const [amenidades, setAmenidades] = useState<string[]>([])
   const [extras, setExtras] = useState<Record<string, { precio: number; descripcion: string; unidad: string }>>({})
   const [ubicacion, setUbicacion] = useState({ lat: '', lng: '' })
@@ -125,13 +126,17 @@ export default function EditarGlampingPage({ params }: Props) {
   const { data: glamping, isLoading } = useQuery({
     queryKey: ['glamping-edit', id],
     queryFn: async () => { const { data } = await api.get(`/glampings/${id}`); return data },
+    staleTime: 0,
   })
 
   useEffect(() => {
     if (!glamping) return
     setAmenidades(glamping.amenidades || [])
     setUbicacion({ lat: String(glamping.ubicacion?.lat || ''), lng: String(glamping.ubicacion?.lng || '') })
-    if (glamping.imagenes?.length) setImagenes(glamping.imagenes as string[])
+    if (glamping.imagenes?.length) {
+      setImagenes(glamping.imagenes as string[])
+      imagenesOriginalesCount.current = glamping.imagenes.length
+    }
     if (glamping.extras?.length) {
       const map: Record<string, { precio: number; descripcion: string; unidad: string }> = {}
       for (const e of glamping.extras) {
@@ -181,7 +186,9 @@ export default function EditarGlampingPage({ params }: Props) {
     pendientes.forEach((img) => fd.append('imagenes', img))
     try {
       const { data } = await api.post(`/glampings/${id}/imagenes`, fd)
-      const urls: string[] = data.imagenes ?? data.urls ?? []
+      const urls: string[] = Array.isArray(data)
+        ? data.map((item: { url: string }) => item.url)
+        : (data.imagenes ?? data.urls ?? [])
       const finalList = [...saved, ...urls]
       setImagenes(finalList)
       return finalList
@@ -427,6 +434,11 @@ export default function EditarGlampingPage({ params }: Props) {
         {imagenes.filter((i) => i instanceof File).length > 0 && (
           <p className="text-xs text-amber-600">
             Tienes {imagenes.filter((i) => i instanceof File).length} foto(s) sin guardar — se subirán al guardar cambios.
+          </p>
+        )}
+        {imagenes.filter((i) => typeof i === 'string').length < imagenesOriginalesCount.current && (
+          <p className="text-xs text-red-500">
+            Eliminaste {imagenesOriginalesCount.current - imagenes.filter((i) => typeof i === 'string').length} foto(s) — haz clic en guardar cambios para confirmar.
           </p>
         )}
       </div>
