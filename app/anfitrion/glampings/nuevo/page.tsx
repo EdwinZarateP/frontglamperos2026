@@ -440,7 +440,7 @@ export default function NuevoGlampingPage() {
       return res.data
     },
     onSuccess: () => {
-      updateUser({ rol: 'anfitrion' })
+      if (perfil?.rol !== 'admin') updateUser({ rol: 'anfitrion' })
       toast.success('¡Solicitud enviada! El equipo de Glamperos revisará tu glamping pronto.')
       router.push('/anfitrion/glampings')
     },
