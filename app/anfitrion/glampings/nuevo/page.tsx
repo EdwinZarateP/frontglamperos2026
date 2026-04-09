@@ -222,10 +222,23 @@ export default function NuevoGlampingPage() {
       return data
     },
     retry: false,
+    staleTime: 0,
   })
 
   useEffect(() => {
-    if (!borradorExistente) return
+    if (loadingBorrador) return
+    if (!borradorExistente) {
+      // No hay borrador (fue publicado/aprobado) — resetear todo a defaults
+      reset(DEFAULT_VALUES)
+      setAmenidades([])
+      setExtras({})
+      setUbicacion({ lat: '', lng: '' })
+      setImagenes([])
+      setDraftId(null)
+      setMaxStep(1)
+      setStep(1)
+      return
+    }
     setDraftId(borradorExistente._id)
     setAmenidades(borradorExistente.amenidades || [])
     if (borradorExistente.extras?.length) {
@@ -274,7 +287,7 @@ export default function NuevoGlampingPage() {
       tarifasPasadia:               tp,
     })
     if (borradorExistente.rntUrl) setRntUrl(borradorExistente.rntUrl)
-  }, [borradorExistente]) // eslint-disable-line
+  }, [borradorExistente, loadingBorrador]) // eslint-disable-line
 
   // ── Auto-guardado en API (cada 30 segundos si hay cambios) ───────────────
   const formValues = watch()
