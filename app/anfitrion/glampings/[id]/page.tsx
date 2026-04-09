@@ -171,31 +171,32 @@ export default function EditarGlampingPage({ params }: Props) {
     })
   }, [glamping]) // eslint-disable-line
 
-  // Subir fotos nuevas
-  const guardarImagenes = useCallback(async () => {
+  // Subir fotos nuevas — retorna la lista final de URLs (existentes + recién subidas)
+  const guardarImagenes = useCallback(async (): Promise<string[]> => {
+    const saved = imagenes.filter((i): i is string => typeof i === 'string')
     const pendientes = imagenes.filter((i): i is File => i instanceof File)
-    if (!pendientes.length) return
+    if (!pendientes.length) return saved
     setGuardandoFotos(true)
     const fd = new window.FormData()
     pendientes.forEach((img) => fd.append('imagenes', img))
     try {
       const { data } = await api.post(`/glampings/${id}/imagenes`, fd)
       const urls: string[] = data.imagenes ?? data.urls ?? []
-      setImagenes((prev) => {
-        const saved = prev.filter((i) => typeof i === 'string') as string[]
-        return [...saved, ...urls]
-      })
-    } catch { toast.error('Error al subir fotos') }
+      const finalList = [...saved, ...urls]
+      setImagenes(finalList)
+      return finalList
+    } catch { toast.error('Error al subir fotos'); return saved }
     finally { setGuardandoFotos(false) }
   }, [id, imagenes])
 
   // Guardar cambios
   const guardar = useMutation({
     mutationFn: async (values: FormData) => {
-      // Subir fotos primero
-      await guardarImagenes()
+      // Subir fotos nuevas y obtener lista final de URLs
+      const finalImagenes = await guardarImagenes()
 
       const raw: Record<string, unknown> = { ...values }
+      raw.imagenes = finalImagenes
       if (values.noCancelaciones) raw.diasCancelacion = 0
       delete raw.noCancelaciones
       if (values.nombreGlamping) raw.nombreGlamping = toTitleCase(values.nombreGlamping)
