@@ -77,6 +77,7 @@ export interface Glamping {
   permitePasadia: boolean
   pasadiaHorarioInicio?: string
   pasadiaHorarioFin?: string
+  descripcionPasadia?: string
   diasCancelacion?: number | null
   amenidades: string[]
   extras: ServicioExtra[]
