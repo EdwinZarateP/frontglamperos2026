@@ -668,6 +668,9 @@ export function GlampingDetailClient({ glamping }: Props) {
                         Horario: {glamping.pasadiaHorarioInicio} – {glamping.pasadiaHorarioFin}
                       </p>
                     )}
+                    {glamping.descripcionPasadia && (
+                      <p className="text-sm text-amber-700 mt-1">{glamping.descripcionPasadia}</p>
+                    )}
                   </div>
                   <button
                     onClick={() => {

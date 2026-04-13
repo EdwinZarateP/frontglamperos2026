@@ -122,7 +122,7 @@ export function MapaPicker({ lat, lng, onChange }: Props) {
 
         {!lat && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 text-xs text-stone-500 shadow whitespace-nowrap">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 text-xs text-stone-500 shadow text-center max-w-[90%]">
               Busca arriba o haz clic en el mapa para marcar
             </div>
           </div>
@@ -130,9 +130,9 @@ export function MapaPicker({ lat, lng, onChange }: Props) {
       </div>
 
       {lat && lng && (
-        <p className="text-xs text-stone-400 flex items-center justify-between">
-          <span>📍 {parseFloat(lat).toFixed(5)}, {parseFloat(lng).toFixed(5)} — arrastra el marcador para ajustar</span>
-          <button type="button" onClick={() => onChange('', '')} className="text-red-400 hover:text-red-600 underline ml-2">
+        <p className="text-xs text-stone-400 flex flex-wrap items-center justify-between gap-y-1">
+          <span className="min-w-0 truncate">📍 {parseFloat(lat).toFixed(5)}, {parseFloat(lng).toFixed(5)} — arrastra el marcador para ajustar</span>
+          <button type="button" onClick={() => onChange('', '')} className="text-red-400 hover:text-red-600 underline shrink-0 ml-2">
             quitar
           </button>
         </p>

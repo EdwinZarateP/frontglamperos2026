@@ -10,7 +10,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://glamperos.com'
 async function getGlamping(id: string): Promise<Glamping | null> {
   try {
     const res = await fetch(`${API_URL}/glampings/${id}`, {
-      next: { revalidate: 300 }, // ISR: revalida cada 5 minutos
+      next: { revalidate: 3600, tags: [`glamping-${id}`] }, // ISR: 1h, invalida on-demand via revalidateGlamping()
     })
     if (!res.ok) return null
     return res.json()

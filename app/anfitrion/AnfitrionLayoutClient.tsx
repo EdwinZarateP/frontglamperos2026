@@ -63,20 +63,20 @@ export default function AnfitrionLayoutClient({ children }: { children: React.Re
         </div>
       </aside>
 
-      <div className="flex-1 bg-stone-50">
-        <div className="md:hidden flex gap-2 overflow-x-auto p-3 bg-white border-b border-stone-200 scrollbar-hide">
-          {navItems.map(({ href, label }) => (
+      <div className="flex-1 min-w-0 overflow-x-hidden bg-stone-50">
+        <div className="md:hidden flex gap-1.5 overflow-x-auto p-2.5 bg-white border-b border-stone-200 scrollbar-hide">
+          {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                'shrink-0 px-3 py-2 rounded-lg text-xs font-medium border',
+                'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border',
                 pathname === href
                   ? 'bg-brand text-white border-brand'
                   : 'text-stone-600 bg-white border-stone-200'
               )}
             >
-              {label}
+              <Icon size={13} className="shrink-0" /> {label}
             </Link>
           ))}
         </div>

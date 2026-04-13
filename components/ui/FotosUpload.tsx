@@ -5,7 +5,8 @@ import { Upload, X, GripVertical } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -51,21 +52,21 @@ function FotoItem({ item, id, index, onRemove }: { item: ImagenItem; id: string;
         className="w-full h-full object-cover"
         draggable={false}
       />
-      {/* Drag handle */}
+      {/* Drag handle — siempre visible en mobile, hover en desktop */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 p-1 rounded-lg bg-black/50 text-white cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1 left-1 p-1.5 rounded-lg bg-black/50 text-white cursor-grab active:cursor-grabbing opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
       >
-        <GripVertical size={12} />
+        <GripVertical size={14} />
       </div>
       {/* Remove */}
       <button
         type="button"
         onClick={onRemove}
-        className="absolute top-1 right-1 p-1 rounded-lg bg-black/50 text-white hover:bg-red-500/80 transition-colors"
+        className="absolute top-1 right-1 p-1.5 rounded-lg bg-black/50 text-white hover:bg-red-500/80 transition-colors"
       >
-        <X size={12} />
+        <X size={13} />
       </button>
       {/* Badge primera foto */}
       {index === 0 && (
@@ -91,7 +92,8 @@ export function FotosUpload({ imagenes, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   )
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -126,13 +128,15 @@ export function FotosUpload({ imagenes, onChange }: Props) {
       {imagenes.length > 0 && (
         <>
           <p className="text-xs text-stone-400">
-            Arrastra las fotos para cambiar el orden — la primera será la portada
+            <span className="hidden sm:inline">Arrastra</span>
+            <span className="sm:hidden">Mantén presionado y arrastra</span>
+            {' '}las fotos para cambiar el orden — la primera será la portada
             {faltan > 0 && <span className="ml-2 text-red-400">· faltan {faltan} foto{faltan > 1 ? 's' : ''}</span>}
             {faltan === 0 && pendientes > 0 && <span className="ml-2 text-amber-500">· {pendientes} pendiente{pendientes > 1 ? 's' : ''} de guardar</span>}
           </p>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={ids} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                 {imagenes.map((item, i) => (
                   <FotoItem
                     key={ids[i]}

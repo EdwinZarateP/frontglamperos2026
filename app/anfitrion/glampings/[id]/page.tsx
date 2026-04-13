@@ -18,6 +18,7 @@ const MapaPicker = dynamic(() => import('@/components/ui/MapaPicker').then(m => 
 import { FotosUpload, type ImagenItem } from '@/components/ui/FotosUpload'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { revalidateGlamping } from '@/app/actions/revalidate'
 
 const AMENIDADES_DISPONIBLES = [
   { id: 'wifi', label: 'Wifi' }, { id: 'parlante', label: 'Parlante' },
@@ -67,6 +68,7 @@ interface FormData {
   cantidadHuespedesAdicionales: number; minimoNoches: number; aceptaMascotas: boolean
   checkInNoche: string; checkOutNoche: string; precioMascotas: number
   permitePasadia: boolean; pasadiaHorarioInicio: string; pasadiaHorarioFin: string
+  descripcionPasadia: string
   diasCancelacion: number; noCancelaciones: boolean; politicasCasa: string
   videoYoutube: string; tarifasNoche: TarifaDiariaForm; tarifasPasadia: TarifaDiariaForm
 }
@@ -104,6 +106,8 @@ export default function EditarGlampingPage({ params }: Props) {
   const [mostrarTarifasNoche, setMostrarTarifasNoche] = useState(false)
   const [mostrarTarifasPasadia, setMostrarTarifasPasadia] = useState(false)
   const [guardandoFotos, setGuardandoFotos] = useState(false)
+  const [rntFile, setRntFile] = useState<File | null>(null)
+  const rntInputRef = useRef<HTMLInputElement>(null)
 
   // Unidades
   const [editandoUnidad, setEditandoUnidad] = useState<string | null>(null)
@@ -167,6 +171,7 @@ export default function EditarGlampingPage({ params }: Props) {
       permitePasadia: glamping.permitePasadia ?? false,
       pasadiaHorarioInicio: glamping.pasadiaHorarioInicio || '08:00',
       pasadiaHorarioFin: glamping.pasadiaHorarioFin || '17:00',
+      descripcionPasadia: glamping.descripcionPasadia || '',
       diasCancelacion: glamping.diasCancelacion ?? 15,
       noCancelaciones: glamping.diasCancelacion === 0,
       politicasCasa: glamping.politicasCasa || '',
@@ -223,13 +228,17 @@ export default function EditarGlampingPage({ params }: Props) {
       const payload = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== '' && v !== undefined && v !== null))
       // Campos que el usuario puede borrar intencionalmente
       if (!values.videoYoutube?.trim()) payload.videoYoutube = null
+      if (!values.descripcionPasadia?.trim()) payload.descripcionPasadia = null
       const { data } = await api.put(`/glampings/Datos/${id}`, payload)
       return data
     },
-    onSuccess: () => {
+    onSuccess: (updatedGlamping) => {
       toast.success('Glamping actualizado')
-      queryClient.invalidateQueries({ queryKey: ['glamping-edit', id] })
-      queryClient.invalidateQueries({ queryKey: ['glamping', id] })
+      // Actualizar cache directamente con la respuesta del servidor — sin refetch
+      // Esto evita la condición de carrera donde el refetch resetea el estado local
+      queryClient.setQueryData(['glamping-edit', id], updatedGlamping)
+      // Invalidar caché ISR de la página pública
+      revalidateGlamping(id)
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   })
@@ -265,6 +274,22 @@ export default function EditarGlampingPage({ params }: Props) {
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
+  const subirRnt = useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new window.FormData()
+      fd.append('rnt', file)
+      const { data } = await api.post(`/glampings/${id}/rnt`, fd)
+      return data
+    },
+    onSuccess: (updatedGlamping) => {
+      toast.success('RNT subido correctamente')
+      setRntFile(null)
+      queryClient.setQueryData(['glamping-edit', id], updatedGlamping)
+      revalidateGlamping(id)
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
 
   if (isLoading) return (
     <div className="max-w-3xl space-y-4">
@@ -283,8 +308,8 @@ export default function EditarGlampingPage({ params }: Props) {
   const sectionTitle = 'font-semibold text-stone-800 text-base border-b border-stone-100 pb-3 mb-2'
 
   return (
-    <div className="max-w-3xl space-y-6 pb-10">
-    <form onSubmit={handleSubmit((v) => guardar.mutate(v))} className="space-y-6 pb-24">
+    <div className="w-full max-w-3xl space-y-6 pb-24">
+    <form id="glamping-form" onSubmit={handleSubmit((v) => guardar.mutate(v))} className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -296,12 +321,14 @@ export default function EditarGlampingPage({ params }: Props) {
         <div className="flex gap-2 shrink-0">
           <Link href={`/anfitrion/glampings/${id}/calendario`}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-brand-light text-sm hover:bg-emerald-100 transition-colors">
-            <CalendarDays size={14} /> Calendario
+            <CalendarDays size={14} />
+            <span className="hidden sm:inline">Calendario</span>
           </Link>
           {glamping.habilitado && (
             <Link href={`/glamping/${id}`} target="_blank"
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 text-stone-600 text-sm hover:bg-stone-50 shrink-0">
-              <Eye size={14} /> Ver publicación
+              <Eye size={14} />
+              <span className="hidden sm:inline">Ver publicación</span>
             </Link>
           )}
         </div>
@@ -375,9 +402,14 @@ export default function EditarGlampingPage({ params }: Props) {
           <span className="text-sm font-medium text-stone-700">Permite pasadía</span>
         </label>
         {permitePasadia && (
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Horario entrada pasadía" type="time" {...register('pasadiaHorarioInicio')} />
-            <Input label="Horario salida pasadía" type="time" {...register('pasadiaHorarioFin')} />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input label="Horario entrada pasadía" type="time" {...register('pasadiaHorarioInicio')} />
+              <Input label="Horario salida pasadía" type="time" {...register('pasadiaHorarioFin')} />
+            </div>
+            <Textarea label="¿Qué incluye la pasadía?" rows={3}
+              placeholder="Ej: Acceso a piscina, zona de hamacas, parrilla. No incluye alimentación."
+              {...register('descripcionPasadia')} />
           </div>
         )}
 
@@ -447,7 +479,7 @@ export default function EditarGlampingPage({ params }: Props) {
       <div className={sectionClass}>
         <h2 className={sectionTitle}>Ubicación</h2>
         <p className="text-sm text-stone-400">Arrastra el marcador para ajustar la posición exacta.</p>
-        <div className="h-72 rounded-xl overflow-hidden border border-stone-200">
+        <div className="h-56 sm:h-72 rounded-xl overflow-hidden border border-stone-200">
           <MapaPicker
             lat={ubicacion.lat ?? ''}
             lng={ubicacion.lng ?? ''}
@@ -464,9 +496,9 @@ export default function EditarGlampingPage({ params }: Props) {
           {AMENIDADES_DISPONIBLES.map((a) => {
             const active = amenidades.includes(a.id)
             return (
-              <label key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-sm ${active ? 'border-emerald-400 bg-emerald-50 text-brand-light' : 'border-stone-200 text-stone-600 hover:border-stone-300'}`}>
-                <input type="checkbox" checked={active} onChange={() => setAmenidades((prev) => active ? prev.filter((x) => x !== a.id) : [...prev, a.id])} className="w-3.5 h-3.5 accent-brand" />
-                {a.label}
+              <label key={a.id} className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all text-sm overflow-hidden ${active ? 'border-emerald-400 bg-emerald-50 text-brand-light' : 'border-stone-200 text-stone-600 hover:border-stone-300'}`}>
+                <input type="checkbox" checked={active} onChange={() => setAmenidades((prev) => active ? prev.filter((x) => x !== a.id) : [...prev, a.id])} className="w-3.5 h-3.5 accent-brand shrink-0" />
+                <span className="truncate">{a.label}</span>
               </label>
             )
           })}
@@ -537,24 +569,51 @@ export default function EditarGlampingPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Botón flotante sticky — se queda en el fondo del form, nunca sale del padre */}
-      <div className="sticky bottom-4 flex justify-end pointer-events-none">
-        <Button type="submit" size="lg" variant="brand" loading={guardar.isPending || guardandoFotos}
-          className="pointer-events-auto shadow-lg">
-          <Save size={16} /> Guardar cambios
-        </Button>
-      </div>
     </form>
 
-    {/* ── 8. Unidades e iCal ───────────────────────────────────────── */}
+    {/* ── 8. RNT ───────────────────────────────────────────────────── */}
     <div className={sectionClass}>
-      <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+      <h2 className={sectionTitle}>Registro Nacional de Turismo (RNT)</h2>
+      <p className="text-sm text-stone-500">Sube el documento PDF o imagen de tu RNT. Es requerido para operar legalmente.</p>
+      {glamping.rntUrl && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 bg-emerald-50">
+          <span className="text-sm text-stone-700 flex-1 truncate">RNT actual:</span>
+          <a href={glamping.rntUrl} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-brand hover:underline font-medium shrink-0">
+            <Eye size={14} /> Ver documento
+          </a>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={rntInputRef}
+          type="file"
+          accept=".pdf,image/*"
+          className="hidden"
+          onChange={(e) => setRntFile(e.target.files?.[0] ?? null)}
+        />
+        <button type="button" onClick={() => rntInputRef.current?.click()}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-stone-300 text-stone-600 text-sm hover:border-stone-400 hover:bg-stone-50 transition-colors max-w-xs truncate">
+          <span className="truncate">{rntFile ? rntFile.name : (glamping.rntUrl ? 'Reemplazar RNT' : 'Seleccionar archivo')}</span>
+        </button>
+        {rntFile && (
+          <Button type="button" variant="brand" size="sm" loading={subirRnt.isPending}
+            onClick={() => subirRnt.mutate(rntFile)}>
+            Subir RNT
+          </Button>
+        )}
+      </div>
+    </div>
+
+    {/* ── 9. Unidades e iCal ───────────────────────────────────────── */}
+    <div className={sectionClass}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
         <div>
           <h2 className="font-semibold text-stone-800 text-base">Unidades y sincronización iCal</h2>
           <p className="text-xs text-stone-400 mt-0.5">Cúpulas, domos, cabañas — cada una puede sincronizar con Airbnb o Booking</p>
         </div>
         <button type="button" onClick={() => setAgregandoUnidad(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors">
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-medium transition-colors shrink-0 self-start sm:self-auto">
           <Plus size={13} /> Agregar unidad
         </button>
       </div>
@@ -570,9 +629,9 @@ export default function EditarGlampingPage({ params }: Props) {
             <p className="text-xs text-blue-600">
               Copia esta URL y pégala en la sección "Sincronizar calendario" de Airbnb o Booking para que vean tus reservas de Glamperos.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input readOnly value={exportUrl}
-                className="flex-1 rounded-lg border border-blue-300 bg-white px-3 py-2 text-xs text-stone-700 focus:outline-none select-all" />
+                className="flex-1 min-w-0 rounded-lg border border-blue-300 bg-white px-3 py-2 text-xs text-stone-700 focus:outline-none select-all" />
               <button type="button"
                 onClick={() => { navigator.clipboard.writeText(exportUrl); toast.success('URL copiada') }}
                 className="shrink-0 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors">
@@ -674,6 +733,14 @@ export default function EditarGlampingPage({ params }: Props) {
       </div>
     </div>
 
+    {/* Botón flotante fijo — siempre visible en el fondo de la pantalla */}
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-20">
+      <Button type="submit" form="glamping-form" size="lg" variant="brand"
+        loading={guardar.isPending || guardandoFotos}
+        className="shadow-xl">
+        <Save size={16} /> Guardar cambios
+      </Button>
+    </div>
     </div>
   )
 }
