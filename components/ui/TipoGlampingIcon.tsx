@@ -16,7 +16,7 @@ export function TipoGlampingIcon({ tipo, size = 24, className = '' }: Props) {
       return <img src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos/icono%20Domo%201.svg" alt="Domo" width={size} height={size} className={className} />
     case 'cabana':      
       return <img src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos/icono%20Caba%C3%B1as%201.svg" alt="Cabaña" width={size} height={size} className={className} />      
-    case 'tiny_house':
+    case 'tiny-house':
       return <MdOutlineHouse size={size} className={className} />
     case 'chalet':
       return <img src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos/icono%20Chalet%201.svg" alt="Chalet" width={size} height={size} className={className} />    

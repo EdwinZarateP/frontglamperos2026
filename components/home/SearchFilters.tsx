@@ -35,7 +35,7 @@ const FILTROS_RAPIDOS: FiltroChip[] = [
   { key: 'domo',       label: 'Domo',       icon: <TipoGlampingIcon tipo="domo"       size={20} />, tipo: 'domo' },
   { key: 'cabana',     label: 'Cabaña',     icon: <TipoGlampingIcon tipo="cabana"     size={20} />, tipo: 'cabana' },
   { key: 'chalet',     label: 'Chalet',     icon: <TipoGlampingIcon tipo="chalet"     size={20} />, tipo: 'chalet' },
-  { key: 'tiny_house', label: 'Tiny House', icon: <TipoGlampingIcon tipo="tiny_house" size={20} />, tipo: 'tiny_house' },
+  { key: 'tiny-house', label: 'Tiny House', icon: <TipoGlampingIcon tipo="tiny-house" size={20} />, tipo: 'tiny-house' },
   { key: 'tipi',       label: 'Tipi',       icon: <TipoGlampingIcon tipo="tipi"       size={20} />, tipo: 'tipi' },
   { key: 'jacuzzi',    label: 'Jacuzzi',    icon: <img src={`${GCS}/icono%20Jacuzzi%201.svg`} width={20} height={20} alt="" />, amenidad: 'jacuzzi' },
   { key: 'piscina',    label: 'Piscina',    icon: <img src={`${GCS}/icono%20Piscina%201.svg`} width={20} height={20} alt="" />, amenidad: 'piscina' },

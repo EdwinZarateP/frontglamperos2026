@@ -126,7 +126,7 @@ export const amenidadIconos: Record<string, string> = {
 export const tipoGlampingLabels: Record<string, string> = {
   domo:       'Domo',
   cabana:     'Cabaña',
-  tiny_house: 'Tiny House',
+  tiny-house: 'Tiny House',
   lumipod:    'Lumipod',
   chalet:     'Chalet',
   tipi:       'Tipi',
