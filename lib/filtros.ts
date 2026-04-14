@@ -7,7 +7,7 @@ export const FILTROS_TIPOS: Record<string, string> = {
   domo:       'Domos',
   cabana:     'Cabañas',
   chalet:     'Chalets',
-  tiny-house: 'Tiny Houses',
+  'tiny-house': 'Tiny Houses',
   tipi:       'Tipis',
   burbuja:    'Burbujas',
   treehouse:  'Casas en árbol',
