@@ -14,6 +14,7 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'cabalgata',           nombre: 'Cabalgata',             unidad: 'por_persona' },
   { key: 'jacuzzi',             nombre: 'Jacuzzi privado',       unidad: 'por_pareja' },
   { key: 'masajes',             nombre: 'Masajes',               unidad: 'por_persona' },
+  { key: 'cenaEstandar',        nombre: 'Cena estándar',         unidad: 'por_persona' },
   { key: 'cenaRomantica',       nombre: 'Cena romántica',        unidad: 'por_pareja' },
   { key: 'decoracionSencilla',  nombre: 'Decoración sencilla',   unidad: 'por_pareja' },
   { key: 'decoracionEspecial',  nombre: 'Decoración especial',   unidad: 'por_pareja' },
