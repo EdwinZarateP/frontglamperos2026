@@ -137,7 +137,7 @@ const RAW: string[] = [
   // Cundinamarca
   "Facatativá, Cundinamarca", "Zipaquirá, Cundinamarca", "Fusagasugá, Cundinamarca",
   "Chía, Cundinamarca", "Cajicá, Cundinamarca", "Mosquera, Cundinamarca",
-  "Madrid, Cundinamarca", "Funza, Cundinamarca", "Tocancipá, Cundinamarca",
+  "Madrid, Cundinamarca", "Funza, Cundinamarca","Guatavita, Cundinamarca", "Tocancipá, Cundinamarca",
   "La Calera, Cundinamarca", "Sopó, Cundinamarca", "Guasca, Cundinamarca",
   "Tabio, Cundinamarca", "Tenjo, Cundinamarca", "Subachoque, Cundinamarca",
   "El Rosal, Cundinamarca", "Bojacá, Cundinamarca", "Zipacón, Cundinamarca",
