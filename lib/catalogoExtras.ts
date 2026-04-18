@@ -7,7 +7,6 @@ export interface CatalogoExtra {
 export const UNIDAD_LABELS: Record<string, string> = {
   por_persona: 'por persona',
   por_pareja:  'por pareja',
-  por_grupo:   'por grupo',
 }
 
 export const CATALOGO_EXTRAS: CatalogoExtra[] = [
