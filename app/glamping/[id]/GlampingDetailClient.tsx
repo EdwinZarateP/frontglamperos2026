@@ -20,13 +20,19 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
 import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
 import type { Glamping } from '@/types'
-import { CATALOGO_EXTRAS } from '@/lib/catalogoExtras'
-
-const EXTRAS_ORDER = CATALOGO_EXTRAS.map((c) => c.key)
+// Orden de los extras en la página pública — juegoMenteCriminal siempre primero
+const PUBLIC_EXTRAS_ORDER = [
+  'juegoMenteCriminal',
+  'cabalgata', 'jacuzzi', 'masajes', 'masaje', 'desayuno', 'almuerzo',
+  'cenaEstandar', 'cenaRomantica', 'decoracionSencilla', 'decoracionEspecial',
+  'picnic', 'pelicula', 'paseoLancha', 'paseoBicicleta', 'caminataGuiada',
+  'cuatrimoto', 'parapente', 'paseoKayak', 'paseoVela', 'paseoJetSki',
+  'tour1', 'tour2', 'tour3', 'descorche', 'kitFogata',
+]
 function sortExtras<T extends { key: string }>(extras: T[]): T[] {
   return [...extras].sort((a, b) => {
-    const ia = EXTRAS_ORDER.indexOf(a.key)
-    const ib = EXTRAS_ORDER.indexOf(b.key)
+    const ia = PUBLIC_EXTRAS_ORDER.indexOf(a.key)
+    const ib = PUBLIC_EXTRAS_ORDER.indexOf(b.key)
     if (ia === -1 && ib === -1) return 0
     if (ia === -1) return 1
     if (ib === -1) return -1
