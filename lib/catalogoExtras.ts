@@ -11,7 +11,6 @@ export const UNIDAD_LABELS: Record<string, string> = {
 }
 
 export const CATALOGO_EXTRAS: CatalogoExtra[] = [
-  { key: 'juegoMenteCriminal',  nombre: 'Juego mente criminal',  unidad: 'por_grupo'   },
   { key: 'cabalgata',           nombre: 'Cabalgata',             unidad: 'por_persona' },
   { key: 'jacuzzi',             nombre: 'Jacuzzi privado',       unidad: 'por_pareja' },
   { key: 'masajes',             nombre: 'Masajes',               unidad: 'por_persona' },
@@ -37,4 +36,5 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'tour3',               nombre: 'Tour 3',                unidad: 'por_persona' },
   { key: 'descorche',           nombre: 'Descorche',             unidad: 'por_grupo'   },
   { key: 'kitFogata',           nombre: 'Kit de fogata',         unidad: 'por_grupo'   },
+  { key: 'juegoMenteCriminal',  nombre: 'Juego mente criminal',  unidad: 'por_grupo'   },
 ]

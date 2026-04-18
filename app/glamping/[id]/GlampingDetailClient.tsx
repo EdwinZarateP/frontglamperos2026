@@ -20,6 +20,19 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
 import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
 import type { Glamping } from '@/types'
+import { CATALOGO_EXTRAS } from '@/lib/catalogoExtras'
+
+const EXTRAS_ORDER = CATALOGO_EXTRAS.map((c) => c.key)
+function sortExtras<T extends { key: string }>(extras: T[]): T[] {
+  return [...extras].sort((a, b) => {
+    const ia = EXTRAS_ORDER.indexOf(a.key)
+    const ib = EXTRAS_ORDER.indexOf(b.key)
+    if (ia === -1 && ib === -1) return 0
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
+}
 const MapaVista = dynamic(() => import('@/components/ui/MapaVista').then(m => m.MapaVista), { ssr: false })
 
 interface Props {
@@ -577,8 +590,8 @@ export function GlampingDetailClient({ glamping }: Props) {
               <h2 className="text-lg font-semibold text-stone-900 mb-1">Servicios extras</h2>
               <p className="text-xs text-stone-400 mb-4">Con costo adicional</p>
               <div className="space-y-3">
-                {glamping.extras
-                  .filter((e) => e.disponible)
+                {sortExtras(glamping.extras
+                  .filter((e) => e.disponible))
                   .map((extra) => {
                     const selected = extrasSeleccionados.includes(extra.key)
                     return (
@@ -1047,8 +1060,8 @@ export function GlampingDetailClient({ glamping }: Props) {
                   <div>
                     <label className="text-sm font-medium text-stone-700 mb-3 block">Extras (opcionales)</label>
                     <div className="space-y-2">
-                      {glamping.extras
-                        .filter((e) => e.disponible)
+                      {sortExtras(glamping.extras
+                        .filter((e) => e.disponible))
                         .map((extra) => {
                           const selected = extrasSeleccionados.includes(extra.key)
                           return (
