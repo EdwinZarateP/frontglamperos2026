@@ -679,18 +679,18 @@ export function GlampingDetailClient({ glamping }: Props) {
             const precioFinDeSemana = baseFinDeSemana ? Math.round(calcularComision(baseFinDeSemana)) : undefined
             return (
               <div className="bg-amber-50 rounded-xl border border-amber-200 overflow-hidden">
-                <div className="p-4 flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold text-amber-800 mb-1">Acepta pasadía</h3>
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="font-semibold text-amber-800">Acepta pasadía</h3>
                     {(glamping.pasadiaHorarioInicio || glamping.pasadiaHorarioFin) && (
-                      <p className="text-sm text-amber-700">
-                        Horario: {glamping.pasadiaHorarioInicio} – {glamping.pasadiaHorarioFin}
-                      </p>
-                    )}
-                    {glamping.descripcionPasadia && (
-                      <p className="text-sm text-amber-700 mt-1">{glamping.descripcionPasadia}</p>
+                      <span className="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full shrink-0">
+                        {glamping.pasadiaHorarioInicio} – {glamping.pasadiaHorarioFin}
+                      </span>
                     )}
                   </div>
+                  {glamping.descripcionPasadia && (
+                    <p className="text-sm text-amber-700">{glamping.descripcionPasadia}</p>
+                  )}
                   <button
                     onClick={() => {
                       const destino = `/glamping/${glamping._id}/reservar?tipo=PASADIA`
@@ -700,23 +700,24 @@ export function GlampingDetailClient({ glamping }: Props) {
                         router.push(destino)
                       }
                     }}
-                    className="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                    className="w-full px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors"
                   >
                     Reservar pasadía
                   </button>
                 </div>
                 <div className="border-t border-amber-200 px-4 py-3 grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-amber-600 font-medium mb-0.5">Entre semana sin festivos (Lu – Vi)</p>
+                    <p className="text-xs text-amber-600 font-medium mb-0.5">Entre semana</p>
+                    <p className="text-[10px] text-amber-500 mb-1">Lu – Vi (sin festivos)</p>
                     <p className="font-semibold text-amber-900">
                       {precioEntreSmana ? formatCOP(precioEntreSmana) : 'Consultar'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-amber-600 font-medium mb-0.5">Fin de semana y festivos (Sá – Do)</p>
+                    <p className="text-xs text-amber-600 font-medium mb-0.5">Fin de semana</p>
+                    <p className="text-[10px] text-amber-500 mb-1">Sá – Do y festivos</p>
                     <p className="font-semibold text-amber-900">
                       {precioFinDeSemana ? formatCOP(precioFinDeSemana) : 'Consultar'}
-                      <span className="text-xs font-normal text-amber-700 ml-1">= tarifa noche</span>
                     </p>
                   </div>
                 </div>
