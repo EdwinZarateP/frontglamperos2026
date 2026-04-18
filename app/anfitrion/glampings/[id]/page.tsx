@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Plus, Trash2, Link2, CalendarDays, Pencil, Check, X } from 'lucide-react'
+import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Plus, Trash2, Link2, CalendarDays, Pencil, Check, X, RefreshCw } from 'lucide-react'
 import { tipoGlampingLabels, toTitleCase } from '@/lib/utils'
 import { CATALOGO_EXTRAS, UNIDAD_LABELS } from '@/lib/catalogoExtras'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
@@ -83,6 +83,28 @@ function tieneValores(t: TarifaDiariaForm) { return Object.values(t).some((v) =>
 
 interface Props { params: Promise<{ id: string }> }
 
+function formatSyncTime(iso: string | undefined | null): string {
+  if (!iso) return 'nunca'
+  const diffMs = Date.now() - new Date(iso).getTime()
+  if (diffMs < 0) return 'recién'
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return 'hace segundos'
+  if (minutes < 60) return `hace ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `hace ${hours} h`
+  const days = Math.floor(hours / 24)
+  return `hace ${days} d`
+}
+
+interface UnidadSyncMeta {
+  lastSyncAt?: string | null
+  bloquesCreados?: number
+  duplicados?: number
+  conflictos?: number
+  errores?: string[]
+  estado?: 'ok' | 'error' | 'skipped'
+}
+
 interface UnidadItem {
   _id: string
   nombre: string
@@ -90,6 +112,8 @@ interface UnidadItem {
   urlIcal?: string
   urlIcalBooking?: string
   habilitada: boolean
+  sincronizacionAirbnb?: UnidadSyncMeta | null
+  sincronizacionBooking?: UnidadSyncMeta | null
 }
 
 
@@ -271,6 +295,23 @@ export default function EditarGlampingPage({ params }: Props) {
   const deleteUnidad = useMutation({
     mutationFn: async (uid: string) => api.delete(`/glampings/${id}/unidades/${uid}`),
     onSuccess: () => { toast.success('Unidad eliminada'); refetchUnidades() },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  })
+
+  const sincronizarUnidad = useMutation({
+    mutationFn: async (uid: string) => {
+      const { data } = await api.post(`/glampings/${id}/unidades/${uid}/sincronizar-ical`)
+      return data as { resumen: { bloquesCreados: number; duplicados: number; conflictos: number; errores: number } }
+    },
+    onSuccess: (data) => {
+      const { bloquesCreados, duplicados, errores } = data.resumen
+      if (errores > 0 && bloquesCreados === 0) {
+        toast.error(`Sincronización con errores (${errores})`)
+      } else {
+        toast.success(`Sincronizado: ${bloquesCreados} nuevos, ${duplicados} ya existentes`)
+      }
+      refetchUnidades()
+    },
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
@@ -697,8 +738,27 @@ export default function EditarGlampingPage({ params }: Props) {
                       <span className="text-xs text-stone-400">Sin iCal Booking</span>
                     )}
                   </div>
+                  {(u.sincronizacionAirbnb?.lastSyncAt || u.sincronizacionBooking?.lastSyncAt) && (
+                    <p className="text-[11px] text-stone-400 mt-1">
+                      Última sincro: {formatSyncTime(
+                        [u.sincronizacionAirbnb?.lastSyncAt, u.sincronizacionBooking?.lastSyncAt]
+                          .filter(Boolean)
+                          .sort()
+                          .reverse()[0] as string
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {(u.urlIcal || u.urlIcalBooking) && (
+                    <button type="button"
+                      onClick={() => sincronizarUnidad.mutate(u._id)}
+                      disabled={sincronizarUnidad.isPending && sincronizarUnidad.variables === u._id}
+                      className="p-2 rounded-lg hover:bg-emerald-50 text-stone-400 hover:text-brand transition-colors disabled:opacity-50"
+                      title="Sincronizar iCal ahora">
+                      <RefreshCw size={14} className={sincronizarUnidad.isPending && sincronizarUnidad.variables === u._id ? 'animate-spin' : ''} />
+                    </button>
+                  )}
                   <button type="button" onClick={() => { setEditandoUnidad(u._id); setUnidadForm({ nombre: u.nombre, urlIcal: u.urlIcal ?? '', urlIcalBooking: u.urlIcalBooking ?? '' }) }}
                     className="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors" title="Editar">
                     <Pencil size={14} />
