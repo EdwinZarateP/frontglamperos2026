@@ -299,7 +299,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
     lines.push('')
 
-    const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
+    const extrasDisponibles = sortExtras(glamping.extras?.filter((e) => e.disponible) ?? [])
     if (extrasDisponibles.length > 0) {
       lines.push('➕ *Extras disponibles (con costo adicional):*')
       for (const extra of extrasDisponibles) {
