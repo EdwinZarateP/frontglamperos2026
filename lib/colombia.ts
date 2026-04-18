@@ -222,7 +222,7 @@ const RAW: string[] = [
   // Santander
   "Bucaramanga, Santander", "Floridablanca, Santander", "Girón, Santander",
   "Piedecuesta, Santander", "Barrancabermeja, Santander", "Socorro, Santander",
-  "San Gil, Santander", "Vélez, Santander", "Barbosa, Santander",
+  "San Gil, Santander", "Vélez, Santander", "Barbosa, Santander","Velez, Santander",
   "Lebrija, Santander", "Los Santos, Santander", "Curití, Santander",
   "Barichara, Santander", "Guane, Santander", "Zapatoca, Santander",
   "Aratoca, Santander", "Villanueva, Santander", "Cepitá, Santander",

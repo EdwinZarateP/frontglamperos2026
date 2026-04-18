@@ -36,4 +36,5 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'tour3',               nombre: 'Tour 3',                unidad: 'por_persona' },
   { key: 'descorche',           nombre: 'Descorche',             unidad: 'por_grupo'   },
   { key: 'kitFogata',           nombre: 'Kit de fogata',         unidad: 'por_grupo'   },
+  { key: 'juegoMenteCriminal',  nombre: 'Juego mente criminal',  unidad: 'por_grupo'   },
 ]
