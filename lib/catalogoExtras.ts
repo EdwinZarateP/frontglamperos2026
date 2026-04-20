@@ -29,6 +29,7 @@ export const CATALOGO_EXTRAS: CatalogoExtra[] = [
   { key: 'paseoKayak',          nombre: 'Paseo en kayak',        unidad: 'por_persona' },
   { key: 'paseoVela',           nombre: 'Paseo en velero',       unidad: 'por_pareja' },
   { key: 'paseoJetSki',         nombre: 'Paseo en jet ski',      unidad: 'por_persona' },
+  { key: 'torrentismo',         nombre: 'Torrentismo',           unidad: 'por_persona' },
   { key: 'masaje',              nombre: 'Masaje individual',     unidad: 'por_persona' },
   { key: 'tour1',               nombre: 'Tour 1',                unidad: 'por_persona' },
   { key: 'tour2',               nombre: 'Tour 2',                unidad: 'por_persona' },
