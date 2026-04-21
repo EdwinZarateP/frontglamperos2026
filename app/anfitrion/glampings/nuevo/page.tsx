@@ -8,7 +8,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Phone, Cloud, ChevronDown, ChevronUp } from 'lucide-react'
 import { tipoGlampingLabels, toTitleCase } from '@/lib/utils'
-import { CATALOGO_EXTRAS, UNIDAD_LABELS, type CatalogoExtra } from '@/lib/catalogoExtras'
+import { useCatalogoExtras, UNIDAD_LABELS, type CatalogoExtra } from '@/lib/catalogoExtras'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -190,6 +190,8 @@ export default function NuevoGlampingPage() {
   const [propietarioBusqueda, setPropietarioBusqueda] = useState('')
   const [propietarioSeleccionado, setPropietarioSeleccionado] = useState<{ id: string; nombre: string; email: string } | null>(null)
 
+  const { data: catalogoExtras = [] } = useCatalogoExtras()
+
   const { data: todosUsuarios = [] } = useQuery<{ id?: string; _id?: string; nombre: string; email: string; rol: string }[]>({
     queryKey: ['admin-usuarios'],
     queryFn: async () => (await api.get('/usuarios/todos/lista')).data,
@@ -305,7 +307,7 @@ export default function NuevoGlampingPage() {
       if (amenidades.length)      raw.amenidades      = amenidades
       // Serializar extras activos al formato ServicioExtra del backend
       const extrasPayload = Object.entries(extras).map(([key, { precio, descripcion, unidad }]) => {
-        const cat = CATALOGO_EXTRAS.find((c) => c.key === key)
+        const cat = catalogoExtras.find((c) => c.key === key)
         return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
       })
       raw.extras = extrasPayload
@@ -435,13 +437,7 @@ export default function NuevoGlampingPage() {
     mutationFn: async (data: FormData) => {
       if (!draftId) throw new Error('No hay borrador creado')
       await guardarEnApi(data)
-
-      const pendientes = imagenes.filter((i): i is File => i instanceof File)
-      if (pendientes.length) {
-        const fd = new window.FormData()
-        pendientes.forEach((img) => fd.append('imagenes', img))
-        await api.post(`/glampings/${draftId}/imagenes`, fd)
-      }
+      await guardarImagenes(draftId)
 
       if (rntFile) {
         const fd = new window.FormData()
@@ -871,7 +867,7 @@ export default function NuevoGlampingPage() {
                 Activa los que ofreces y ponles precio — el huésped los podrá contratar al reservar
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {CATALOGO_EXTRAS.map((cat: CatalogoExtra) => {
+                {catalogoExtras.map((cat: CatalogoExtra) => {
                   const activo = !!extras[cat.key]
                   return (
                     <div

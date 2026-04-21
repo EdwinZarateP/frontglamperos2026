@@ -8,7 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { ArrowLeft, Save, Eye, ChevronDown, ChevronUp, Plus, Trash2, Link2, CalendarDays, Pencil, Check, X, RefreshCw } from 'lucide-react'
 import { tipoGlampingLabels, toTitleCase } from '@/lib/utils'
-import { CATALOGO_EXTRAS, UNIDAD_LABELS } from '@/lib/catalogoExtras'
+import { useCatalogoExtras, UNIDAD_LABELS, type CatalogoExtra } from '@/lib/catalogoExtras'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
 import { api, getErrorMessage } from '@/lib/api'
 import { Input, Textarea } from '@/components/ui/Input'
@@ -66,7 +66,7 @@ interface FormData {
   descripcionGlamping: string; ciudadDepartamento: string; direccion: string
   precioNoche: number; precioPersonaAdicional: number; cantidadHuespedes: number
   cantidadHuespedesAdicionales: number; minimoNoches: number; aceptaMascotas: boolean
-  checkInNoche: string; checkOutNoche: string; precioMascotas: number
+  checkInNoche: string; checkOutNoche: string
   permitePasadia: boolean; pasadiaHorarioInicio: string; pasadiaHorarioFin: string
   descripcionPasadia: string
   diasCancelacion: number; noCancelaciones: boolean; politicasCasa: string
@@ -146,9 +146,19 @@ export default function EditarGlampingPage({ params }: Props) {
 
   const aceptaMascotas = watch('aceptaMascotas')
   const permitePasadia = watch('permitePasadia')
+
+  useEffect(() => {
+    if (aceptaMascotas) {
+      setExtras((prev) => prev.mascotaAdicional ? prev : { ...prev, mascotaAdicional: { precio: 0, descripcion: '', unidad: 'por_pareja' } })
+    } else {
+      setExtras((prev) => { const n = { ...prev }; delete n.mascotaAdicional; return n })
+    }
+  }, [aceptaMascotas])
   const precioNocheBase = Number(watch('precioNoche')) || 0
   const noCancelaciones = watch('noCancelaciones')
   const huespedesAdicionales = Number(watch('cantidadHuespedesAdicionales')) || 0
+
+  const { data: catalogoExtras = [] } = useCatalogoExtras()
 
   // Cargar glamping existente
   const { data: glamping, isLoading } = useQuery({
@@ -191,7 +201,6 @@ export default function EditarGlampingPage({ params }: Props) {
       aceptaMascotas: glamping.aceptaMascotas ?? false,
       checkInNoche: glamping.checkInNoche || '15:00',
       checkOutNoche: glamping.checkOutNoche || '12:00',
-      precioMascotas: glamping.precioMascotas ?? 0,
       permitePasadia: glamping.permitePasadia ?? false,
       pasadiaHorarioInicio: glamping.pasadiaHorarioInicio || '08:00',
       pasadiaHorarioFin: glamping.pasadiaHorarioFin || '17:00',
@@ -235,11 +244,12 @@ export default function EditarGlampingPage({ params }: Props) {
       raw.imagenes = finalImagenes
       if (values.noCancelaciones) raw.diasCancelacion = 0
       delete raw.noCancelaciones
+      delete raw.precioMascotas
       if (values.nombreGlamping) raw.nombreGlamping = toTitleCase(values.nombreGlamping)
       if (values.nombrePropiedad) raw.nombrePropiedad = toTitleCase(values.nombrePropiedad)
       raw.amenidades = amenidades
       raw.extras = Object.entries(extras).map(([key, { precio, descripcion, unidad }]) => {
-        const cat = CATALOGO_EXTRAS.find((c) => c.key === key)
+        const cat = catalogoExtras.find((c) => c.key === key)
         return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
       })
       if (ubicacion.lat && ubicacion.lng) raw.ubicacion = { lat: Number(ubicacion.lat), lng: Number(ubicacion.lng) }
@@ -434,7 +444,7 @@ export default function EditarGlampingPage({ params }: Props) {
           <span className="text-sm font-medium text-stone-700">Acepta mascotas</span>
         </label>
         {aceptaMascotas && (
-          <Input label="Precio por mascota (0 = gratis)" type="number" min={0} {...register('precioMascotas', { valueAsNumber: true })} />
+          <p className="text-xs text-stone-400">El cobro por mascota se configura en la sección de extras como <span className="font-medium text-stone-500">Mascota adicional</span>.</p>
         )}
 
         {/* Pasadía */}
@@ -550,7 +560,7 @@ export default function EditarGlampingPage({ params }: Props) {
       <div className={sectionClass}>
         <h2 className={sectionTitle}>Servicios extras</h2>
         <div className="space-y-3">
-          {CATALOGO_EXTRAS.map((cat) => {
+          {catalogoExtras.map((cat) => {
             const active = !!extras[cat.key]
             const val = extras[cat.key]
             return (

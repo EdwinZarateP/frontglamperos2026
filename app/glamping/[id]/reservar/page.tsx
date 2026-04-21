@@ -23,6 +23,7 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { SingleDatePicker } from '@/components/ui/SingleDatePicker'
 import { formatCOP, formatDate, calcularComision, colombianHolidays } from '@/lib/utils'
 import type { Reserva } from '@/types'
+import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 const schema = z.object({
@@ -686,8 +687,8 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                         </div>
                         <div>
                           <p className="text-sm font-medium text-stone-800">{extra.nombre}</p>
-                          <p className="text-xs text-stone-400 capitalize">
-                            {extra.unidad === 'por_persona' ? 'Por persona' : 'Por reserva'}
+                          <p className="text-xs text-stone-400">
+                            {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
                             {extra.descripcion ? ` · ${extra.descripcion}` : ''}
                           </p>
                         </div>

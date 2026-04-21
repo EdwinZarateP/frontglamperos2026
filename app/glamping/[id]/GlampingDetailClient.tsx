@@ -20,6 +20,7 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
 import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
 import type { Glamping } from '@/types'
+import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
 // Orden de los extras en la página pública — juegoMenteCriminal siempre primero
 const PUBLIC_EXTRAS_ORDER = [
   'juegoMenteCriminal',
@@ -629,8 +630,8 @@ export function GlampingDetailClient({ glamping }: Props) {
                           </motion.div>
                           <div>
                             <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
-                            <p className="text-xs text-stone-400 capitalize">
-                              {extra.unidad.replace(/_/g, ' ')}
+                            <p className="text-xs text-stone-400">
+                              {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
                               {extra.descripcion && ` · ${extra.descripcion}`}
                             </p>
                           </div>
@@ -1089,8 +1090,8 @@ export function GlampingDetailClient({ glamping }: Props) {
                                 </div>
                                 <div className="text-left">
                                   <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
-                                  <p className="text-xs text-stone-500 capitalize">
-                                    {extra.unidad.replace(/_/g, ' ')}
+                                  <p className="text-xs text-stone-500">
+                                    {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
                                     {extra.descripcion && ` · ${extra.descripcion}`}
                                   </p>
                                 </div>
