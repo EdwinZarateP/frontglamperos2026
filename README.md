@@ -725,6 +725,96 @@ PAGO_RECIBIDO → CONFIRMADA (admin aprueba → fechas se bloquean)
 
 ---
 
+### v1.7 — 2026-04-20
+
+#### Catálogo de extras dinámico (desde API)
+
+**`lib/catalogoExtras.ts`** — reescrito completamente:
+- Eliminado el array `CATALOGO_EXTRAS` hardcodeado
+- Nueva interfaz `CatalogoExtra { key, nombre, unidad: 'por_persona' | 'por_pareja' }`
+- Hook `useCatalogoExtras()` — React Query, staleTime 10 min, llama a `GET /catalogos/extras`
+- `UNIDAD_LABELS: Record<string, string>` — mapeo para mostrar texto limpio sin CSS `capitalize`:
+  ```ts
+  { por_persona: 'por persona', por_pareja: 'por pareja' }
+  ```
+
+**Archivos actualizados:**
+- `app/glamping/[id]/GlampingDetailClient.tsx` — usa `UNIDAD_LABELS` en lugar de `capitalize`
+- `app/glamping/[id]/reservar/page.tsx` — ídem
+- `app/anfitrion/glampings/[id]/page.tsx` — usa `useCatalogoExtras()` (no array estático)
+- `app/anfitrion/glampings/nuevo/page.tsx` — ídem
+
+---
+
+#### Precio de mascota adicional como extra
+
+El campo `precioMascotas` fue eliminado del formulario del anfitrión. El precio se gestiona ahora como `ServicioExtra` con `key: "mascotaAdicional"`.
+
+**`app/anfitrion/glampings/[id]/page.tsx`:**
+- Eliminado `precioMascotas` de `FormData`, `defaultValues` y `reset()`
+- `useEffect` que sincroniza `aceptaMascotas` con el extra `mascotaAdicional`:
+  - Si `aceptaMascotas: true` → agrega `mascotaAdicional` al estado de extras si no existe
+  - Si `aceptaMascotas: false` → elimina el extra `mascotaAdicional`
+- En `guardar.mutationFn`: `delete raw.precioMascotas` para limpiar el campo legacy en MongoDB
+
+---
+
+#### Paginación SEO en el home
+
+**`app/HomeClient.tsx`** — reemplazado el botón "Cargar más glampings" por paginación completa:
+- `<Link href="?page=N">` en lugar de `onClick` con estado local → crawleable por Google
+- Flechas Anterior / Siguiente con conteo `{currentPage} / {totalPages}`
+- `onClick` en cada flecha hace `scrollIntoView` al wrapper de `FilterChips` (`id="resultados"`)
+- Estado deshabilitado visual (gris + cursor-not-allowed) cuando no hay página anterior o siguiente
+
+**`app/page.tsx`:**
+- `<link rel="prev" href="...">` y `<link rel="next" href="...">` en el `<head>` para SEO
+- `buildUrlFromFiltros({ ...filtros, page: N })` genera URLs limpias tipo `?page=2`
+
+**`lib/filtros.ts`:**
+- `fetchGlampingsSSR` — usa `filtros.page` (antes estaba hardcodeado en `'1'`)
+- `parseFiltrosFromSearchParams` — parsea `?page=N` y lo incluye en `FiltrosHome`
+- `buildUrlFromFiltros` — incluye `page` en la query string cuando `> 1`
+
+---
+
+#### Carrusel "Top 10" con datos reales desde servidor
+
+**`components/home/CategoriasCarouselServer.tsx`** — refactorizado a verdadero Server Component:
+- Eliminado `'use client'`; ahora es `async function`
+- Define array `GLAMPING_IDS` con 10 IDs específicos de MongoDB
+- Llama a `POST /glampings/por_ids` con `next: { revalidate: 3600 }` (ISR 1 hora)
+- Mapea respuesta a `CarouselGlamping[]` y renderiza `<CategoriasCarouselClient>`
+- Se renderiza en `app/page.tsx` (servidor) y se pasa como `carouselSection?: ReactNode` a `HomeClient`
+
+**`components/home/CategoriasCarouselClient.tsx`** — reescrito:
+- Eliminado array `CATEGORIAS` hardcodeado
+- Acepta `glampings: CarouselGlamping[]` como prop
+- Cada tarjeta muestra imagen real, nombre del glamping y ciudad desde MongoDB
+- Usa `tipoGlampingLabels[g.tipo] ?? g.tipo` (de `lib/utils.ts`) para mostrar "Cabaña" en lugar de "cabana"
+- Cada tarjeta enlaza a `/glamping/${g.id}`
+- Swipe táctil con `touchStartRef` / `touchEndRef`
+
+---
+
+#### Fix: tipo de glamping mostraba valor crudo de MongoDB
+
+`tipoGlamping` en MongoDB usa valores como `"cabana"`, `"domo"`, `"treehouse"`. Sin mapeo, se mostraban en crudo en el carrusel y en otras cards.
+
+**Fix:** `tipoGlampingLabels` de `lib/utils.ts` se usa en `CategoriasCarouselClient` para mostrar el label legible ("Cabaña", "Domo", "Casa en árbol", etc.).
+
+---
+
+#### Fix: doble subida de imágenes al publicar glamping nuevo
+
+**`app/anfitrion/glampings/nuevo/page.tsx`:**
+
+**Causa:** `avanzarStep2` llamaba a `guardarImagenes(draftId)` y `publicar.mutationFn` también incluía lógica de subida con los `File[]` del closure (capturados en el momento de la definición, antes de que el estado se actualizara).
+
+**Fix:** eliminado el bloque de subida inline dentro de `publicar.mutationFn`. El `mutationFn` ahora solo llama a `await guardarImagenes(draftId)` (función centralizada) antes de publicar.
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`
