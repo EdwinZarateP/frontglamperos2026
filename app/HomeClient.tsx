@@ -1,19 +1,19 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import { MapPin, X, ChevronRight, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, X, ChevronRight, ChevronLeft, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useSearchStore } from '@/store/searchStore'
-import { useGlampingsHome, useGlamping } from '@/hooks/useGlampings'
+import { useGlampingsHome } from '@/hooks/useGlampings'
 import { SearchBar, FilterChips } from '@/components/home/SearchFilters'
 import { GlampingCard } from '@/components/glamping/GlampingCard'
 import { SkeletonCard } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { formatCOP } from '@/lib/utils'
 import { buildUrlFromFiltros } from '@/lib/filtros'
-import { CategoriasCarouselServer } from '@/components/home/CategoriasCarouselServer'
 import { FaqCarousel } from '@/components/home/FaqCarousel'
 import { BenefitsCarousel } from '@/components/home/BenefitsCarousel'
 import { TierramontSection } from '@/components/home/TierramontSection'
@@ -97,9 +97,10 @@ interface Props {
   tierramontProducts?: unknown[]
   heroTitle?: string
   heroIntro?: string
+  carouselSection?: ReactNode
 }
 
-export function HomeClient({ initialFiltros, serverData, tierramontProducts, heroTitle, heroIntro }: Props) {
+export function HomeClient({ initialFiltros, serverData, tierramontProducts, heroTitle, heroIntro, carouselSection }: Props) {
   const { filtros, setFiltros, resetFiltros } = useSearchStore()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -123,13 +124,10 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   const data = queryData ?? serverData
   const total = data?.total ?? 0
   const glampings = data?.data ?? []
-  const hasMore = (filtros.page ?? 1) * (filtros.limit ?? 20) < total
+  const currentPage = filtros.page ?? 1
+  const totalPages = Math.ceil(total / (filtros.limit ?? 20)) || 1
   const showLoading = !data && (!ready || isLoading)
   
-  // Obtener imagen del glamping para el carrusel
-  const { data: glampingImg } = useGlamping('69b8b1a4776b87a18af6b6f8')
-  const carouselImage = glampingImg?.imagenes?.[0]
-
   const handleRemoveFiltro = (key: keyof FiltrosHome | 'fechas' | 'precio' | 'amenidades_all') => {
     let updated: Partial<FiltrosHome>
     if (key === 'fechas') {
@@ -196,7 +194,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
       })()}
 
       {/* ── Chips de tipo/amenidad (fuera del hero, sin conflicto de z-index) */}
-      <div className="mt-4 mb-2">
+      <div id="resultados" className="mt-4 mb-2">
         <FilterChips />
       </div>
 
@@ -245,16 +243,48 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 animate-fadeInUp">
             {glampings.map((g) => <GlampingCard key={g.id} glamping={g} />)}
           </div>
-          {hasMore && (
-            <div className="flex justify-center mt-12">
-              <Button
-                variant="outline" size="lg"
-                onClick={() => setFiltros({ page: (filtros.page ?? 1) + 1 })}
-                loading={isFetching}
-              >
-                Cargar más glampings
-              </Button>
-            </div>
+          {totalPages > 1 && (
+            <nav aria-label="Paginación de glampings" className="flex justify-center items-center gap-3 mt-12">
+              {currentPage > 1 ? (
+                <Link
+                  href={buildUrlFromFiltros({ ...filtros, page: currentPage - 1 })}
+                  rel="prev"
+                  onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:border-brand hover:text-brand transition-colors text-sm font-medium"
+                >
+                  <ChevronLeft size={16} /> Anterior
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-100 bg-stone-50 text-stone-300 text-sm font-medium cursor-not-allowed">
+                  <ChevronLeft size={16} /> Anterior
+                </span>
+              )}
+
+              <span className="text-sm text-stone-500 px-2">
+                {isFetching ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-full border-2 border-brand border-t-transparent animate-spin" />
+                  </span>
+                ) : (
+                  <><strong className="text-stone-800">{currentPage}</strong> / {totalPages}</>
+                )}
+              </span>
+
+              {currentPage < totalPages ? (
+                <Link
+                  href={buildUrlFromFiltros({ ...filtros, page: currentPage + 1 })}
+                  rel="next"
+                  onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:border-brand hover:text-brand transition-colors text-sm font-medium"
+                >
+                  Siguiente <ChevronRight size={16} />
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-100 bg-stone-50 text-stone-300 text-sm font-medium cursor-not-allowed">
+                  Siguiente <ChevronRight size={16} />
+                </span>
+              )}
+            </nav>
           )}
         </>
       )}
@@ -263,7 +293,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
       <BenefitsCarousel />
 
       {/* ── Carrusel de Categorías ──────────────────────────────────────── */}
-      <CategoriasCarouselServer glampingImage={carouselImage} />
+      {carouselSection}
 
       {/* ── FAQ / Contenido Informativo ───────────────────────────────────── */}
       <FaqCarousel />

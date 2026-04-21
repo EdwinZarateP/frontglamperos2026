@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { HomeClient } from './HomeClient'
-import { fetchGlampingsSSR, parseFiltrosFromSearchParams } from '@/lib/filtros'
+import { fetchGlampingsSSR, parseFiltrosFromSearchParams, buildUrlFromFiltros } from '@/lib/filtros'
+import { CategoriasCarouselServer } from '@/components/home/CategoriasCarouselServer'
 import type { FiltrosHome } from '@/types'
 
 export const metadata: Metadata = {
@@ -70,8 +71,15 @@ export default async function HomePage({
     fetchTierramontMujer(),
   ])
 
+  const currentPage = initialFiltros.page ?? 1
+  const totalPages = serverData ? Math.ceil(serverData.total / (serverData.limit || 20)) : 1
+  const prevUrl = currentPage > 1 ? `${SITE_URL}${buildUrlFromFiltros({ ...initialFiltros, page: currentPage - 1 })}` : null
+  const nextUrl = currentPage < totalPages ? `${SITE_URL}${buildUrlFromFiltros({ ...initialFiltros, page: currentPage + 1 })}` : null
+
   return (
     <>
+      {prevUrl && <link rel="prev" href={prevUrl} />}
+      {nextUrl && <link rel="next" href={nextUrl} />}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
@@ -84,6 +92,7 @@ export default async function HomePage({
         serverData={serverData}
         initialFiltros={initialFiltros}
         tierramontProducts={tierramontProducts}
+        carouselSection={<CategoriasCarouselServer />}
       />
     </>
   )

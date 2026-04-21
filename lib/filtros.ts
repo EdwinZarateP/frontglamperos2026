@@ -20,7 +20,7 @@ export const FILTROS_AMENIDADES: Record<string, string> = {
 
 export async function fetchGlampingsSSR(filtros: Partial<FiltrosHome>): Promise<HomeResponse | undefined> {
   try {
-    const params = new URLSearchParams({ page: '1', limit: '20', order_by: 'calificacion' })
+    const params = new URLSearchParams({ page: String(filtros.page ?? 1), limit: '20', order_by: 'calificacion' })
     // Si hay coordenadas, buscamos por radio (no por ciudad exacta)
     const usarCiudad = !filtros.lat && filtros.ciudad
     if (usarCiudad)              params.set('ciudad',      filtros.ciudad!)
@@ -85,6 +85,7 @@ export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
   if (filtros.acepta_mascotas) params.set('mascotas',   '1')
   if (filtros.precio_max)    params.set('precio_max',   String(filtros.precio_max))
   if (amenQuery.length)      params.set('amenidades',   amenQuery.join(','))
+  if (filtros.page && filtros.page > 1) params.set('page', String(filtros.page))
 
   const qs = params.toString()
   return qs ? `${path}?${qs}` : path
@@ -141,6 +142,7 @@ export function parseFiltrosFromSearchParams(sp: Record<string, string>): Partia
   if (sp.lng)          f.lng          = Number(sp.lng)
   if (sp.radio_km)     f.radio_km     = Number(sp.radio_km)
   if (sp.precio_max)   f.precio_max   = Number(sp.precio_max)
+  if (sp.page && Number(sp.page) > 1) f.page = Number(sp.page)
   if (sp.amenidades) {
     // Combina con las amenidades que ya vengan del slug (sin duplicados)
     const prev = f.amenidades ? f.amenidades.split(',') : []
