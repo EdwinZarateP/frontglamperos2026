@@ -41,14 +41,17 @@ export async function cargarTramosComision(): Promise<void> {
   }
 }
 
+// Redondea hacia arriba al múltiplo de 1000 (ej: 109890 -> 110000, 65340 -> 66000)
+const _ceilAMil = (v: number) => Math.ceil(v / 1000) * 1000
+
 export function calcularComision(precioAnfitrion: number): number {
   if (precioAnfitrion <= 0) return 0
   for (const tramo of _tramos) {
     if (tramo.hasta === null || precioAnfitrion < tramo.hasta) {
-      return precioAnfitrion * tramo.multiplicador
+      return _ceilAMil(precioAnfitrion * tramo.multiplicador)
     }
   }
-  return precioAnfitrion * _tramos[_tramos.length - 1].multiplicador
+  return _ceilAMil(precioAnfitrion * _tramos[_tramos.length - 1].multiplicador)
 }
 
 // ─── Formateo de precios COP ─────────────────────────────────────────────────

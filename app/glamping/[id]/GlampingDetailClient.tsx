@@ -27,7 +27,7 @@ const PUBLIC_EXTRAS_ORDER = [
   'cabalgata', 'jacuzzi', 'masajes', 'masaje', 'desayuno', 'almuerzo',
   'cenaEstandar', 'cenaRomantica', 'decoracionSencilla', 'decoracionEspecial',
   'picnic', 'pelicula', 'paseoLancha', 'paseoBicicleta', 'caminataGuiada',
-  'cuatrimoto', 'parapente', 'paseoKayak', 'paseoVela', 'paseoJetSki',
+  'cuatrimoto', 'parapente', 'paseoKayak', 'paseoVela', 'paseoJetSki', 'buggy',
   'tour1', 'tour2', 'tour3', 'descorche', 'kitFogata',
 ]
 function sortExtras<T extends { key: string }>(extras: T[]): T[] {

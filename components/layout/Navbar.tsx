@@ -33,7 +33,7 @@ export function Navbar() {
 
   return (
     <header suppressHydrationWarning className="sticky top-0 z-40" style={{ backgroundColor: '#0D261B' }}>
-      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center">
+      <nav className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0 relative z-10">
           <div className="h-16 flex items-center justify-center overflow-hidden">

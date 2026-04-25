@@ -338,13 +338,20 @@ export default function AdminGlampingsPage() {
     onError: () => toast.error('Error al cambiar estado'),
   })
 
-  const filtrados = busqueda.trim()
+  const filtrados = (busqueda.trim()
     ? glampings.filter((g) =>
         g.nombreGlamping.toLowerCase().includes(busqueda.toLowerCase()) ||
         g.nombrePropiedad?.toLowerCase().includes(busqueda.toLowerCase()) ||
         g.ciudadDepartamento.toLowerCase().includes(busqueda.toLowerCase())
       )
     : glampings
+  ).slice().sort((a, b) =>
+    (a.nombrePropiedad ?? a.nombreGlamping ?? '').localeCompare(
+      b.nombrePropiedad ?? b.nombreGlamping ?? '',
+      'es',
+      { sensitivity: 'base' }
+    )
+  )
 
   const [descargando, setDescargando] = useState(false)
 
@@ -414,8 +421,18 @@ export default function AdminGlampingsPage() {
             placeholder="Buscar por nombre, establecimiento o ciudad..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           />
+          {busqueda && (
+            <button
+              type="button"
+              onClick={() => setBusqueda('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+              title="Borrar búsqueda"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
       </div>
 

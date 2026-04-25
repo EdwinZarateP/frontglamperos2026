@@ -144,7 +144,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       {(() => {
@@ -209,7 +209,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
       {/* ── Resultados ───────────────────────────────────────────────────── */}
       {showLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
           {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : glampings.length === 0 ? (
@@ -240,7 +240,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
               )}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 animate-fadeInUp">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp">
             {glampings.map((g) => <GlampingCard key={g.id} glamping={g} />)}
           </div>
           {totalPages > 1 && (

@@ -175,9 +175,16 @@ export default function EditarGlampingPage({ params }: Props) {
       setImagenes(glamping.imagenes as string[])
       imagenesOriginalesCount.current = glamping.imagenes.length
     }
+    let precioAdicFromExtras: number | null = null
     if (glamping.extras?.length) {
       const map: Record<string, { precio: number; descripcion: string; unidad: string }> = {}
       for (const e of glamping.extras) {
+        // personaAdicional se administra en el campo dedicado "Precio persona adicional (COP)",
+        // no se muestra en la lista de extras
+        if (e.key === 'personaAdicional') {
+          precioAdicFromExtras = e.precio ?? 0
+          continue
+        }
         map[e.key] = { precio: e.precio ?? 0, descripcion: e.descripcion ?? '', unidad: e.unidad === 'por_grupo' ? 'por_pareja' : (e.unidad ?? 'por_pareja') }
       }
       setExtras(map)
@@ -194,7 +201,7 @@ export default function EditarGlampingPage({ params }: Props) {
       ciudadDepartamento: glamping.ciudadDepartamento || '',
       direccion: glamping.direccion || '',
       precioNoche: glamping.precioNoche || 0,
-      precioPersonaAdicional: glamping.precioPersonaAdicional || 0,
+      precioPersonaAdicional: glamping.precioPersonaAdicional || precioAdicFromExtras || 0,
       cantidadHuespedes: glamping.cantidadHuespedes ?? 2,
       cantidadHuespedesAdicionales: glamping.cantidadHuespedesAdicionales ?? 0,
       minimoNoches: glamping.minimoNoches ?? 1,
@@ -248,10 +255,26 @@ export default function EditarGlampingPage({ params }: Props) {
       if (values.nombreGlamping) raw.nombreGlamping = toTitleCase(values.nombreGlamping)
       if (values.nombrePropiedad) raw.nombrePropiedad = toTitleCase(values.nombrePropiedad)
       raw.amenidades = amenidades
-      raw.extras = Object.entries(extras).map(([key, { precio, descripcion, unidad }]) => {
-        const cat = catalogoExtras.find((c) => c.key === key)
-        return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
-      })
+      const extrasPayload = Object.entries(extras)
+        .filter(([key]) => key !== 'personaAdicional')
+        .map(([key, { precio, descripcion, unidad }]) => {
+          const cat = catalogoExtras.find((c) => c.key === key)
+          return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
+        })
+      // Sincronizar precioPersonaAdicional como un extra "personaAdicional" para que
+      // la cotización del backend pueda leerlo desde extras_map
+      const precioAdic = Number(values.precioPersonaAdicional) || 0
+      if (precioAdic > 0) {
+        extrasPayload.push({
+          key: 'personaAdicional',
+          nombre: 'Persona adicional',
+          descripcion: '',
+          precio: precioAdic,
+          unidad: 'por_persona',
+          disponible: true,
+        })
+      }
+      raw.extras = extrasPayload
       if (ubicacion.lat && ubicacion.lng) raw.ubicacion = { lat: Number(ubicacion.lat), lng: Number(ubicacion.lng) }
       if (tieneValores(values.tarifasNoche)) {
         raw.tarifasNoche = Object.fromEntries(Object.entries(values.tarifasNoche).map(([k, v]) => [k, Number(v) || 0]))
@@ -478,6 +501,7 @@ export default function EditarGlampingPage({ params }: Props) {
                   <label className="text-xs font-medium text-stone-500 block mb-1">{label}</label>
                   <input type="number" min={0} disabled={precioNocheBase === 0}
                     placeholder={String(precioNocheBase || 0)}
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     {...register(`tarifasNoche.${key as Dia}`, { valueAsNumber: true })}
                     className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand disabled:bg-stone-50 disabled:text-stone-400" />
                 </div>
@@ -500,6 +524,7 @@ export default function EditarGlampingPage({ params }: Props) {
                   <div key={key}>
                     <label className="text-xs font-medium text-stone-500 block mb-1">{label}</label>
                     <input type="number" min={0}
+                      onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       {...register(`tarifasPasadia.${key as Dia}`, { valueAsNumber: true })}
                       className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                   </div>
@@ -560,7 +585,7 @@ export default function EditarGlampingPage({ params }: Props) {
       <div className={sectionClass}>
         <h2 className={sectionTitle}>Servicios extras</h2>
         <div className="space-y-3">
-          {catalogoExtras.map((cat) => {
+          {catalogoExtras.filter((cat) => cat.key !== 'personaAdicional').map((cat) => {
             const active = !!extras[cat.key]
             const val = extras[cat.key]
             return (
@@ -579,6 +604,7 @@ export default function EditarGlampingPage({ params }: Props) {
                     <div>
                       <label className="text-xs font-medium text-stone-500 block mb-1">Precio (COP)</label>
                       <input type="number" min={0} value={val.precio}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
                         onChange={(e) => setExtras((p) => ({ ...p, [cat.key]: { ...p[cat.key], precio: Number(e.target.value) } }))}
                         className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                     </div>

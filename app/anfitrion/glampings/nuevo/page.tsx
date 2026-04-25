@@ -305,11 +305,26 @@ export default function NuevoGlampingPage() {
       if (values.nombreGlamping)  raw.nombreGlamping  = toTitleCase(values.nombreGlamping)
       if (values.nombrePropiedad) raw.nombrePropiedad = toTitleCase(values.nombrePropiedad)
       if (amenidades.length)      raw.amenidades      = amenidades
-      // Serializar extras activos al formato ServicioExtra del backend
-      const extrasPayload = Object.entries(extras).map(([key, { precio, descripcion, unidad }]) => {
-        const cat = catalogoExtras.find((c) => c.key === key)
-        return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
-      })
+      // Serializar extras activos al formato ServicioExtra del backend.
+      // personaAdicional se administra con el campo dedicado precioPersonaAdicional;
+      // se inyecta al final para que la cotización del backend lo encuentre.
+      const extrasPayload = Object.entries(extras)
+        .filter(([key]) => key !== 'personaAdicional')
+        .map(([key, { precio, descripcion, unidad }]) => {
+          const cat = catalogoExtras.find((c) => c.key === key)
+          return { key, nombre: cat?.nombre ?? key, descripcion, precio: Number(precio) || 0, unidad: unidad ?? cat?.unidad ?? 'por_grupo', disponible: true }
+        })
+      const precioAdic = Number(values.precioPersonaAdicional) || 0
+      if (precioAdic > 0) {
+        extrasPayload.push({
+          key: 'personaAdicional',
+          nombre: 'Persona adicional',
+          descripcion: '',
+          precio: precioAdic,
+          unidad: 'por_persona',
+          disponible: true,
+        })
+      }
       raw.extras = extrasPayload
       if (ubicacion.lat && ubicacion.lng) {
         raw.ubicacion = { lat: Number(ubicacion.lat), lng: Number(ubicacion.lng) }
@@ -867,7 +882,7 @@ export default function NuevoGlampingPage() {
                 Activa los que ofreces y ponles precio — el huésped los podrá contratar al reservar
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {catalogoExtras.map((cat: CatalogoExtra) => {
+                {catalogoExtras.filter((cat: CatalogoExtra) => cat.key !== 'personaAdicional').map((cat: CatalogoExtra) => {
                   const activo = !!extras[cat.key]
                   return (
                     <div

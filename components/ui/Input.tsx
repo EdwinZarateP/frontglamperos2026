@@ -8,8 +8,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, hint, id, ...props }, ref) => {
+  ({ className, label, error, hint, id, onWheel, type, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+    // Evita que el scroll del mouse cambie el valor en inputs numéricos
+    const handleWheel: React.WheelEventHandler<HTMLInputElement> = (e) => {
+      if (type === 'number') (e.target as HTMLInputElement).blur()
+      onWheel?.(e)
+    }
     return (
       <div className="flex flex-col gap-1">
         {label && (
@@ -20,6 +25,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          type={type}
+          onWheel={handleWheel}
           className={cn(
             'w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-stone-900',
             'placeholder:text-stone-400 text-sm',
