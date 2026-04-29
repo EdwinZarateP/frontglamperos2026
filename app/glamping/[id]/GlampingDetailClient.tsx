@@ -28,6 +28,7 @@ const PUBLIC_EXTRAS_ORDER = [
   'cenaEstandar', 'cenaRomantica', 'decoracionSencilla', 'decoracionEspecial',
   'picnic', 'pelicula', 'paseoLancha', 'paseoBicicleta', 'caminataGuiada',
   'cuatrimoto', 'parapente', 'paseoKayak', 'paseoVela', 'paseoJetSki', 'buggy',
+  'puenteTibetano', 'canopy', 'biciAerea', 'columpio', 'hamacasAereas',
   'tour1', 'tour2', 'tour3', 'descorche', 'kitFogata',
 ]
 function sortExtras<T extends { key: string }>(extras: T[]): T[] {
@@ -369,7 +370,7 @@ export function GlampingDetailClient({ glamping }: Props) {
 
   return (
     <>
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
+    <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4 order-2 lg:order-1 px-0 pt-3 lg:pt-0">
         <Link href="/" className="hover:text-stone-700 flex items-center gap-1">
@@ -518,7 +519,7 @@ export function GlampingDetailClient({ glamping }: Props) {
         </div>
 
         {/* Desktop: grid de fotos */}
-        <div className="hidden sm:grid grid-cols-4 gap-2 rounded-2xl overflow-hidden h-[360px] md:h-[420px] xl:h-[500px]">
+        <div className="hidden sm:grid grid-cols-4 gap-2 rounded-2xl overflow-hidden h-[280px] md:h-[320px] xl:h-[380px]">
           <div className="col-span-2 row-span-2 relative overflow-hidden cursor-pointer group"
                onClick={() => router.push(`/glamping/${glamping._id}/fotos?foto=0`)}>
             <img
@@ -1247,7 +1248,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     </div>
 
     {/* Glampings cercanos — fuera del contenedor principal para quedar al final */}
-    <section className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-24">
+    <section className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pb-24">
       <NearbyGlampings
         currentId={glamping._id}
         lat={glamping.ubicacion?.lat}
