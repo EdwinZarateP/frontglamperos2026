@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { tipoGlampingLabels } from '@/lib/utils'
+import { tipoGlampingLabels, calcularComision, formatCOP } from '@/lib/utils'
 
 const PLACEHOLDER_IMAGE = 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
 
@@ -13,6 +13,7 @@ export interface CarouselGlamping {
   tipo: string
   ciudad: string
   imagen: string
+  precio: number
 }
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
 
 export function CategoriasCarouselClient({ glampings }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [itemsPerView, setItemsPerView] = useState(3)
+  const [itemsPerView, setItemsPerView] = useState(5)
   const touchStartRef = useRef<number>(0)
   const touchEndRef = useRef<number>(0)
 
@@ -34,7 +35,13 @@ export function CategoriasCarouselClient({ glampings }: Props) {
   }
 
   useEffect(() => {
-    const onResize = () => setItemsPerView(window.innerWidth >= 1024 ? 3 : 1)
+    const onResize = () => {
+      const w = window.innerWidth
+      if (w >= 1280) setItemsPerView(5)
+      else if (w >= 1024) setItemsPerView(4)
+      else if (w >= 768) setItemsPerView(2)
+      else setItemsPerView(1)
+    }
     onResize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -46,10 +53,12 @@ export function CategoriasCarouselClient({ glampings }: Props) {
 
   if (!glampings.length) return null
 
+  const widthClass = itemsPerView === 5 ? 'w-1/5' : itemsPerView === 4 ? 'w-1/4' : itemsPerView === 2 ? 'w-1/2' : 'w-full'
+
   return (
     <section className="mt-20 mb-20">
-      <div className="text-center mb-10">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-900 mb-3">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-3">
           Los 10 glampings más buscados en Colombia
         </h2>
       </div>
@@ -57,10 +66,10 @@ export function CategoriasCarouselClient({ glampings }: Props) {
       <div className="relative">
         <button
           onClick={prevSlide}
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
           aria-label="Anterior"
         >
-          <ChevronLeft size={22} className="text-stone-700" />
+          <ChevronLeft size={20} className="text-stone-700" />
         </button>
 
         <div
@@ -74,26 +83,25 @@ export function CategoriasCarouselClient({ glampings }: Props) {
             style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
           >
             {glampings.map((g) => (
-              <div key={g.id} className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 px-2">
+              <div key={g.id} className={`flex-shrink-0 ${widthClass} px-1.5`}>
                 <Link href={`/glamping/${g.id}`}>
-                  <div className="relative rounded-2xl overflow-hidden group cursor-pointer">
+                  <div className="relative rounded-xl overflow-hidden group cursor-pointer aspect-square">
                     <img
                       src={g.imagen || PLACEHOLDER_IMAGE}
                       alt={g.nombre}
-                      className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg capitalize">
-                        {tipoGlampingLabels[g.tipo] ?? g.tipo}
-                      </h3>
-                      <p className="text-white/90 text-sm md:text-base drop-shadow">
-                        {g.ciudad}
-                      </p>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-4 border-t border-stone-200">
-                      <h4 className="text-base font-bold text-stone-900 truncate">{g.nombre}</h4>
-                      <p className="text-sm text-stone-500 capitalize">{tipoGlampingLabels[g.tipo] ?? g.tipo} · {g.ciudad.split(',')[0]}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h4 className="text-sm font-bold text-white truncate drop-shadow">{g.nombre}</h4>
+                      <div className="flex items-center justify-between gap-1 mt-1">
+                        <p className="text-xs text-white/80 capitalize truncate">{tipoGlampingLabels[g.tipo] ?? g.tipo} · {g.ciudad.split(',')[0]}</p>
+                        {g.precio > 0 && (
+                          <p className="text-xs font-bold text-white whitespace-nowrap drop-shadow">
+                            {formatCOP(calcularComision(g.precio))}/noche
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -104,13 +112,13 @@ export function CategoriasCarouselClient({ glampings }: Props) {
 
         <button
           onClick={nextSlide}
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+          className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
           aria-label="Siguiente"
         >
-          <ChevronRight size={22} className="text-stone-700" />
+          <ChevronRight size={20} className="text-stone-700" />
         </button>
 
-        <div className="flex justify-center gap-2 mt-6">
+        <div className="flex justify-center gap-2 mt-5">
           {glampings.map((_, i) => (
             <button
               key={i}

@@ -117,6 +117,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
       if (initialFiltros && Object.keys(initialFiltros).length > 0) {
         setFiltros(initialFiltros)
       }
+      window.scrollTo({ top: 0, behavior: 'instant' })
     }
     setReady(true)
   }, [pathname, searchParams.toString()]) // eslint-disable-line

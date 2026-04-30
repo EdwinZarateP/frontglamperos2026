@@ -31,6 +31,7 @@ async function fetchGlampingsByIds(): Promise<CarouselGlamping[]> {
       tipo: (g.tipoGlamping ?? '') as string,
       ciudad: (g.ciudadDepartamento ?? '') as string,
       imagen: ((g.imagenes as string[])?.[0] ?? '') as string,
+      precio: (g.precioNoche ?? 0) as number,
     }))
   } catch {
     return []
