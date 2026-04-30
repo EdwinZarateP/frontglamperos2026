@@ -790,7 +790,7 @@ export function SearchBar() {
 
               <button
                 type="button"
-                onClick={() => setActivePanel(null)}
+                onClick={handleSearch}
                 className="mt-5 w-full py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:bg-brand-light transition-colors"
               >
                 Listo

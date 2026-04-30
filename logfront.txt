@@ -1,15 +1,15 @@
-led to compile.
+Failed to compile.
 Menu
-./app/admin/glampings/page.tsx:463:71
+./app/admin/glampings/page.tsx:553:74
 Type error: Type '{ size: number; className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
   Property 'title' does not exist on type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
-  461 |                       <span className="text-xs truncate">{g.ciudadDepartamento}</span>
-  462 |                       {g.ubicacion ? (
-> 463 |                         <MapPin size={12} className="text-brand ml-1" title="Con coordenadas" />
-      |                                                                       ^
-  464 |                       ) : (
-  465 |                         <MapPinOff size={12} className="text-amber-500 ml-1" title="Sin coordenadas" />
-  466 |                       )}
+  551 |                     <td className="px-4 py-3 text-center">
+  552 |                       {g.ubicacion ? (
+> 553 |                         <MapPin size={16} className="mx-auto text-brand" title={`Coords: ${g.ubicacion.lat}, ${g.ubicacion.lng}`} />
+      |                                                                          ^
+  554 |                       ) : (
+  555 |                         <MapPinOff size={16} className="mx-auto text-amber-500" title="Sin coordenadas" />
+  556 |                       )}
 Next.js build worker exited with code: 1 and signal: null
 ==> Build failed 😞
 ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

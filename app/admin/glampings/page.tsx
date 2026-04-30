@@ -550,9 +550,9 @@ export default function AdminGlampingsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {g.ubicacion ? (
-                        <MapPin size={16} className="mx-auto text-brand" title={`Coords: ${g.ubicacion.lat}, ${g.ubicacion.lng}`} />
+                        <span title={`Coords: ${g.ubicacion.lat}, ${g.ubicacion.lng}`}><MapPin size={16} className="mx-auto text-brand" /></span>
                       ) : (
-                        <MapPinOff size={16} className="mx-auto text-amber-500" title="Sin coordenadas" />
+                        <span title="Sin coordenadas"><MapPinOff size={16} className="mx-auto text-amber-500" /></span>
                       )}
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-stone-700 font-medium">
