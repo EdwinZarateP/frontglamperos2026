@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { HomeClient } from '../HomeClient'
+import { CategoriasCarouselServer } from '@/components/home/CategoriasCarouselServer'
 import {
   fetchGlampingsSSR,
   parseFiltrosFromSlug,
@@ -99,6 +100,7 @@ export default async function SlugPage({
         initialFiltros={initialFiltros}
         heroTitle={hasFilters ? h1 : undefined}
         heroIntro={intro}
+        carouselSection={<CategoriasCarouselServer />}
       />
     </>
   )

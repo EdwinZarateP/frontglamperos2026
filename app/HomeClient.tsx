@@ -133,12 +133,17 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
   const { data: queryData, isLoading, isFetching } = useGlampingsHome(effectiveFiltros, ready)
 
+  // Marcar cuando la primera carga cliente-side termina (para no mostrar popup en carga inicial)
+  const initialFetchDone = useRef(false)
+  if (queryData && !isFetching) initialFetchDone.current = true
+
   // Mostrar datos de la query si están disponibles, si no usar serverData (SSR)
   const data = queryData ?? serverData
   const total = data?.total ?? 0
   const glampings = data?.data ?? []
   const currentPage = effectivePage
   const totalPages = Math.ceil(total / (filtros.limit ?? 20)) || 1
+  const showSearchPopup = isFetching && ready && initialFetchDone.current
   // Mostrar skeleton solo si no hay datos ni de SSR ni de query
   const showLoading = (!serverData && !queryData) && (!ready || isLoading)
   
@@ -222,6 +227,39 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
       </div>
 
       {/* ── Resultados ───────────────────────────────────────────────────── */}
+      {/* Popup de búsqueda — solo al buscar, no en carga inicial */}
+      {showSearchPopup && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl px-10 py-8 flex flex-col items-center gap-4 animate-popupIn max-w-xs w-full mx-4">
+            {/* Carpa animada */}
+            <div className="relative w-20 h-20">
+              {/* Estrellas */}
+              <span className="absolute top-0 left-2 text-xs text-amber-400 animate-twinkle">✦</span>
+              <span className="absolute top-3 right-1 text-[10px] text-amber-300 animate-twinkle" style={{ animationDelay: '0.4s' }}>✦</span>
+              <span className="absolute top-1 right-5 text-[8px] text-amber-200 animate-twinkle" style={{ animationDelay: '0.8s' }}>✦</span>
+              {/* Carpa */}
+              <svg className="w-full h-full animate-tentPulse" viewBox="0 0 80 80" fill="none">
+                <path d="M40 10 L72 65 L8 65 Z" fill="#0D261B" />
+                <path d="M40 10 L40 65" stroke="#1a4a3a" strokeWidth="1.5" />
+                <path d="M30 45 L30 65 L50 65 L50 45" fill="#fbbf24" opacity="0.5" />
+                <path d="M30 45 Q40 38 50 45" fill="#fbbf24" opacity="0.3" />
+                {/* Fogata */}
+                <ellipse cx="22" cy="63" rx="6" ry="2" fill="#92400e" opacity="0.3" />
+                <path d="M19 62 Q22 54 25 62" fill="#f97316" className="animate-fireFlicker" />
+                <path d="M20 62 Q22 56 24 62" fill="#fbbf24" className="animate-fireFlicker" style={{ animationDelay: '0.2s' }} />
+              </svg>
+            </div>
+            <div className="text-center">
+              <p className="text-stone-800 font-semibold text-base">Estamos buscando tu alojamiento</p>
+              <p className="text-stone-400 text-sm mt-1">Un momento...</p>
+            </div>
+            {/* Barra de progreso */}
+            <div className="w-full h-1.5 rounded-full bg-stone-100 overflow-hidden">
+              <div className="h-full bg-brand rounded-full animate-loadBar" />
+            </div>
+          </div>
+        </div>
+      )}
       {showLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
           {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -238,9 +276,8 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-stone-500">
               {isFetching && ready ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full border-2 border-brand border-t-transparent animate-spin" />
-                  Actualizando...
+                <span className="flex items-center gap-2 text-stone-400">
+                  {total} glampings encontrados
                 </span>
               ) : (
                 <>
@@ -254,7 +291,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
               )}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp">
+          <div className={showSearchPopup ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp opacity-60 transition-opacity duration-300' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp transition-opacity duration-300'}>
             {glampings.map((g) => <GlampingCard key={g.id} glamping={g} />)}
           </div>
           {totalPages > 1 && (
