@@ -6,6 +6,7 @@ import type { FiltrosHome } from '@/types'
 interface SearchState {
   filtros: FiltrosHome
   setFiltros: (f: Partial<FiltrosHome>) => void
+  replaceFiltros: (f: Partial<FiltrosHome>) => void
   resetFiltros: () => void
 }
 
@@ -22,6 +23,11 @@ export const useSearchStore = create<SearchState>((set) => ({
     set((state) => ({
       filtros: { ...state.filtros, ...f, page: f.page ?? 1 },
     })),
+
+  replaceFiltros: (f) =>
+    set({
+      filtros: { ...defaultFiltros, ...f, page: f.page ?? 1 },
+    }),
 
   resetFiltros: () => set({ filtros: defaultFiltros }),
 }))

@@ -101,22 +101,24 @@ interface Props {
 }
 
 export function HomeClient({ initialFiltros, serverData, tierramontProducts, heroTitle, heroIntro, carouselSection }: Props) {
-  const { filtros, setFiltros, resetFiltros } = useSearchStore()
+  const { filtros, setFiltros, replaceFiltros, resetFiltros } = useSearchStore()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
   const lastKeyRef = useRef<string | null>(null)
   const [ready, setReady] = useState(false)
 
+  // Estado para transición suave de cards
+  const [cardsVisible, setCardsVisible] = useState(true)
+  const isTransitioning = useRef(false)
+
   // Sincronizar filtros con initialFiltros cuando cambia la URL
   useEffect(() => {
     const currentKey = pathname + '?' + searchParams.toString()
     if (currentKey !== lastKeyRef.current) {
       lastKeyRef.current = currentKey
-      resetFiltros()
-      if (initialFiltros && Object.keys(initialFiltros).length > 0) {
-        setFiltros(initialFiltros)
-      }
+      // Usar replaceFiltros para hacer un solo update (evita dos búsquedas)
+      replaceFiltros(initialFiltros || {})
       window.scrollTo({ top: 0, behavior: 'instant' })
     }
     setReady(true)
@@ -137,6 +139,29 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   // Marcar cuando la primera carga cliente-side termina (para no mostrar popup en carga inicial)
   const initialFetchDone = useRef(false)
   if (queryData && !isFetching) initialFetchDone.current = true
+
+  // Resetear initialFetchDone cuando cambia la ruta clave (para evitar popup instantáneo al volver)
+  useEffect(() => {
+    initialFetchDone.current = false
+  }, [pathname]) // eslint-disable-line
+
+  // Transición suave: fade out al buscar, fade in cuando llegan datos
+  useEffect(() => {
+    if (!ready) return
+
+    if (isFetching && initialFetchDone.current && !isTransitioning.current) {
+      // Iniciar fade out
+      isTransitioning.current = true
+      setCardsVisible(false)
+    } else if (!isFetching && queryData && isTransitioning.current) {
+      // Iniciar fade in con un pequeño delay
+      const timeout = setTimeout(() => {
+        setCardsVisible(true)
+        isTransitioning.current = false
+      }, 100)
+      return () => clearTimeout(timeout)
+    }
+  }, [isFetching, queryData, ready])
 
   // Mostrar datos de la query si están disponibles, si no usar serverData (SSR)
   const data = queryData ?? serverData
@@ -292,7 +317,11 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
               )}
             </p>
           </div>
-          <div className={showSearchPopup ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp opacity-60 transition-opacity duration-300' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fadeInUp transition-opacity duration-300'}>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 transition-all duration-300 ease-out ${
+            cardsVisible
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-4'
+          }`}>
             {glampings.map((g) => <GlampingCard key={g.id} glamping={g} />)}
           </div>
           {totalPages > 1 && (

@@ -112,6 +112,18 @@ const ogDesc = (precioDesc + rawDesc).slice(0, 160)
 - `POST /comentarios/`
 - Muestra pantalla de éxito tras envío
 
+## Carrusel "Los 10 más buscados" (`components/home/CategoriasCarouselClient.tsx`)
+- Tarjetas cuadradas (`aspect-square`) con info sobrepuesta (gradiente sobre imagen)
+- Precio muestra comisión: `calcularComision(g.precio)` desde `lib/utils.ts`
+- Responsive: 5 items en XL (≥1280px), 4 en LG (≥1024px), 2 en MD (≥768px), 1 en mobile
+- Server component (`CategoriasCarouselServer.tsx`) mapea `precioNoche` al campo `precio`
+
+## Home Page (`app/HomeClient.tsx`)
+- Scroll al top al cambiar filtros/URL: `window.scrollTo({ top: 0, behavior: 'instant' })`
+
+## Glamping Detail — Botón Reservar (`app/glamping/[id]/GlampingDetailClient.tsx`)
+- Botón "Reservar" siempre verde (`variant="brand"`) independientemente de si hay fechas seleccionadas
+
 ## Convenciones
 - Componentes de página del servidor en `page.tsx` (sin 'use client')
 - Lógica interactiva en `*Client.tsx` con `'use client'`
