@@ -441,7 +441,7 @@ export function SearchBar() {
                       placeholder="Explora destinos"
                       value={locationInput}
                       onChange={(e) => setLocationInput(e.target.value)}
-                      className="flex-1 text-sm text-stone-700 placeholder:text-stone-400 focus:outline-none"
+                      className="flex-1 text-base text-stone-700 placeholder:text-stone-400 focus:outline-none"
                       autoFocus
                     />
                     {locationInput && (
@@ -642,7 +642,7 @@ export function SearchBar() {
                 placeholder="Ciudad o municipio en Colombia"
                 value={locationInput}
                 onChange={(e) => setLocationInput(e.target.value)}
-                className="w-full border border-stone-300 rounded-xl px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-brand mb-3"
+                className="w-full border border-stone-300 rounded-xl px-4 py-2.5 text-base text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-brand mb-3"
               />
               {ciudadesFiltradas.length > 0 ? (
                 <ul className="space-y-1 max-h-52 overflow-y-auto">
