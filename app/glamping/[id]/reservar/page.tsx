@@ -22,7 +22,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { SingleDatePicker } from '@/components/ui/SingleDatePicker'
 import { formatCOP, formatDate, calcularComision, colombianHolidays } from '@/lib/utils'
-import type { Reserva } from '@/types'
+import type { Reserva, ServicioExtra } from '@/types'
 import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -204,7 +204,10 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
   const precioDefecto     = precioMaxTarifas(glamping.tarifasNoche as Record<string, number> | undefined, glamping.precioNoche)
   const noches            = cotizacion?.noches ?? 0
-  const precioMascota     = tieneMascota && glamping.aceptaMascotas ? Math.round((glamping.precioMascotas ?? 0) * Math.max(noches, 1) * 1.10) : 0
+  // Buscar el extra de mascota con cálculo correcto (× 1.10 + redondeo a miles como el backend)
+  const mascotaExtra = glamping.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
+  const precioMascotaUnitario = mascotaExtra?.precio ? Math.ceil(mascotaExtra.precio * 1.10 / 1000) * 1000 : 0
+  const precioMascota = tieneMascota && glamping.aceptaMascotas ? precioMascotaUnitario * Math.max(noches, 1) : 0
   const hayFechas         = !!fechaInicio && !!fechaFin
   // Precios pasadía para la leyenda del calendario (con comisión Glamperos)
   const tarifasPasadia = glamping.tarifasPasadia as Record<string, number> | undefined
@@ -635,9 +638,9 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                       <PawPrint size={16} className="text-stone-500" />
                       <div>
                         <p className="text-sm font-medium text-stone-800">¿Llevas mascota?</p>
-                        {(glamping.precioMascotas ?? 0) > 0 && (
+                        {precioMascotaUnitario > 0 && (
                           <p className="text-xs text-stone-400">
-                            +{formatCOP(glamping.precioMascotas!)} / noche
+                            +{formatCOP(precioMascotaUnitario)} / noche
                           </p>
                         )}
                       </div>

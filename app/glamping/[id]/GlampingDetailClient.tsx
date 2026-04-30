@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button'
 import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabels, calcularComision, colombianHolidays } from '@/lib/utils'
 import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
-import type { Glamping } from '@/types'
+import type { Glamping, ServicioExtra } from '@/types'
 import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
 // Orden de los extras en la página pública — juegoMenteCriminal siempre primero
 const PUBLIC_EXTRAS_ORDER = [
@@ -195,9 +195,10 @@ export function GlampingDetailClient({ glamping }: Props) {
     const factor = 1.16
     return Math.round(precioAdic * adicionales * factor * noches)
   })()
-  const precioMascota = cantidadMascotas > 0 && noches > 0
-    ? Math.round((glamping.precioMascotas ?? 0) * cantidadMascotas * noches * 1.10)
-    : 0
+  // Buscar el extra de mascota con cálculo correcto (× 1.10 + redondeo a miles como el backend)
+  const mascotaExtra = glamping.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
+  const precioMascotaUnitario = mascotaExtra?.precio ? Math.ceil(mascotaExtra.precio * 1.10 / 1000) * 1000 : 0
+  const precioMascota = cantidadMascotas > 0 && noches > 0 ? precioMascotaUnitario * cantidadMascotas * noches : 0
   const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional + precioMascota
   
   // Calcular el precio por noche dinámico basado en todo lo seleccionado
@@ -293,11 +294,6 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
     if (glamping.precioPersonaAdicional) {
       lines.push(`➕ Cargo por persona adicional (sobre las ${glamping.cantidadHuespedes} incluidas): ${comision(glamping.precioPersonaAdicional)}/noche`)
-    }
-    if (glamping.aceptaMascotas) {
-      let mascotaLine = '🐾 Acepta mascotas'
-      if (glamping.precioMascotas) mascotaLine += ` · cargo: ${comision(glamping.precioMascotas)}/mascota/noche`
-      lines.push(mascotaLine)
     }
     lines.push('')
 
@@ -1036,8 +1032,8 @@ export function GlampingDetailClient({ glamping }: Props) {
                         <Dog size={24} className="text-brand hidden sm:block" />
                         <div>
                           <p className="font-medium text-stone-800 text-sm sm:text-base">Mascotas</p>
-                          {glamping.precioMascotas && glamping.precioMascotas > 0 && (
-                            <p className="text-xs text-stone-500">{formatCOP(Math.round(glamping.precioMascotas * 1.10))} / mascota / noche</p>
+                          {precioMascotaUnitario > 0 && (
+                            <p className="text-xs text-stone-500">{formatCOP(precioMascotaUnitario)} / mascota / noche</p>
                           )}
                         </div>
                       </div>
