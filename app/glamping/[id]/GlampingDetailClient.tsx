@@ -325,7 +325,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━')
     lines.push('💌 *Proceso de reserva*')
     lines.push('Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha.')
-    lines.push('La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.')
+    lines.push('La plataforma te envía al correo toda la información de llegada y contactos una vez confirmes tu consignación.')
     lines.push('_Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️._')
     lines.push('')
     lines.push('*Datos de pago:*')
@@ -334,6 +334,9 @@ export function GlampingDetailClient({ glamping }: Props) {
     lines.push('🔢 Nº 292-000059-43')
     lines.push('📂 Nuestra Llave')
     lines.push('🔢 0089996468')
+    lines.push('')
+    lines.push('💳 También puedes pagar con tarjeta débito o crédito a través de Wompi')
+    lines.push('(Ten en cuenta que Wompi aplica un cargo adicional del 5% sobre el valor de la reserva)')
     lines.push('')
     lines.push('_Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios._')
 
@@ -751,7 +754,7 @@ export function GlampingDetailClient({ glamping }: Props) {
             </h2>
             <p className="text-sm text-stone-700 leading-relaxed">
               Las reservas se garantizan con una transferencia del <strong>50% del valor total</strong> 💳 para asegurar tu fecha.
-              La plataforma te envía al correo toda la información de llegada y contactos posterior a confirmar tu consignación.
+              La plataforma te envía al correo toda la información de llegada y contactos una vez confirmes tu consignación.
             </p>
             <p className="text-xs text-stone-500 italic">
               Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️.
@@ -763,6 +766,11 @@ export function GlampingDetailClient({ glamping }: Props) {
               <p className="text-sm text-stone-700">📂 Tipo: Ahorros &nbsp;·&nbsp; 🔢 Nº 292-000059-43</p>
               <p className="text-sm text-stone-700">📂 Nuestra Llave &nbsp;·&nbsp; 🔢 0089996468</p>
             </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              💳 También puedes pagar con tarjeta débito o crédito a través de Wompi<br />
+              <span className="text-stone-400">(Ten en cuenta que Wompi aplica un cargo adicional del 5% sobre el valor de la reserva)</span>
+            </p>
 
             <p className="text-xs text-stone-400 leading-relaxed italic">
               Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios.
