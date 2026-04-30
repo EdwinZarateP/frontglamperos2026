@@ -138,12 +138,20 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
   // Marcar cuando la primera carga cliente-side termina (para no mostrar popup en carga inicial)
   const initialFetchDone = useRef(false)
+  const lastFiltrosKeyRef = useRef<string>('')
+
+  // Actualizar initialFetchDone cuando tenemos datos
   if (queryData && !isFetching) initialFetchDone.current = true
 
-  // Resetear initialFetchDone cuando cambia la ruta clave (para evitar popup instantáneo al volver)
+  // Resetear initialFetchDone solo cuando cambian los filtros de búsqueda (no solo la ruta)
   useEffect(() => {
-    initialFetchDone.current = false
-  }, [pathname]) // eslint-disable-line
+    const filtrosKey = JSON.stringify(effectiveFiltros)
+    if (filtrosKey !== lastFiltrosKeyRef.current) {
+      lastFiltrosKeyRef.current = filtrosKey
+      // Solo resetear si es una búsqueda realmente diferente (no solo navegación)
+      initialFetchDone.current = false
+    }
+  }, [effectiveFiltros]) // eslint-disable-line
 
   // Transición suave: fade out al buscar, fade in cuando llegan datos
   useEffect(() => {
