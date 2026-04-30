@@ -915,7 +915,7 @@ export function GlampingDetailClient({ glamping }: Props) {
   <Button
     fullWidth
     size="lg"
-    variant={fechaInicio && fechaFin ? 'brand' : 'primary'}
+    variant="brand"
     onClick={() => {
       if (!fechaInicio || !fechaFin) {
         toast.error('Selecciona las fechas')
