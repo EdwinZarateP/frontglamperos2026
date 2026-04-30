@@ -842,6 +842,14 @@ export function FilterChips() {
     return () => document.removeEventListener('mousedown', handler)
   }, [showPrice])
 
+  // Cerrar el panel al hacer scroll
+  useEffect(() => {
+    if (!showPrice) return
+    const handleScroll = () => setShowPrice(false)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [showPrice])
+
   const applyPrice = () => {
     const merged = { ...filtros, precio_max: localPrecioMax }
     setFiltros(merged)
@@ -897,7 +905,8 @@ export function FilterChips() {
             key={f.key}
             type="button"
             onClick={() => {
-              const merged = { ...filtros, ...nextFiltros }
+              // Reset page to 1 when changing main filters (city, type, amenities)
+              const merged = { ...filtros, ...nextFiltros, page: undefined }
               setFiltros(nextFiltros)
               router.push(buildUrlFromFiltros(merged))
             }}
@@ -954,15 +963,15 @@ export function FilterChips() {
             <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Precio máximo / noche</p>
             <input
               type="range"
-              min={100000}
-              max={2000000}
+              min={200000}
+              max={1200000}
               step={50000}
-              value={localPrecioMax ?? 2000000}
+              value={localPrecioMax ?? 1200000}
               onChange={(e) => setLocalPrecioMax(Number(e.target.value))}
               className="w-full accent-brand"
             />
             <p className="text-sm font-semibold text-stone-800 mt-2 text-center">
-              {localPrecioMax && localPrecioMax < 2000000 ? formatCOP(localPrecioMax) : 'Sin límite'}
+              {localPrecioMax && localPrecioMax < 1200000 ? formatCOP(localPrecioMax) : 'Sin límite'}
             </p>
             <div className="flex gap-2 mt-3">
               {isPriceActive && (

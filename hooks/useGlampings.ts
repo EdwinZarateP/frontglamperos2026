@@ -19,7 +19,7 @@ export function useTiposGlamping() {
 // ─── Home Listing ─────────────────────────────────────────────────────────────
 export function useGlampingsHome(filtros: FiltrosHome, enabled = true) {
   return useQuery<HomeResponse>({
-    queryKey: ['glampings-home', filtros],
+    queryKey: ['glampings-home', JSON.stringify(filtros)], // Stringify para asegurar detección de cambios
     queryFn: async () => {
       // Si tenemos coordenadas, buscamos por radio y NO por nombre de ciudad
       // (así Funza devuelve glampings cercanos aunque no haya ninguno en Funza exactamente)

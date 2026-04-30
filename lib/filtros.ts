@@ -85,7 +85,10 @@ export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
   if (filtros.acepta_mascotas) params.set('mascotas',   '1')
   if (filtros.precio_max)    params.set('precio_max',   String(filtros.precio_max))
   if (amenQuery.length)      params.set('amenidades',   amenQuery.join(','))
-  if (filtros.page && filtros.page > 1) params.set('page', String(filtros.page))
+  // Incluir page si está presente y > 1 (page=1 no se muestra en URL para URLs limpias)
+  if (filtros.page && filtros.page > 1) {
+    params.set('page', String(filtros.page))
+  }
 
   const qs = params.toString()
   return qs ? `${path}?${qs}` : path

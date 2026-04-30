@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useMemo, type ReactNode } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { MapPin, X, ChevronRight, ChevronLeft, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
@@ -108,6 +108,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   const lastKeyRef = useRef<string | null>(null)
   const [ready, setReady] = useState(false)
 
+  // Sincronizar filtros con initialFiltros cuando cambia la URL
   useEffect(() => {
     const currentKey = pathname + '?' + searchParams.toString()
     if (currentKey !== lastKeyRef.current) {
@@ -120,13 +121,26 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
     setReady(true)
   }, [pathname, searchParams.toString()]) // eslint-disable-line
 
-  const { data: queryData, isLoading, isFetching } = useGlampingsHome(filtros, ready)
+  // Obtener page directamente de searchParams para la query (más confiable)
+  const pageFromUrl = searchParams.get('page')
+  const effectivePage = pageFromUrl ? Number(pageFromUrl) : 1
+
+  // useMemo para estabilizar el objeto y que React Query detecte cambios correctamente
+  const effectiveFiltros = useMemo(() => ({
+    ...filtros,
+    page: effectivePage > 1 ? effectivePage : undefined
+  }), [filtros, effectivePage])
+
+  const { data: queryData, isLoading, isFetching } = useGlampingsHome(effectiveFiltros, ready)
+
+  // Mostrar datos de la query si están disponibles, si no usar serverData (SSR)
   const data = queryData ?? serverData
   const total = data?.total ?? 0
   const glampings = data?.data ?? []
-  const currentPage = filtros.page ?? 1
+  const currentPage = effectivePage
   const totalPages = Math.ceil(total / (filtros.limit ?? 20)) || 1
-  const showLoading = !data && (!ready || isLoading)
+  // Mostrar skeleton solo si no hay datos ni de SSR ni de query
+  const showLoading = (!serverData && !queryData) && (!ready || isLoading)
   
   const handleRemoveFiltro = (key: keyof FiltrosHome | 'fechas' | 'precio' | 'amenidades_all') => {
     let updated: Partial<FiltrosHome>

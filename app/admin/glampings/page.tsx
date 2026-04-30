@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { Search, Pencil, Eye, MapPin, Download, Users, X, Trash2, UserPlus, Plus, ImageIcon } from 'lucide-react'
+import { Search, Pencil, Eye, MapPin, MapPinOff, Download, Users, X, Trash2, UserPlus, Plus, ImageIcon } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { formatCOP, tipoGlampingLabels } from '@/lib/utils'
 import { Spinner } from '@/components/ui/Spinner'
@@ -24,6 +24,7 @@ interface GlampingAdmin {
   imagenes: string[]
   propietarioId?: string
   propietario?: { nombre?: string; email?: string; telefono?: string }
+  ubicacion?: { lat: number; lng: number } | null
 }
 
 interface Anfitrion {
@@ -458,6 +459,11 @@ export default function AdminGlampingsPage() {
                     <div className="flex items-center gap-1 text-stone-400 mt-0.5">
                       <MapPin size={11} />
                       <span className="text-xs truncate">{g.ciudadDepartamento}</span>
+                      {g.ubicacion ? (
+                        <MapPin size={12} className="text-brand ml-1" title="Con coordenadas" />
+                      ) : (
+                        <MapPinOff size={12} className="text-amber-500 ml-1" title="Sin coordenadas" />
+                      )}
                     </div>
                     <p className="text-sm font-semibold text-stone-800 mt-0.5">{formatCOP(g.precioNoche)}<span className="text-xs font-normal text-stone-400">/noche</span></p>
                   </div>
@@ -511,6 +517,7 @@ export default function AdminGlampingsPage() {
                   <th className="text-left px-4 py-3 text-stone-500 font-medium">Glamping</th>
                   <th className="text-left px-4 py-3 text-stone-500 font-medium hidden lg:table-cell">Establecimiento</th>
                   <th className="text-left px-4 py-3 text-stone-500 font-medium hidden md:table-cell">Ubicación</th>
+                  <th className="text-center px-4 py-3 text-stone-500 font-medium">Coords</th>
                   <th className="text-left px-4 py-3 text-stone-500 font-medium hidden lg:table-cell">Precio/noche</th>
                   <th className="text-left px-4 py-3 text-stone-500 font-medium">Estado</th>
                   <th className="px-4 py-3" />
@@ -540,6 +547,13 @@ export default function AdminGlampingsPage() {
                         <MapPin size={12} />
                         <span className="text-xs truncate max-w-[160px]">{g.ciudadDepartamento}</span>
                       </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {g.ubicacion ? (
+                        <MapPin size={16} className="mx-auto text-brand" title={`Coords: ${g.ubicacion.lat}, ${g.ubicacion.lng}`} />
+                      ) : (
+                        <MapPinOff size={16} className="mx-auto text-amber-500" title="Sin coordenadas" />
+                      )}
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-stone-700 font-medium">
                       {formatCOP(g.precioNoche)}
