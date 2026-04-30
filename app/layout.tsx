@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '32x32' },
+      { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoNuevoGlamperos.ico', sizes: '48x48' },
       { url: '/icon.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
@@ -109,6 +109,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script
           src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDP8Es7GVLkm_qdCItKb60pGH7ov_tEif0&libraries=places"
           strategy="beforeInteractive"
+        />
+
+        {/* Favicon - Google Cloud Storage */}
+        <link
+          rel="icon"
+          href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoNuevoGlamperos.ico"
+          type="image/x-icon"
         />
 
       </head>
