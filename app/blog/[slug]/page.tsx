@@ -98,7 +98,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     <div className="min-h-screen bg-white">
 
       {/* ── Encabezado del artículo ────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-xs text-stone-400 flex-wrap pt-5 pb-4">
@@ -130,7 +130,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       </div>
 
       {/* ── Layout: artículo + TOC sidebar ────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-20">
+      <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pt-8 pb-20">
         <div className="lg:flex lg:gap-12">
 
           {/* Artículo */}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowRight, ChevronRight, Home } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -65,7 +66,16 @@ export default async function BlogIndex({
     )
   }
 
-  const url = `${WP}/posts?_embed&status=publish&orderby=date&order=desc&per_page=${PER_PAGE}&page=${currentPage}`
+  // Primero, obtener el total de posts para decidir si consolidar
+  const countRes = await fetch(`${WP}/posts?per_page=1`, { next: { revalidate: 300 } })
+  const totalPosts = Number(countRes.headers.get('X-WP-Total') || '0')
+
+  // Umbral: si hay menos de 16 posts, mostrar todos en una sola página
+  const CONSOLIDATION_THRESHOLD = 16
+  const shouldConsolidate = totalPosts <= CONSOLIDATION_THRESHOLD
+  const postsPerPage = shouldConsolidate ? 100 : PER_PAGE  // 100 es el máximo de WordPress
+
+  const url = `${WP}/posts?_embed&status=publish&orderby=date&order=desc&per_page=${postsPerPage}&page=${currentPage}`
   const res = await fetch(url, { next: { revalidate: 300 } })
   if (!res.ok) return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
 
@@ -73,13 +83,21 @@ export default async function BlogIndex({
   const posts: Post[] = await res.json()
   if (!posts.length) return <p className="text-center py-24 text-stone-400">No hay artículos disponibles.</p>
 
+  // Si consolidamos, usar el número total de páginas reales
+  const effectiveTotalPages = shouldConsolidate ? 1 : totalPages
+
+  // Redirigir si la página actual excede el número efectivo de páginas
+  if (currentPage > effectiveTotalPages) {
+    redirect('/blog')
+  }
+
   const showFeatured = currentPage === 1
   const [featured, ...rest] = posts
   const grid = showFeatured ? rest : posts
 
   const WINDOW = 2
   const start = Math.max(1, currentPage - WINDOW)
-  const end   = Math.min(totalPages, currentPage + WINDOW)
+  const end   = Math.min(effectiveTotalPages, currentPage + WINDOW)
   const pages = range(start, end)
 
   const featuredImg = featured?._embedded?.['wp:featuredmedia']?.[0]?.source_url
@@ -88,7 +106,7 @@ export default async function BlogIndex({
     <div className="min-h-screen bg-white">
 
       {/* ── Miga de pan ────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-5 pb-0">
+      <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pt-5 pb-0">
         <nav className="flex items-center gap-1 text-xs text-stone-400 flex-wrap">
           <Link href="/" className="flex items-center gap-1 hover:text-stone-700 transition-colors">
             <Home size={12} /> Inicio
@@ -99,7 +117,7 @@ export default async function BlogIndex({
       </div>
 
       {/* ── Encabezado ─────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-6">
+      <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pt-6 pb-6">
         <div className="flex items-center gap-2 justify-center mb-4">
           <span className="text-2xl">🌿</span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-wide text-center" style={{ color: '#0D261B' }}>
@@ -121,7 +139,7 @@ export default async function BlogIndex({
 
       {/* ── Artículo destacado ──────────────────────────────────────────── */}
       {showFeatured && featured && (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-10">
+        <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 mb-10">
           <Link
             href={`/blog/${featured.slug}`}
             className="group flex flex-col sm:flex-row rounded-2xl overflow-hidden border border-stone-100 hover:shadow-lg transition-shadow bg-white sm:h-72"
@@ -158,14 +176,14 @@ export default async function BlogIndex({
       )}
 
       {/* ── Grid de artículos ─────────────────────────────────────────── */}
-      <div id="articulos" className="max-w-5xl mx-auto px-4 sm:px-6 pb-14">
+      <div id="articulos" className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pb-14">
         {grid.length > 0 && (
           <div className={[
             'grid gap-4 mb-10',
             grid.length === 1 ? 'grid-cols-1 max-w-sm' :
-            grid.length === 2 ? 'grid-cols-2 max-w-xl' :
-            grid.length === 3 ? 'grid-cols-3' :
-            'grid-cols-2 lg:grid-cols-4',
+            grid.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl' :
+            grid.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
           ].join(' ')}>
             {grid.map((post) => {
               const img = post._embedded?.['wp:featuredmedia']?.[0]?.source_url
@@ -177,7 +195,7 @@ export default async function BlogIndex({
                   className="group flex flex-col rounded-xl overflow-hidden border border-stone-100 hover:shadow-md transition-shadow bg-white"
                 >
                   {/* Imagen */}
-                  <div className="relative h-36 overflow-hidden bg-stone-200 shrink-0">
+                  <div className="relative h-44 sm:h-40 lg:h-48 overflow-hidden bg-stone-200 shrink-0">
                     {img
                       ? <img src={img} alt={stripHtml(post.title.rendered)} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       : <div className="w-full h-full flex items-center justify-center text-3xl bg-emerald-50">🏕️</div>
@@ -204,7 +222,7 @@ export default async function BlogIndex({
         )}
 
         {/* ── Paginación ──────────────────────────────────────────────── */}
-        {totalPages > 1 && (
+        {effectiveTotalPages > 1 && (
           <nav className="flex items-center justify-center gap-1" aria-label="Paginación">
             {currentPage > 1
               ? <Link href={`/blog?page=${currentPage - 1}`} className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors">← Anterior</Link>
@@ -222,14 +240,14 @@ export default async function BlogIndex({
                   ? <span key={p} className="w-9 h-9 flex items-center justify-center text-sm font-semibold bg-emerald-600 text-white rounded-lg">{p}</span>
                   : <Link key={p} href={`/blog?page=${p}`} className="w-9 h-9 flex items-center justify-center text-sm text-stone-600 hover:bg-stone-100 rounded-lg">{p}</Link>
               ))}
-              {end < totalPages && (
+              {end < effectiveTotalPages && (
                 <>
-                  {end < totalPages - 1 && <span className="text-stone-400 px-1">…</span>}
-                  <Link href={`/blog?page=${totalPages}`} className="w-9 h-9 flex items-center justify-center text-sm text-stone-600 hover:bg-stone-100 rounded-lg">{totalPages}</Link>
+                  {end < effectiveTotalPages - 1 && <span className="text-stone-400 px-1">…</span>}
+                  <Link href={`/blog?page=${effectiveTotalPages}`} className="w-9 h-9 flex items-center justify-center text-sm text-stone-600 hover:bg-stone-100 rounded-lg">{effectiveTotalPages}</Link>
                 </>
               )}
             </div>
-            {currentPage < totalPages
+            {currentPage < effectiveTotalPages
               ? <Link href={`/blog?page=${currentPage + 1}`} className="px-4 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors">Siguiente →</Link>
               : <span className="px-4 py-2 text-sm text-stone-300">Siguiente →</span>
             }
