@@ -1,30 +1,15 @@
-up to date, audited 459 packages in 1s
+led to compile.
 Menu
-154 packages are looking for funding
-  run `npm fund` for details
-4 vulnerabilities (2 moderate, 2 high)
-To address issues that do not require attention, run:
-  npm audit fix
-To address all issues, run:
-  npm audit fix --force
-Run `npm audit` for details.
-> frontglamperos2026@0.1.0 build
-> next build
-▲ Next.js 16.1.6 (Turbopack)
-  Creating an optimized production build ...
-✓ Compiled successfully in 13.7s
-  Running TypeScript ...
-Failed to compile.
-./app/glamping/[id]/reservar/page.tsx:220:39
-Type error: Conversion of type 'Glamping' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-  Index signature for type 'string' is missing in type 'Glamping'.
-  218 |
-  219 |   const totalBase         = tipo === 'PASADIA'
-> 220 |     ? (fechaPasadia ? getPasadiaPrice(glamping as Record<string, unknown>, fechaPasadia) : 0)
-      |                                       ^
-  221 |     : (cotizacion ? cotizacion.total + precioMascota : 0)
-  222 |   const totalWompi        = Math.round(totalBase * 1.05)
-  223 |   const totalMostrar      = metodoPago === 'wompi' ? totalWompi : totalBase
+./app/admin/glampings/page.tsx:463:71
+Type error: Type '{ size: number; className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
+  Property 'title' does not exist on type 'IntrinsicAttributes & Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>'.
+  461 |                       <span className="text-xs truncate">{g.ciudadDepartamento}</span>
+  462 |                       {g.ubicacion ? (
+> 463 |                         <MapPin size={12} className="text-brand ml-1" title="Con coordenadas" />
+      |                                                                       ^
+  464 |                       ) : (
+  465 |                         <MapPinOff size={12} className="text-amber-500 ml-1" title="Sin coordenadas" />
+  466 |                       )}
 Next.js build worker exited with code: 1 and signal: null
 ==> Build failed 😞
 ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

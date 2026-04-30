@@ -460,9 +460,9 @@ export default function AdminGlampingsPage() {
                       <MapPin size={11} />
                       <span className="text-xs truncate">{g.ciudadDepartamento}</span>
                       {g.ubicacion ? (
-                        <MapPin size={12} className="text-brand ml-1" title="Con coordenadas" />
+                        <span title="Con coordenadas"><MapPin size={12} className="text-brand ml-1" /></span>
                       ) : (
-                        <MapPinOff size={12} className="text-amber-500 ml-1" title="Sin coordenadas" />
+                        <span title="Sin coordenadas"><MapPinOff size={12} className="text-amber-500 ml-1" /></span>
                       )}
                     </div>
                     <p className="text-sm font-semibold text-stone-800 mt-0.5">{formatCOP(g.precioNoche)}<span className="text-xs font-normal text-stone-400">/noche</span></p>
