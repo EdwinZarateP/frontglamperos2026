@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoNuevoGlamperos.ico', sizes: '48x48' },
+      { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg', sizes: '48x48' },
       { url: '/icon.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
@@ -114,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Favicon - Google Cloud Storage */}
         <link
           rel="icon"
-          href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoNuevoGlamperos.ico"
+          href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg"
           type="image/x-icon"
         />
 
