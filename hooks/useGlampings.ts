@@ -28,7 +28,8 @@ export function useGlampingsHome(filtros: FiltrosHome, enabled = true) {
       const { data } = await api.get('/glampings/home', { params })
       return data
     },
-    staleTime: 60_000,
+    staleTime: 5 * 60_000, // 5 minutos - reduce refetches automáticos
+    gcTime: 10 * 60_000, // 10 minutos - mantiene datos en caché más tiempo
     placeholderData: keepPreviousData, // evita flash de "sin resultados" entre filtros
     enabled,
   })
