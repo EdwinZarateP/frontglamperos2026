@@ -180,10 +180,10 @@ export default async function BlogIndex({
         {grid.length > 0 && (
           <div className={[
             'grid gap-4 mb-10',
-            grid.length === 1 ? 'grid-cols-1 max-w-sm' :
-            grid.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl' :
+            grid.length === 1 ? 'grid-cols-1 max-w-md' :
+            grid.length === 2 ? 'grid-cols-1 sm:grid-cols-2' :
             grid.length === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
-            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+            'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
           ].join(' ')}>
             {grid.map((post) => {
               const img = post._embedded?.['wp:featuredmedia']?.[0]?.source_url
