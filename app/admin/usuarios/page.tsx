@@ -31,6 +31,10 @@ interface Glamping {
   id?: string
   _id?: string
   nombreGlamping: string
+  propietario?: {
+    nombre?: string
+    email?: string
+  }
 }
 
 const ROL_COLOR: Record<string, string> = {
@@ -97,6 +101,7 @@ export default function AdminUsuariosPage() {
 
   const [busqueda, setBusqueda] = useState('')
   const [editando, setEditando] = useState<Usuario | null>(null)
+  const [busquedaGlamping, setBusquedaGlamping] = useState('')
   const [form, setForm] = useState({
     nombre: '', indicativo: '+57', telefonoNumero: '', rol: '', glampingId: '',
     tipoDocumento: '', numeroDocumento: '', nombreTitular: '',
@@ -108,11 +113,15 @@ export default function AdminUsuariosPage() {
     queryFn: async () => (await api.get('/usuarios/todos/lista')).data,
   })
 
-  const { data: misGlampings = [] } = useQuery<Glamping[]>({
-    queryKey: ['admin-mis-glampings'],
-    queryFn: async () => (await api.get(`/glampings/por_propietario/${adminId}`)).data,
-    enabled: !!adminId,
+  const { data: todosGlampings = [] } = useQuery<Glamping[]>({
+    queryKey: ['admin-todos-glampings'],
+    queryFn: async () => (await api.get('/glampings/todos/admin-detalle')).data,
   })
+
+  const glampingsFiltrados = todosGlampings.filter((g: any) =>
+    g.nombreGlamping?.toLowerCase().includes(busquedaGlamping.toLowerCase()) ||
+    g.propietario?.nombre?.toLowerCase().includes(busquedaGlamping.toLowerCase())
+  )
 
   const uid = (u: Usuario) => u.id ?? u._id ?? ''
 
@@ -311,13 +320,24 @@ export default function AdminUsuariosPage() {
             )}
 
             {/* Asignar glamping */}
-            {misGlampings.length > 0 && (
+            {esAnfitrion && (
               <div className="space-y-2 pt-4 border-t border-stone-100">
                 <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">Asignar glamping</p>
+                <input
+                  value={busquedaGlamping}
+                  onChange={(e) => setBusquedaGlamping(e.target.value)}
+                  placeholder="Buscar glamping por nombre o propietario..."
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
+                />
                 {sel('Glamping', form.glampingId, set('glampingId'),
-                  misGlampings.map((g, gi) => ({ value: g.id ?? g._id ?? String(gi), label: g.nombreGlamping }))
+                  glampingsFiltrados.map((g: any) => ({
+                    value: g._id || g.id,
+                    label: `${g.nombreGlamping}${g.propietario?.nombre ? ` (${g.propietario.nombre})` : ''}`
+                  }))
                 )}
-                <p className="text-[11px] text-stone-400">Al asignar, el usuario se convierte en anfitrión automáticamente.</p>
+                <p className="text-[11px] text-stone-400">
+                  {glampingsFiltrados.length} glamping(s) encontrado(s) · Al asignar, el usuario se convierte en anfitrión automáticamente.
+                </p>
               </div>
             )}
 
