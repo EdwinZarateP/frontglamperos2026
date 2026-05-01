@@ -1,13 +1,119 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { Pencil, X } from 'lucide-react'
+import { Pencil, X, Trash2, Plus, ChevronDown } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import toast from 'react-hot-toast'
+
+// Autocomplete component
+interface AutocompleteOption {
+  value: string
+  label: string
+}
+
+interface GlampingAutocompleteProps {
+  options: AutocompleteOption[]
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  excludedIds?: string[]
+}
+
+function GlampingAutocomplete({ options, value, onChange, placeholder = "Buscar glamping...", excludedIds = [] }: GlampingAutocompleteProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Filtrar opciones excluidas y por búsqueda
+  const filteredOptions = options.filter((opt) => {
+    if (excludedIds.includes(opt.value)) return false
+    return opt.label.toLowerCase().includes(search.toLowerCase())
+  })
+
+  const selectedOption = options.find((opt) => opt.value === value)
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue)
+    setIsOpen(false)
+    setSearch('')
+  }
+
+  const handleClear = () => {
+    onChange('')
+    setSearch('')
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <input
+          type="text"
+          value={isOpen ? search : (selectedOption?.label || '')}
+          onChange={(e) => setSearch(e.target.value)}
+          onFocus={() => setIsOpen(true)}
+          placeholder={placeholder}
+          className="w-full rounded-xl border border-stone-300 px-3 py-2 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
+        />
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {value && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-1 rounded-full hover:bg-stone-100 text-stone-400"
+          >
+            <ChevronDown size={14} />
+          </button>
+        </div>
+      </div>
+
+      {isOpen && filteredOptions.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-stone-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          {filteredOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleSelect(option.value)}
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 transition-colors ${
+                option.value === value ? 'bg-emerald-100 text-brand font-medium' : 'text-stone-700'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {isOpen && filteredOptions.length === 0 && search && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-stone-300 rounded-xl shadow-lg p-3 text-center text-sm text-stone-400">
+          No se encontraron resultados
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface Usuario {
   id?: string
@@ -35,6 +141,8 @@ interface Glamping {
     nombre?: string
     email?: string
   }
+  ciudadDepartamento?: string
+  propietarioId?: string
 }
 
 const ROL_COLOR: Record<string, string> = {
@@ -101,7 +209,6 @@ export default function AdminUsuariosPage() {
 
   const [busqueda, setBusqueda] = useState('')
   const [editando, setEditando] = useState<Usuario | null>(null)
-  const [busquedaGlamping, setBusquedaGlamping] = useState('')
   const [form, setForm] = useState({
     nombre: '', indicativo: '+57', telefonoNumero: '', rol: '', glampingId: '',
     tipoDocumento: '', numeroDocumento: '', nombreTitular: '',
@@ -118,10 +225,19 @@ export default function AdminUsuariosPage() {
     queryFn: async () => (await api.get('/glampings/todos/admin-detalle')).data,
   })
 
-  const glampingsFiltrados = todosGlampings.filter((g: any) =>
-    g.nombreGlamping?.toLowerCase().includes(busquedaGlamping.toLowerCase()) ||
-    g.propietario?.nombre?.toLowerCase().includes(busquedaGlamping.toLowerCase())
-  )
+  // Glampings del usuario que se está editando
+  const { data: glampingsUsuario = [], isLoading: isLoadingGlampings, refetch: refetchGlampings } = useQuery<Glamping[]>({
+    queryKey: ['admin-usuario-glampings', editando?._id || editando?.id, form.glampingId],
+    queryFn: async () => {
+      if (!editando) return []
+      const id = uid(editando)
+      console.log('[DEBUG] Cargando glampings del usuario:', id)
+      const data = (await api.get(`/glampings/por_propietario/${id}`)).data
+      console.log('[DEBUG] Glampings cargados:', data.length, data)
+      return data
+    },
+    enabled: !!editando && (editando.rol === 'anfitrion' || editando.rol === 'admin'),
+  })
 
   const uid = (u: Usuario) => u.id ?? u._id ?? ''
 
@@ -143,6 +259,37 @@ export default function AdminUsuariosPage() {
     })
   }
 
+  const cerrarModal = () => {
+    setEditando(null)
+  }
+
+  const agregarGlamping = useMutation({
+    mutationFn: async (glampingId: string) => {
+      if (!editando) return
+      const usuarioId = uid(editando)
+      await api.put(`/glampings/${glampingId}/propietario`, null, {
+        params: { nuevo_propietario_id: usuarioId },
+      })
+    },
+    onSuccess: () => {
+      toast.success('Glamping asignado correctamente')
+      setForm((f) => ({ ...f, glampingId: '' }))
+      refetchGlampings()
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
+  const quitarGlamping = useMutation({
+    mutationFn: async (glampingId: string) => {
+      await api.delete(`/glampings/${glampingId}/anfitriones/${uid(editando!)}`)
+    },
+    onSuccess: () => {
+      toast.success('Glamping removido')
+      refetchGlampings()
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
   const set = (key: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [key]: v }))
 
   const guardar = useMutation({
@@ -160,11 +307,7 @@ export default function AdminUsuariosPage() {
       if (form.rol !== editando.rol) {
         ps.push(api.put(`/usuarios/${id}/rol`, { rol: form.rol }))
       }
-      if (form.glampingId) {
-        ps.push(api.put(`/glampings/${form.glampingId}/propietario`, null, {
-          params: { nuevo_propietario_id: id },
-        }))
-      }
+      // Nota: La asignación de glampings ahora se hace por separado con el botón "Asignar"
       // Medios de pago
       const pagoFields = ['tipoDocumento','numeroDocumento','nombreTitular','banco','numeroCuenta','tipoCuenta'] as const
       const pagoChanged = pagoFields.some((k) => form[k] !== (editando[k] ?? ''))
@@ -178,7 +321,7 @@ export default function AdminUsuariosPage() {
     },
     onSuccess: () => {
       toast.success('Usuario actualizado')
-      setEditando(null)
+      cerrarModal()
       refetch()
     },
     onError: (e) => toast.error(getErrorMessage(e)),
@@ -250,12 +393,12 @@ export default function AdminUsuariosPage() {
       {/* Modal */}
       {editando && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) setEditando(null) }}>
+          onClick={(e) => { if (e.target === e.currentTarget) cerrarModal() }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5">
 
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-stone-900">Editar usuario</h3>
-              <button onClick={() => setEditando(null)} className="p-1 rounded-lg hover:bg-stone-100"><X size={18} /></button>
+              <button onClick={() => cerrarModal()} className="p-1 rounded-lg hover:bg-stone-100"><X size={18} /></button>
             </div>
 
             <p className="text-xs text-stone-400 -mt-2">{editando.email}</p>
@@ -319,24 +462,94 @@ export default function AdminUsuariosPage() {
               </div>
             )}
 
-            {/* Asignar glamping */}
+            {/* Glampings del anfitrión */}
             {esAnfitrion && (
-              <div className="space-y-2 pt-4 border-t border-stone-100">
-                <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">Asignar glamping</p>
-                <input
-                  value={busquedaGlamping}
-                  onChange={(e) => setBusquedaGlamping(e.target.value)}
-                  placeholder="Buscar glamping por nombre o propietario..."
-                  className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-white"
-                />
-                {sel('Glamping', form.glampingId, set('glampingId'),
-                  glampingsFiltrados.map((g: any) => ({
-                    value: g._id || g.id,
-                    label: `${g.nombreGlamping}${g.propietario?.nombre ? ` (${g.propietario.nombre})` : ''}`
-                  }))
+              <div className="space-y-3 pt-4 border-t border-stone-100">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide">
+                    Glampings del anfitrión ({glampingsUsuario.length})
+                  </p>
+                </div>
+
+                {/* Lista de glampings actuales */}
+                {isLoadingGlampings ? (
+                  <div className="flex justify-center py-4">
+                    <Spinner />
+                  </div>
+                ) : glampingsUsuario.length > 0 ? (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {glampingsUsuario.map((g: any) => {
+                      const esPropietarioPrincipal = g.propietarioId === uid(editando!)
+                      return (
+                        <div
+                          key={g._id || g.id}
+                          className={`flex items-center justify-between p-2 rounded-lg border ${
+                            esPropietarioPrincipal
+                              ? 'bg-brand/10 border-brand/30'
+                              : 'bg-stone-50 border-stone-200'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-stone-800 truncate">{g.nombreGlamping}</p>
+                              {esPropietarioPrincipal && (
+                                <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full">Propietario</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-stone-500 truncate">{g.ciudadDepartamento || ''}</p>
+                          </div>
+                          {!esPropietarioPrincipal ? (
+                            <button
+                              onClick={() => quitarGlamping.mutate(g._id || g.id || '')}
+                              className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              title="Quitar como co-anfitrión"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-stone-400 italic">No se puede quitar</span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-stone-400 bg-stone-50 rounded-lg">
+                    Este usuario no tiene glampings asignados aún
+                  </div>
                 )}
-                <p className="text-[11px] text-stone-400">
-                  {glampingsFiltrados.length} glamping(s) encontrado(s) · Al asignar, el usuario se convierte en anfitrión automáticamente.
+
+                {/* Agregar nuevo glamping */}
+                <div className="space-y-2 pt-2 border-t border-stone-200">
+                  <p className="text-xs font-medium text-stone-600">Agregar un nuevo glamping:</p>
+                  <GlampingAutocomplete
+                    options={todosGlampings.map((g: any) => ({
+                      value: g._id || g.id,
+                      label: `${g.nombreGlamping}${g.propietario?.nombre ? ` (Actual: ${g.propietario.nombre})` : ''}`
+                    }))}
+                    value={form.glampingId}
+                    onChange={set('glampingId')}
+                    placeholder="Escribe para buscar glamping..."
+                    excludedIds={glampingsUsuario.map((g: any) => g._id || g.id)}
+                  />
+                  {form.glampingId && (
+                    <Button
+                      onClick={() => agregarGlamping.mutate(form.glampingId)}
+                      loading={agregarGlamping.isPending}
+                      variant="brand"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Plus size={14} className="mr-1" />
+                      Asignar glamping seleccionado
+                    </Button>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-stone-400 italic">
+                  Este anfitrión tiene {glampingsUsuario.length} glamping(s) asignado(s).
+                  {glampingsUsuario.some((g: any) => g.propietarioId === uid(editando!)) &&
+                    ' · El propietario principal debe transferirse a otro usuario para ser removido.'}
                 </p>
               </div>
             )}
