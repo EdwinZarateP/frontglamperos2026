@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useAuthStore, useIsAdmin } from '@/store/authStore'
 
-const DEFAULT_NUMBER = '573215658594'
+const DEFAULT_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER || '573215658594'
 
 export function WhatsAppFloatingButton() {
   const pathname = usePathname()
