@@ -157,7 +157,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
         window.location.href = `${apiUrl}/pagos/wompi/checkout/${reserva._id}?porcentaje=${porcentaje}`
       } else {
         toast.success('¡Solicitud enviada! Recibirás confirmación por email')
-        router.push(`/mis-reservas?nueva=${reserva._id}`)
+        router.push(`/gracias?reserva=${reserva._id}&metodo=transferencia`)
       }
     },
     onError: (err) => toast.error(getErrorMessage(err)),

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Star, MapPin, Users, Dog, Clock, ChevronLeft, Calendar,
+  Star, MapPin, Users, Clock, ChevronLeft, Calendar,
   Heart, Share2, CheckCircle, Youtube, Play, X, Copy,
   Plus, XCircle
 } from 'lucide-react'
@@ -58,7 +58,6 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [huespedes, setHuespedes] = useState(2)
-  const [cantidadMascotas, setCantidadMascotas] = useState(0)
   const [extrasSeleccionados, setExtrasSeleccionados] = useState<string[]>([])
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
@@ -195,11 +194,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     const factor = 1.16
     return Math.round(precioAdic * adicionales * factor * noches)
   })()
-  // Buscar el extra de mascota con cálculo correcto (× 1.10 + redondeo a miles como el backend)
-  const mascotaExtra = glamping.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
-  const precioMascotaUnitario = mascotaExtra?.precio ? Math.ceil(mascotaExtra.precio * 1.10 / 1000) * 1000 : 0
-  const precioMascota = cantidadMascotas > 0 && noches > 0 ? precioMascotaUnitario * cantidadMascotas * noches : 0
-  const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional + precioMascota
+  const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional
   
   // Calcular el precio por noche dinámico basado en todo lo seleccionado
   const precioPorNocheDinamico = noches > 0 && fechaInicio && fechaFin
@@ -227,7 +222,6 @@ export function GlampingDetailClient({ glamping }: Props) {
       if (fechaInicio) reservarParams.set('fechaInicio', fechaInicio)
       if (fechaFin) reservarParams.set('fechaFin', fechaFin)
       reservarParams.set('huespedes', String(huespedes))
-      if (cantidadMascotas > 0) reservarParams.set('mascotas', String(cantidadMascotas))
       if (extrasSeleccionados.length > 0) reservarParams.set('extras', extrasSeleccionados.join(','))
       const qs = reservarParams.toString()
       const destino = `/glamping/${glamping._id}/reservar${qs ? `?${qs}` : ''}`
@@ -243,7 +237,6 @@ export function GlampingDetailClient({ glamping }: Props) {
       fechaFin,
       huespedes: String(huespedes),
       extras: extrasSeleccionados.join(','),
-      mascotas: String(cantidadMascotas),
     })
     router.push(`/glamping/${glamping._id}/reservar?${params}`)
   }
@@ -879,15 +872,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                       <span className="font-medium text-stone-900">{huespedes}</span>
                     </div>
                   )}
-                  {fechaInicio && fechaFin && glamping.aceptaMascotas && (
-                    <div
-                      className="flex justify-between items-center cursor-pointer hover:bg-stone-100 rounded-lg p-2 -mx-2 transition-colors"
-                      onClick={() => setShowReservationModal(true)}
-                    >
-                      <span className="text-stone-600">Mascotas</span>
-                      <span className="font-medium text-stone-900">{cantidadMascotas}</span>
-                    </div>
-                  )}
                   {extrasSeleccionados.length > 0 && (
                     <div className="space-y-1">
                       {extrasSeleccionados.map(key => {
@@ -1030,44 +1014,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                   </div>
                 </div>
 
-                {/* Mascotas */}
-                {glamping.aceptaMascotas && (
-                  <div>
-                    <label className="text-sm font-medium text-stone-700 mb-2 block">Mascotas</label>
-                    <div className="flex items-center justify-between bg-stone-50 rounded-xl p-3 sm:p-4">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <Dog size={20} className="text-brand sm:hidden" />
-                        <Dog size={24} className="text-brand hidden sm:block" />
-                        <div>
-                          <p className="font-medium text-stone-800 text-sm sm:text-base">Mascotas</p>
-                          {precioMascotaUnitario > 0 && (
-                            <p className="text-xs text-stone-500">{formatCOP(precioMascotaUnitario)} / mascota / noche</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setCantidadMascotas((v) => Math.max(0, v - 1))}
-                          disabled={cantidadMascotas === 0}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="text-xl sm:text-2xl font-bold text-stone-900 w-12 sm:w-16 text-center">{cantidadMascotas}</span>
-                        <button
-                          type="button"
-                          onClick={() => setCantidadMascotas((v) => Math.min(2, v + 1))}
-                          disabled={cantidadMascotas >= 2}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Extras */}
                 {glamping.extras?.filter((e) => e.disponible).length > 0 && (
                   <div>
@@ -1135,17 +1081,6 @@ export function GlampingDetailClient({ glamping }: Props) {
                         </div>
                         <div className="text-right text-xs text-stone-400">
                           {formatCOP(Math.round(precioAdicional / noches))} / noche
-                        </div>
-                      </div>
-                    )}
-                    {precioMascota > 0 && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-stone-600">🐾 {cantidadMascotas === 1 ? '1 mascota' : `${cantidadMascotas} mascotas`} ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
-                          <span className="font-semibold text-stone-900">{formatCOP(precioMascota)}</span>
-                        </div>
-                        <div className="text-right text-xs text-stone-400">
-                          {formatCOP(Math.round(precioMascota / noches))} / noche
                         </div>
                       </div>
                     )}
