@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Star, MapPin, Users, Clock, ChevronLeft, Calendar,
+  Star, MapPin, Users, Dog, Clock, ChevronLeft, Calendar,
   Heart, Share2, CheckCircle, Youtube, Play, X, Copy,
   Plus, XCircle
 } from 'lucide-react'
@@ -58,6 +58,7 @@ export function GlampingDetailClient({ glamping }: Props) {
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [huespedes, setHuespedes] = useState(2)
+  const [cantidadMascotas, setCantidadMascotas] = useState(0)
   const [extrasSeleccionados, setExtrasSeleccionados] = useState<string[]>([])
   const [showAllAmenidades, setShowAllAmenidades] = useState(false)
   const [showVideo, setShowVideo] = useState(false)
@@ -194,7 +195,15 @@ export function GlampingDetailClient({ glamping }: Props) {
     const factor = 1.16
     return Math.round(precioAdic * adicionales * factor * noches)
   })()
-  const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional
+
+  // Cálculo de mascota (SOLO desde servicio extra)
+  const extraMascota = glamping.extras?.find(e => e.key === 'mascotaAdicional')
+  const precioMascotaUnitario = extraMascota?.precioPublico ?? 0
+  const precioMascota = cantidadMascotas > 0 && glamping.aceptaMascotas && precioMascotaUnitario > 0
+    ? precioMascotaUnitario * cantidadMascotas * noches
+    : 0
+
+  const totalFinal = (cotizacionDisplay?.precioTotal ?? 0) + precioAdicional + precioMascota
   
   // Calcular el precio por noche dinámico basado en todo lo seleccionado
   const precioPorNocheDinamico = noches > 0 && fechaInicio && fechaFin
@@ -223,6 +232,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       if (fechaFin) reservarParams.set('fechaFin', fechaFin)
       reservarParams.set('huespedes', String(huespedes))
       if (extrasSeleccionados.length > 0) reservarParams.set('extras', extrasSeleccionados.join(','))
+      if (cantidadMascotas > 0) reservarParams.set('mascotas', String(cantidadMascotas))
       const qs = reservarParams.toString()
       const destino = `/glamping/${glamping._id}/reservar${qs ? `?${qs}` : ''}`
       router.push(`/auth/login?redirect=${encodeURIComponent(destino)}`)
@@ -237,6 +247,7 @@ export function GlampingDetailClient({ glamping }: Props) {
       fechaFin,
       huespedes: String(huespedes),
       extras: extrasSeleccionados.join(','),
+      mascotas: String(cantidadMascotas),
     })
     router.push(`/glamping/${glamping._id}/reservar?${params}`)
   }
@@ -290,7 +301,21 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
     lines.push('')
 
-    const extrasDisponibles = sortExtras(glamping.extras?.filter((e) => e.disponible) ?? [])
+    // Mascotas
+    if (glamping.aceptaMascotas) {
+      lines.push('🐕 *Mascotas:* bienvenidas')
+      const precioMascota = glamping.extras?.find(e => e.key === 'mascotaAdicional')?.precioPublico ?? 0
+      if (precioMascota > 0) {
+        lines.push(`💰 Cargo por mascota: ${formatCOP(precioMascota)}/noche`)
+      }
+    } else {
+      lines.push('🚫 *Mascotas:* no permitidas')
+    }
+    lines.push('')
+
+    const extrasDisponibles = sortExtras(glamping.extras?.filter((e) =>
+      e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'
+    ) ?? [])
     if (extrasDisponibles.length > 0) {
       lines.push('➕ *Extras disponibles (con costo adicional):*')
       for (const extra of extrasDisponibles) {
@@ -584,14 +609,32 @@ export function GlampingDetailClient({ glamping }: Props) {
             </p>
           </div>
 
+          {/* Mascotas */}
+          {glamping.aceptaMascotas && precioMascotaUnitario > 0 && (
+            <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">
+              <div className="flex items-start gap-3">
+                <Dog size={20} className="text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-emerald-800 mb-1">🐾 Aceptamos mascotas</h3>
+                  <p className="text-sm text-emerald-700">
+                    Bienvenidos tus peludos. El costo es de <strong>{formatCOP(precioMascotaUnitario)}</strong> por mascota por noche.
+                  </p>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    Máximo 3 mascotas. Por favor confirma disponibilidad al momento de reservar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Extras */}
-          {glamping.extras?.filter((e) => e.disponible).length > 0 && (
+          {glamping.extras?.filter((e) => e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional').length > 0 && (
             <div>
               <h2 className="text-lg font-semibold text-stone-900 mb-1">Servicios extras</h2>
               <p className="text-xs text-stone-400 mb-4">Con costo adicional</p>
               <div className="space-y-3">
                 {sortExtras(glamping.extras
-                  .filter((e) => e.disponible))
+                  .filter((e) => e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'))
                   .map((extra) => {
                     const selected = extrasSeleccionados.includes(extra.key)
                     return (
@@ -610,18 +653,18 @@ export function GlampingDetailClient({ glamping }: Props) {
                             : 'border-stone-200 hover:border-stone-300'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: selected ? 1 : 0 }}
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
                               selected ? 'border-brand bg-brand' : 'border-stone-300'
                             }`}
                           >
                             {selected && <CheckCircle size={12} className="text-white" />}
                           </motion.div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
                             <p className="text-xs text-stone-400">
                               {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
@@ -629,7 +672,7 @@ export function GlampingDetailClient({ glamping }: Props) {
                             </p>
                           </div>
                         </div>
-                        <span className="font-semibold text-stone-700 text-sm">
+                        <span className="font-semibold text-stone-700 text-sm shrink-0 ml-3">
                           {formatCOP(extra.precioPublico)}
                         </span>
                       </motion.div>
@@ -889,6 +932,12 @@ export function GlampingDetailClient({ glamping }: Props) {
                       })}
                     </div>
                   )}
+                  {cantidadMascotas > 0 && glamping.aceptaMascotas && precioMascotaUnitario > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-stone-600">🐾 {cantidadMascotas === 1 ? 'Mascota' : 'Mascotas'}</span>
+                      <span className="font-medium text-stone-900">{formatCOP(precioMascotaUnitario * cantidadMascotas)}</span>
+                    </div>
+                  )}
                   <hr className="border-stone-200" />
                   <div className="flex justify-between font-bold text-stone-900 text-base">
                     <span>{fechaInicio && fechaFin ? 'Total' : 'Estimado'}</span>
@@ -1014,13 +1063,53 @@ export function GlampingDetailClient({ glamping }: Props) {
                   </div>
                 </div>
 
+                {/* Mascotas */}
+                {glamping.aceptaMascotas && precioMascotaUnitario > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-stone-700 mb-2 block">Mascotas</label>
+                    <div className="flex items-center justify-between bg-stone-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Dog size={20} className="text-brand sm:hidden" />
+                        <Dog size={24} className="text-brand hidden sm:block" />
+                        <div>
+                          <p className="font-medium text-stone-800 text-sm sm:text-base">
+                            {cantidadMascotas === 1 ? 'Mascota' : 'Mascotas'}
+                          </p>
+                          <p className="text-xs text-stone-500">
+                            +{formatCOP(precioMascotaUnitario)} / mascota / noche
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setCantidadMascotas((c) => Math.max(0, c - 1))}
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-30"
+                          disabled={cantidadMascotas <= 0}
+                        >
+                          −
+                        </button>
+                        <span className="text-xl sm:text-2xl font-bold text-stone-900 w-12 sm:w-16 text-center">{cantidadMascotas}</span>
+                        <button
+                          type="button"
+                          onClick={() => setCantidadMascotas((c) => Math.min(3, c + 1))}
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-30"
+                          disabled={cantidadMascotas >= 3}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Extras */}
-                {glamping.extras?.filter((e) => e.disponible).length > 0 && (
+                {glamping.extras?.filter((e) => e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional').length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-stone-700 mb-3 block">Extras (opcionales)</label>
                     <div className="space-y-2">
                       {sortExtras(glamping.extras
-                        .filter((e) => e.disponible))
+                        .filter((e) => e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'))
                         .map((extra) => {
                           const selected = extrasSeleccionados.includes(extra.key)
                           return (
@@ -1033,21 +1122,21 @@ export function GlampingDetailClient({ glamping }: Props) {
                                   : 'border-stone-200 hover:border-stone-300'
                               }`}
                             >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
                                   selected ? 'border-brand bg-brand' : 'border-stone-300'
                                 }`}>
                                   {selected && <CheckCircle size={14} className="text-white" />}
                                 </div>
-                                <div className="text-left">
-                                  <p className="font-medium text-stone-800 text-sm">{extra.nombre}</p>
+                                <div className="text-left min-w-0">
+                                  <p className="font-medium text-stone-800 text-sm truncate">{extra.nombre}</p>
                                   <p className="text-xs text-stone-500">
                                     {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
                                     {extra.descripcion && ` · ${extra.descripcion}`}
                                   </p>
                                 </div>
                               </div>
-                              <span className="font-semibold text-stone-700 text-sm">
+                              <span className="font-semibold text-stone-700 text-sm shrink-0 ml-3">
                                 {formatCOP(extra.precioPublico)}
                               </span>
                             </button>
@@ -1081,6 +1170,17 @@ export function GlampingDetailClient({ glamping }: Props) {
                         </div>
                         <div className="text-right text-xs text-stone-400">
                           {formatCOP(Math.round(precioAdicional / noches))} / noche
+                        </div>
+                      </div>
+                    )}
+                    {precioMascota > 0 && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-stone-600">🐾 {cantidadMascotas === 1 ? '1 mascota' : `${cantidadMascotas} mascotas`} ({noches} {noches === 1 ? 'noche' : 'noches'})</span>
+                          <span className="font-semibold text-stone-900">{formatCOP(precioMascota)}</span>
+                        </div>
+                        <div className="text-right text-xs text-stone-400">
+                          {formatCOP(Math.round(precioMascota / noches))} / noche
                         </div>
                       </div>
                     )}

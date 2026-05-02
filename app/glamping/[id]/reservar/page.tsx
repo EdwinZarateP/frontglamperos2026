@@ -90,7 +90,6 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const [fechaPasadia, setFechaPasadia]     = useState(searchParams.get('fecha') || '')
   const [showCalendar, setShowCalendar]     = useState(!searchParams.get('fechaInicio'))
   const [showDetalles, setShowDetalles]     = useState(false)
-  const [tieneMascota, setTieneMascota]     = useState(false)
   const [metodoPago, setMetodoPago]         = useState<'transferencia' | 'wompi'>('transferencia')
   const [porcentajeAbono, setPorcentajeAbono] = useState<50 | 100 | null>(100)
   const [montoManual, setMontoManual]       = useState('')
@@ -112,6 +111,13 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const { register, handleSubmit, formState: { errors }, setValue, control } = useForm<FormData>({
     resolver: zodResolver(schema) as import('react-hook-form').Resolver<FormData>,
   })
+
+  // DEBUG TEMPORAL
+  useEffect(() => {
+    console.log('=== RENDER RESERVAR PAGE ===')
+    console.log('glamping:', glamping)
+    console.log('aceptaMascotas:', glamping?.aceptaMascotas)
+  }, [glamping])
 
   useEffect(() => {
     if (user) {
@@ -201,13 +207,19 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
 
   // ─── Derived values ────────────────────────────────────────────────────────
   const maxHuespedes      = glamping.cantidadHuespedes + (glamping.cantidadHuespedesAdicionales ?? 0)
-  const extrasDisponibles = glamping.extras?.filter((e) => e.disponible) ?? []
+  // Excluir personaAdicional (se maneja con el contador) y mascotaAdicional (se maneja con el toggle)
+  const extrasDisponibles = glamping.extras?.filter((e) =>
+    e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'
+  ) ?? []
   const precioDefecto     = precioMaxTarifas(glamping.tarifasNoche as Record<string, number> | undefined, glamping.precioNoche)
   const noches            = cotizacion?.noches ?? 0
-  // Buscar el extra de mascota con cálculo correcto (× 1.10 + redondeo a miles como el backend)
+  // Buscar el extra de mascota (precioPublico ya tiene el incremento del 10% calculado por el backend)
   const mascotaExtra = glamping.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
-  const precioMascotaUnitario = mascotaExtra?.precio ? Math.ceil(mascotaExtra.precio * 1.10 / 1000) * 1000 : 0
-  const precioMascota = tieneMascota && glamping.aceptaMascotas ? precioMascotaUnitario * Math.max(noches, 1) : 0
+  const precioMascotaUnitario = mascotaExtra?.precioPublico ?? 0
+
+  const precioMascota = cantidadMascotas > 0 && glamping.aceptaMascotas && precioMascotaUnitario > 0
+    ? precioMascotaUnitario * cantidadMascotas * Math.max(noches, 1)
+    : 0
   const hayFechas         = !!fechaInicio && !!fechaFin
   // Precios pasadía para la leyenda del calendario (con comisión Glamperos)
   const tarifasPasadia = glamping.tarifasPasadia as Record<string, number> | undefined
@@ -275,10 +287,12 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           <span className="text-stone-400">Huéspedes</span>
           <span className="font-medium">{huespedes}</span>
         </div>
-        {tieneMascota && (
+        {cantidadMascotas > 0 && (
           <div className="flex justify-between text-emerald-700">
-            <span className="flex items-center gap-1"><PawPrint size={12} /> Mascota</span>
-            <span className="font-medium">Incluida</span>
+            <span className="flex items-center gap-1">
+              <PawPrint size={12} /> {cantidadMascotas === 1 ? 'Mascota' : `${cantidadMascotas} mascotas`}
+            </span>
+            <span className="font-medium">{formatCOP(precioMascota / Math.max(noches, 1))} /noche</span>
           </div>
         )}
       </div>
@@ -595,7 +609,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                   <p className="text-xs text-stone-400 leading-none mb-0.5">Huéspedes</p>
                   <p className="text-sm font-medium text-stone-800">
                     {huespedes} {huespedes === 1 ? 'huésped' : 'huéspedes'}
-                    {glamping.aceptaMascotas && tieneMascota ? ' · 🐾 Con mascota' : ''}
+                    {glamping.aceptaMascotas && cantidadMascotas > 0 ? ` · 🐾 ${cantidadMascotas} ${cantidadMascotas === 1 ? 'mascota' : 'mascotas'}` : ''}
                   </p>
                 </div>
               </div>
@@ -637,22 +651,39 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                     <div className="flex items-center gap-2">
                       <PawPrint size={16} className="text-stone-500" />
                       <div>
-                        <p className="text-sm font-medium text-stone-800">¿Llevas mascota?</p>
-                        {precioMascotaUnitario > 0 && (
+                        <p className="text-sm font-medium text-stone-800">
+                          {cantidadMascotas === 1 ? 'Mascota' : 'Mascotas'}
+                        </p>
+                        {precioMascotaUnitario > 0 ? (
                           <p className="text-xs text-stone-400">
-                            +{formatCOP(precioMascotaUnitario)} / noche
+                            +{formatCOP(precioMascotaUnitario)} / mascota / noche
+                          </p>
+                        ) : (
+                          <p className="text-xs text-amber-500">
+                            Precio no configurado (contacta al anfitrión)
                           </p>
                         )}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setTieneMascota((v) => !v)}
-                      className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${tieneMascota ? 'bg-emerald-600' : 'bg-stone-200'}`}
-                      aria-label="Toggle mascota"
-                    >
-                      <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${tieneMascota ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setCantidadMascotas((c) => Math.max(0, c - 1))}
+                        className="w-9 h-9 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-700 hover:border-stone-600 text-lg font-light transition-colors disabled:opacity-40"
+                        disabled={cantidadMascotas <= 0}
+                      >
+                        −
+                      </button>
+                      <span className="font-semibold text-stone-900 w-5 text-center">{cantidadMascotas}</span>
+                      <button
+                        type="button"
+                        onClick={() => setCantidadMascotas((c) => Math.min(3, c + 1))}
+                        className="w-9 h-9 rounded-full border-2 border-stone-300 flex items-center justify-center text-stone-700 hover:border-stone-600 text-lg font-light transition-colors disabled:opacity-40"
+                        disabled={cantidadMascotas >= 3}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -682,13 +713,13 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                         selected ? 'border-emerald-500 bg-emerald-50' : 'border-stone-200 hover:border-stone-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
                           selected ? 'border-emerald-500 bg-emerald-500' : 'border-stone-300'
                         }`}>
-                          {selected && <CheckCircle size={11} className="text-white" />}
+                          {selected && <CheckCircle size={14} className="text-white" />}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-sm font-medium text-stone-800">{extra.nombre}</p>
                           <p className="text-xs text-stone-400">
                             {UNIDAD_LABELS[extra.unidad] ?? extra.unidad.replace(/_/g, ' ')}
