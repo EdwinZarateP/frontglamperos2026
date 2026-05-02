@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Spinner } from '@/components/ui/Spinner'
 
+// Force dynamic rendering - esta página no se pre-renderiza en el servidor
+export const dynamic = 'force-dynamic'
+
 export default function PagoResultadoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
