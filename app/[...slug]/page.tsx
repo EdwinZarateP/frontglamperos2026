@@ -78,8 +78,24 @@ export default async function SlugPage({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Inicio', item: SITE_URL },
-      { '@type': 'ListItem', position: 2, name: h1, item: `${SITE_URL}/${slug.join('/')}` },
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: {
+          '@id': SITE_URL,
+          'name': 'Inicio',
+        },
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: h1,
+        item: {
+          '@id': `${SITE_URL}/${slug.join('/')}`,
+          'name': h1,
+        },
+      },
     ],
   }
 

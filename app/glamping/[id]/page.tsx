@@ -113,19 +113,28 @@ export default async function GlampingPage({
         '@type': 'ListItem',
         position: 1,
         name: 'Inicio',
-        item: SITE_URL,
+        item: {
+          '@id': SITE_URL,
+          'name': 'Inicio',
+        },
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: glamping.ciudadDepartamento,
-        item: `${SITE_URL}/?ciudad=${encodeURIComponent(glamping.ciudadDepartamento)}`,
+        item: {
+          '@id': `${SITE_URL}/?ciudad=${encodeURIComponent(glamping.ciudadDepartamento)}`,
+          'name': glamping.ciudadDepartamento,
+        },
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: glamping.nombreGlamping,
-        item: glampingUrl,
+        item: {
+          '@id': glampingUrl,
+          'name': glamping.nombreGlamping,
+        },
       },
     ],
   }

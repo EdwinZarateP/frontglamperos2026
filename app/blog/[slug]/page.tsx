@@ -89,11 +89,49 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: {
+          '@id': SITE_URL,
+          'name': 'Inicio',
+        },
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: {
+          '@id': `${SITE_URL}/blog`,
+          'name': 'Blog',
+        },
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: stripHtml(post.title?.rendered),
+        item: {
+          '@id': `${SITE_URL}/blog/${slug}`,
+          'name': stripHtml(post.title?.rendered),
+        },
+      },
+    ],
+  }
+
   return (
     <>
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+    />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
     />
     <div className="min-h-screen bg-white">
 
