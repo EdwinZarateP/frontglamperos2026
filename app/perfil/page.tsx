@@ -146,9 +146,16 @@ export default function PerfilPage() {
             </select>
             <input
               type="tel"
+              maxLength={10}
               placeholder="3001234567"
               className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-              {...register('telefonoNumero')}
+              {...register('telefonoNumero', {
+                onChange: (e) => {
+                  // Solo permitir números
+                  const value = e.target.value.replace(/[^\d]/g, '')
+                  e.target.value = value
+                }
+              })}
             />
           </div>
         </div>
@@ -189,9 +196,18 @@ export default function PerfilPage() {
             </div>
             <Input
               label="Número de documento *"
+              type="tel"
+              maxLength={10}
               placeholder="1234567890"
               error={errorsPagos.numeroDocumento?.message}
-              {...regPagos('numeroDocumento', { required: 'Obligatorio' })}
+              {...regPagos('numeroDocumento', {
+                required: 'Obligatorio',
+                onChange: (e) => {
+                  // Solo permitir números
+                  const value = e.target.value.replace(/[^\d]/g, '')
+                  e.target.value = value
+                }
+              })}
             />
           </div>
 

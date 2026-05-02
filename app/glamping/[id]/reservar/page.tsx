@@ -28,8 +28,14 @@ import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
 // ─── Schema ──────────────────────────────────────────────────────────────────
 const schema = z.object({
   nombreTitular: z.string().min(3, 'Nombre requerido'),
-  cedulaTitular: z.string().min(5, 'Cédula requerida'),
-  celularTitular: z.string().min(10, 'Celular requerido'),
+  cedulaTitular: z.string()
+    .min(5, 'Cédula/Pasaporte debe tener al menos 5 dígitos')
+    .max(10, 'Cédula/Pasaporte no puede tener más de 10 dígitos')
+    .refine(val => /^\d+$/.test(val), 'Solo se permiten números'),
+  celularTitular: z.string()
+    .min(10, 'Celular debe tener al menos 10 dígitos')
+    .max(14, 'Celular no puede tener más de 14 caracteres (incluyendo código de país)')
+    .refine(val => /^\+?\d{10,14}$/.test(val.replace(/\s/g, '')), 'Formato de celular inválido'),
   emailTitular: z.string().email('Email inválido'),
   notasEspeciales: z.string().optional(),
 })
@@ -432,9 +438,17 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
               />
               <Input
                 label="Cédula / Pasaporte"
+                type="tel"
+                maxLength={10}
                 placeholder="1020215062"
                 error={errors.cedulaTitular?.message}
-                {...register('cedulaTitular')}
+                {...register('cedulaTitular', {
+                  onChange: (e) => {
+                    // Solo permitir números
+                    const value = e.target.value.replace(/[^\d]/g, '')
+                    e.target.value = value
+                  }
+                })}
               />
               <Controller
                 name="celularTitular"
@@ -478,9 +492,15 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                       onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, nombreCompleto: e.target.value } : x))}
                     />
                     <Input
-                      placeholder="+573001234567"
+                      type="tel"
+                      placeholder="3001234567"
+                      maxLength={10}
                       value={a.telefono}
-                      onChange={(e) => setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, telefono: e.target.value } : x))}
+                      onChange={(e) => {
+                        // Solo permitir números
+                        const value = e.target.value.replace(/[^\d]/g, '')
+                        setAcompanantes((prev) => prev.map((x, idx) => idx === i ? { ...x, telefono: value } : x))
+                      }}
                     />
                   </div>
                   <button

@@ -177,12 +177,20 @@ const BANCOS = [
   'Nequi', 'Daviplata', 'Movii', 'Rappipay',
 ]
 
-const field = (label: string, value: string, onChange: (v: string) => void, placeholder?: string) => (
+const field = (label: string, value: string, onChange: (v: string) => void, placeholder?: string, options?: { type?: string; maxLength?: number; numericOnly?: boolean }) => (
   <div>
     <label className="text-xs font-medium text-stone-500 block mb-1">{label}</label>
     <input
+      type={options?.type || 'text'}
+      maxLength={options?.maxLength}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => {
+        let val = e.target.value
+        if (options?.numericOnly) {
+          val = val.replace(/[^\d]/g, '')
+        }
+        onChange(val)
+      }}
       placeholder={placeholder}
       className="w-full rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
     />
@@ -421,8 +429,13 @@ export default function AdminUsuariosPage() {
                   </select>
                   <input
                     type="tel"
+                    maxLength={10}
                     value={form.telefonoNumero}
-                    onChange={(e) => setForm((f) => ({ ...f, telefonoNumero: e.target.value }))}
+                    onChange={(e) => {
+                      // Solo permitir números
+                      const value = e.target.value.replace(/[^\d]/g, '')
+                      setForm((f) => ({ ...f, telefonoNumero: value }))
+                    }}
                     placeholder="3001234567"
                     className="flex-1 min-w-0 rounded-xl border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                   />
@@ -446,7 +459,7 @@ export default function AdminUsuariosPage() {
                     { value: 'CE', label: 'Cédula de extranjería' },
                     { value: 'PP', label: 'Pasaporte' },
                   ])}
-                  {field('Número documento', form.numeroDocumento, set('numeroDocumento'), '1234567890')}
+                  {field('Número documento', form.numeroDocumento, set('numeroDocumento'), '1234567890', { type: 'tel', maxLength: 10, numericOnly: true })}
                 </div>
                 {field('Nombre del titular', form.nombreTitular, set('nombreTitular'), 'Como aparece en el documento')}
                 {sel('Banco o billetera', form.banco, set('banco'),

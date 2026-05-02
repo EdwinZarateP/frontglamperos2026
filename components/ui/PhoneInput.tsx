@@ -89,8 +89,11 @@ export function PhoneInput({ value, onChange, error, label }: Props) {
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const num = e.target.value.replace(/[^\d\s\-]/g, '')
-    setLocalNumber(num)
-    onChange(selected.dial + num)
+    // Limitar a máximo 10 dígitos (sin contar el código de país)
+    if (num.length <= 10) {
+      setLocalNumber(num)
+      onChange(selected.dial + num)
+    }
   }
 
   const filtered = search
@@ -127,6 +130,7 @@ export function PhoneInput({ value, onChange, error, label }: Props) {
         <input
           type="tel"
           inputMode="numeric"
+          maxLength={10}
           placeholder="3001234567"
           value={localNumber}
           onChange={handleNumberChange}
