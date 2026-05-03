@@ -3,6 +3,41 @@ import { CIUDADES_COLOMBIA, getCoordenadas } from './colombia'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+// Departamentos principales de Colombia (slug → nombre completo)
+export const FILTROS_DEPARTAMENTOS: Record<string, string> = {
+  'antioquia': 'Antioquia',
+  'boyaca': 'Boyacá',
+  'cundinamarca': 'Cundinamarca',
+  'santander': 'Santander',
+  'bolivar': 'Bolívar',
+  'narino': 'Nariño',
+  'valle': 'Valle del Cauca',
+  'atlantico': 'Atlántico',
+  'magdalena': 'Magdalena',
+  'huila': 'Huila',
+  'tolima': 'Tolima',
+  'risaralda': 'Risaralda',
+  'quindio': 'Quindío',
+  'caldas': 'Caldas',
+  'cesar': 'Cesar',
+  'la-guajira': 'La Guajira',
+  'norte-de-santander': 'Norte de Santander',
+  'meta': 'Meta',
+  'cauca': 'Cauca',
+  'choco': 'Chocó',
+  'putumayo': 'Putumayo',
+  'arauca': 'Arauca',
+  'casanare': 'Casanare',
+  'guainia': 'Guainía',
+  'guaviare': 'Guaviare',
+  'vaupes': 'Vaupés',
+  'vichada': 'Vichada',
+  'amazonas': 'Amazonas',
+  'san-andres': 'San Andrés y Providencia',
+  'sucre': 'Sucre',
+  'cordoba': 'Córdoba',
+}
+
 export const FILTROS_TIPOS: Record<string, string> = {
   domo:       'Domos',
   cabana:     'Cabañas',
@@ -60,10 +95,18 @@ export function findCiudadByNombre(ciudad: string) {
 export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
   const parts: string[] = []
 
-  // 1. Ciudad
+  // 1. Ciudad o Departamento
   if (filtros.ciudad) {
     const found = findCiudadByNombre(filtros.ciudad)
-    if (found) parts.push(found.slug)
+    if (found) {
+      parts.push(found.slug)
+    } else {
+      // Buscar si es un departamento
+      const deptSlug = Object.entries(FILTROS_DEPARTAMENTOS).find(
+        ([_, nombre]) => nombre === filtros.ciudad
+      )?.[0]
+      if (deptSlug) parts.push(deptSlug)
+    }
   }
   // 2. Tipo de glamping
   if (filtros.tipo && FILTROS_TIPOS[filtros.tipo]) {
@@ -100,6 +143,7 @@ export function parseFiltrosFromSlug(slugs: string[]): Partial<FiltrosHome> | nu
   let valid = false
 
   for (const seg of slugs) {
+    // 1. Buscar ciudad específica primero (prioridad)
     const ciudad = findCiudadBySlug(seg)
     if (ciudad) {
       f.ciudad = ciudad.label
@@ -108,12 +152,19 @@ export function parseFiltrosFromSlug(slugs: string[]): Partial<FiltrosHome> | nu
       valid = true
       continue
     }
+    // 2. Buscar departamento
+    if (FILTROS_DEPARTAMENTOS[seg]) {
+      f.ciudad = FILTROS_DEPARTAMENTOS[seg]
+      valid = true
+      continue
+    }
+    // 3. Tipo de glamping
     if (FILTROS_TIPOS[seg]) {
       f.tipo = seg
       valid = true
       continue
     }
-    // Amenidades principales como segmento del path (/jacuzzi, /piscina)
+    // 4. Amenidades principales como segmento del path (/jacuzzi, /piscina)
     if (FILTROS_AMENIDADES[seg]) {
       const prev = f.amenidades ? f.amenidades.split(',') : []
       f.amenidades = [...prev, seg].join(',')

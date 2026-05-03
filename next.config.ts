@@ -20,6 +20,27 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Redirects: URLs antiguas → URLs nuevas (limpias)
+  async redirects() {
+    return [
+      // Ciudades con sufijo de departamento → sin sufijo
+      { source: '/girardota-antioquia', destination: '/girardota', permanent: true },
+      { source: '/guatape-antioquia', destination: '/guatape', permanent: true },
+      { source: '/guatavita-cundinamarca', destination: '/guatavita', permanent: true },
+      { source: '/paipa-boyaca', destination: '/paipa', permanent: true },
+
+      // Tipos de glamping que ya no se usan → solo departamento
+      { source: '/boyaca/malla-catamaran', destination: '/boyaca', permanent: true },
+      { source: '/boyaca/tienda', destination: '/boyaca', permanent: true },
+
+      // Ciudad + amenidad → URL limpia
+      { source: '/guatape-antioquia/jacuzzi', destination: '/guatape/jacuzzi', permanent: true },
+
+      // Propiedad específica → ciudad + amenidad
+      { source: '/propiedad/68113e580389b5eca382d8fc', destination: '/medellin/piscina', permanent: true },
+    ]
+  },
+
   // Rewrites: /propiedad/:id sirve el mismo contenido que /glamping/:id
   // sin cambiar la URL del navegador → UTM params y gclid se preservan para Google Ads
   async rewrites() {
