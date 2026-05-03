@@ -1,194 +1,105 @@
-// src/app/layout.tsx
-import type { Metadata } from "next";
-import { Open_Sans, Be_Vietnam_Pro } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import ClientProviders from "../Componentes/ClientProviders/index";
+[7:50 p.m., 2/5/2026] Edwin z: hola quiero reservar
+[7:50 p.m., 2/5/2026] Glamperos: Hola, ¿cómo estás? 🙂 un gusto, tenemos glampings cerca a Bogotá, a Medellín, en Guatavita, Boyacá y Santander 🍃
 
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  weight: "400",
-  display: "optional",
-});
+¿Dónde deseas consultar tu plan?
+[7:50 p.m., 2/5/2026] Edwin z: boyaca
+[7:50 p.m., 2/5/2026] Glamperos: Aquí tienes opciones cerca de Boyacá 😊
+[7:50 p.m., 2/5/2026] Glamperos: Cabaña — Paipa, Boyacá — desde $622.000/noche 🐾
+🔗 https://glamperos.com/glamping/69e64e842a0150011560d856
+[7:50 p.m., 2/5/2026] Glamperos: Chalet — Paipa, Boyacá — desde $410.000/noche 🐾
+🔗 https://glamperos.com/glamping/69e652522a0150011560d858
+[7:50 p.m., 2/5/2026] Glamperos: Cabaña — Tinjacá, Boyacá — desde $460.000/noche 🐾
+🔗 https://glamperos.com/glamping/69e92e644a0020f521986ae3
+[7:50 p.m., 2/5/2026] Glamperos: Cabaña — Paipa, Boyacá — desde $276.000/noche 🐾
+🔗 https://glamperos.com/glamping/69ea756d582b99743981b8bd
+[7:50 p.m., 2/5/2026] Glamperos: Stambecco — Paipa, Boyacá — desde $387.000/noche 🐾
+🔗 https://glamperos.com/glamping/69ef6cf270a3f8675d7a21af
+[7:50 p.m., 2/5/2026] Glamperos: Dolomiti — Paipa, Boyacá — desde $387.000/noche 🐾
+🔗 https://glamperos.com/glamping/69ef708e70a3f8675d7a21b1
+[7:50 p.m., 2/5/2026] Glamperos: Cabaña Campestre — Paipa, Boyacá — desde $240.000/noche 🐾
+🔗 https://glamperos.com/glamping/69f2020ea23f79c3bf573833
+[7:50 p.m., 2/5/2026] Glamperos: ¿Cuál de estas opciones te llama más la atención? 😊
+[7:50 p.m., 2/5/2026] Edwin z: Cabaña — Paipa, Boyacá — desde $276.000/noche 
+ https://glamperos.com/glamping/69ea756d582b99743981b8bd
+quiero reservar este
+[7:51 p.m., 2/5/2026] Glamperos: 🏕️ cabana en Paipa
+📍 Paipa, Boyacá
 
-// Configura Be Vietnam Pro
-const beVietnam = Be_Vietnam_Pro({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-be-vietnam",
-});
+🌿 Naturaleza, confort y magia en las montañas de Paipa ✨
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://glamperos.com"),
-  title: "Glamperos | Encuentra y reserva los mejores glampings en Colombia",
-  description:
-    "Descubre y reserva glampings exclusivos en los mejores destinos naturales de Colombia. Vive una experiencia única en alojamientos de lujo en medio de la naturaleza.",
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: "Glamperos | Encuentra y reserva los mejores glampings en Colombia",
-    description:
-      "Explora glampings exclusivos en Colombia y vive una experiencia de lujo en la naturaleza. Reserva fácil y rápido.",
-    url: "https://glamperos.com",
-    siteName: "Glamperos",
-    images: [
-      {
-        url: "https://storage.googleapis.com/glamperos-imagenes/Imagenes/animal5.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "Glamperos - Glamping de lujo en Colombia",
-      },
-    ],
-    locale: "es_ES",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@glamperos",
-    title: "Glamperos | Encuentra y reserva los mejores glampings en Colombia",
-    description:
-      "Descubre glampings exclusivos en Colombia y vive una experiencia de lujo en la naturaleza.",
-    images: [
-      "https://storage.googleapis.com/glamperos-imagenes/Imagenes/animal5.jpeg",
-    ],
-  },
-  // alternates: { canonical: "https://glamperos.com" },
-};
+Escápate a un lugar único rodeado de verdes paisajes y vistas espectaculares a lagos 🏞️💚
 
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-};
+Un glamping perfecto para desconectarte del ruido y recargar energía en contacto con la naturaleza 🌳🌤️
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="es" className={`${openSans.className} ${beVietnam.variable}`}>
+✨ La noche incluye:
 
-      <head>
-        {/* Favicon y Apple Touch Icon apuntando a tu logo en Google Cloud */}
-        <link
-          rel="icon"
-          href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/animal5.jpeg"
-          type="image/jpeg"
-        />
-        <link
-          rel="apple-touch-icon"
-          href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/animal5.jpeg"
-        />
+🛏️ Cama doble para dos personas con vista panorámica al cielo 🌌
 
-        <meta
-          name="google-site-verification"
-          content="TU-CODIGO-DE-VERIFICACION"
-        />
+🚿 Ducha con agua caliente solar 🌅
 
-        {/* Google Tag Manager (head) */}
-        <Script id="gtm-script" strategy="afterInteractive">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-N62D2LDT');
-          `}
-        </Script>
+☕ Bebida caliente de bienvenida
 
-        {/* Google Maps Places */}
-        <Script
-          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDP8Es7GVLkm_qdCItKb60pGH7ov_tEif0&libraries=places"
-          strategy="beforeInteractive"
-        />
+🍳 Desayuno para dos personas ☕🥝
 
-        {/* JSON‑LD Schema para Google Search */}
-        <Script type="application/ld+json" strategy="afterInteractive">
-          {`
-          {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "Glamperos",
-            "url": "https://glamperos.com",
-            "description": "Plataforma para descubrir y reservar glampings exclusivos en Colombia.",
-            "logo": "https://storage.googleapis.com/glamperos-imagenes/Imagenes/animal5.jpeg",
-            "sameAs": [
-              "https://www.instagram.com/glamperos",
-              "https://www.facebook.com/glamperos"
-            ]
-          }
-          `}
-        </Script>
+🌊 Malla tipo catamarán para relajarse
 
-        {/* Wompi Checkout Widget */}
-        {/* <Script
-          src="https://checkout.wompi.co/widget.js"
-          strategy="beforeInteractive"
-        /> */}
-      </head>
+🎲🃏 Juegos de mesa
 
-      <body className={openSans.className}>
+🪑 Mesa y dos sillas
 
+🏞️ Vista panorámica a la laguna
 
-        {/* Google Tag Manager (noscript) */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-N62D2LDT"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          ></iframe>
-        </noscript>
+🚗 Espacio para parqueo
 
-        <ClientProviders>{children}</ClientProviders>
+🎶 Bafle con batería cargada para música
 
-        {/* Google Analytics & Ads (gtag.js) */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-NXB4CM5T4H"
-        />
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17234612701"
-        />
-        <Script id="google-tags" strategy="lazyOnload">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-NXB4CM5T4H');
-            gtag('config', 'AW-17234612701');
-          `}
-        </Script>
+Vive la experiencia de dormir en la montaña, rodeado de paz, confort y naturaleza.
 
-        {/* Facebook Pixel */}
-        <Script
-          id="facebook-pixel"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1256680626246372');
-              fbq('track', 'PageView');
-            `,
-          }}
-        />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1256680626246372&ev=PageView&noscript=1"
-          />
-        </noscript>
-      </body>
-    </html>
-  );
-}
+🌄 ¡Reserva ahora y siente la magia de Paipa!
+
+💰 Precio por noche: $276.000
+
+🕐 Check-in: 15:00 | Check-out: 12:00
+👥 Precio base INCLUYE 2 personas
+
+✅ Amenidades: mascotas, zona-de-trabajo, zona-fogata, incluye-desayuno, malla-catamaran, juegos-de-mesa, parqueadero, en-la-montana, servicio-restaurante, ducha, jabon, mini-bar
+
+❌ Cancelación gratuita hasta 15 días antes del check-in
+
+📸 Ver fotos:
+https://glamperos.com/glamping/69ea756d582b99743981b8bd/fotos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+💌 Proceso de reserva
+Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha. La plataforma te envía al correo toda la información de llegada y contactos una vez confirmes tu consignación.
+Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️.
+
+Datos de pago:
+🏦 Transferencia Bancolombia – Glamperos SAS
+📂 Tipo: Ahorros · 🔢 Nº 292-000059-43
+📂 Nuestra Llave · 🔢 0089996468
+
+💳 También puedes pagar con tarjeta débito o crédito a través de Wompi
+(Ten en cuenta que Wompi aplica un cargo adicional del 5% sobre el valor de la reserva)
+
+Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios.
+
+(No compartimos la dirección exacta hasta que el cliente tenga reserva confirmada)
+
+¡Qué buena elección! 😊 Para confirmar disponibilidad y hacer tu reserva, escríbele directamente a nuestro asesor:
+
+📱 +57 321 869 5196
+
+Agrégalo a tus contactos y cuéntale que quieres reservar la cabaña en Paipa, con gusto te atenderá y te confirmará las fechas disponibles 🙏
+[7:51 p.m., 2/5/2026] Edwin z: como lo reservo?
+[7:51 p.m., 2/5/2026] Glamperos: ¡Con gusto! 😊 Así funciona el proceso de reserva en Glamperos:
+
+Las reservas se garantizan con una transferencia del 50% del valor total 💳 para asegurar tu fecha. La plataforma te envía al correo toda la información de llegada y contactos una vez confirmes tu consignación.
+Ten en cuenta que este valor no es reembolsable. El 50% restante se cancela a tu llegada al glamping 🏕️
+
+Datos de pago: 🏦 Transferencia Bancolombia – Glamperos SAS 📂 Tipo: Ahorros · 🔢 Nº 292-000059-43 📂 Nuestra Llave · 🔢 0089996468
+💳 También puedes pagar con tarjeta débito o crédito a través de Wompi (Ten en cuenta que Wompi aplica un cargo adicional del 5% sobre el valor de la reserva)
+
+Para confirmar disponibilidad y fechas, escríbele directamente a nuestro asesor: 📱 +57 321 869 5196
+
+Glamperos S.A.S. actúa únicamente en la promoción y reserva de experiencias ofrecidas por terceros y no asume responsabilidad por la calidad, seguridad o disponibilidad de dichos servicios.

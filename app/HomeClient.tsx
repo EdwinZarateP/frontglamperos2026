@@ -16,6 +16,7 @@ import { formatCOP } from '@/lib/utils'
 import { buildUrlFromFiltros } from '@/lib/filtros'
 import { FaqCarousel } from '@/components/home/FaqCarousel'
 import { BenefitsCarousel } from '@/components/home/BenefitsCarousel'
+import { RegionCards } from '@/components/home/RegionCards'
 import { TierramontSection } from '@/components/home/TierramontSection'
 import type { FiltrosHome, HomeResponse } from '@/types'
 
@@ -380,6 +381,9 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
       {/* ── Beneficios ──────────────────────────────────────────────────── */}
       <BenefitsCarousel />
+
+      {/* ── Region Cards ────────────────────────────────────────────────── */}
+      <RegionCards />
 
       {/* ── Carrusel de Categorías ──────────────────────────────────────── */}
       {carouselSection}
