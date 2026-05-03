@@ -38,6 +38,7 @@ const nextConfig: NextConfig = {
 
       // Propiedad específica → ciudad + amenidad
       { source: '/propiedad/68113e580389b5eca382d8fc', destination: '/medellin/piscina', permanent: true },
+      { source: '/propiedad/68192171659173a779d344db', destination: '/guatavita', permanent: true },
     ]
   },
 
