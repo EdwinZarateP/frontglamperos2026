@@ -815,6 +815,61 @@ El campo `precioMascotas` fue eliminado del formulario del anfitrión. El precio
 
 ---
 
+### v1.8 — 2026-05-05
+
+#### Optimización de caché para SEO y rendimiento
+
+**Incremento del tiempo de revalidación ISR (Incremental Static Regeneration):**
+- **Antes**: `revalidate: 300` (5 minutos)
+- **Ahora**: `revalidate: 3600` (1 hora)
+- **Archivos modificados**:
+  - `lib/filtros.ts` — `fetchGlampingsSSR()` con ISR de 1 hora
+  - `app/blog/page.tsx` — posts list con ISR de 1 hora
+  - `app/blog/[slug]/page.tsx` — post detail con ISR de 1 hora
+
+**Optimización de React Query para evitar refetch al navegar:**
+- `hooks/useGlampings.ts`:
+  - `staleTime`: 5 min → **30 min** (no refetcha al volver al home)
+  - `gcTime`: 10 min → **60 min** (mantiene datos en caché mucho más tiempo)
+
+> **Resultado**: Cuando un usuario navega a otra página (ej: detalle de glamping) y vuelve al home, los glampings se cargan instantáneamente desde la caché sin mostrar la animación de "buscando glampings".
+
+---
+
+#### Filtro de ordenamiento por precio
+
+**`app/HomeClient.tsx`:**
+- Botón de ordenamiento ubicado junto al contador de resultados ("78 glampings encontrados")
+- Dropdown con 2 opciones:
+  - "Más económicos primero" → `precio_asc`
+  - "Más caros primero" → `precio_desc`
+- Estado visual del botón cambia según orden activo (borde y fondo resaltado)
+- Dropdown se cierra al hacer click fuera o al hacer scroll
+
+**`lib/filtros.ts`:**
+- `buildUrlFromFiltros()`:
+  - Si `order_by === 'precio_asc'` → añade `/asc` a la URL
+  - Si `order_by === 'precio_desc'` → añade `/desc` a la URL
+- `parseFiltrosFromSlug()`:
+  - Reconoce `/asc` → `order_by: 'precio_asc'`
+  - Reconoce `/desc` → `order_by: 'precio_desc'`
+
+**Ejemplos de URLs:**
+```
+/bogota/asc       → Domos en Bogotá de menor a mayor precio
+/antioquia/domo/desc → Domos en Antioquia de mayor a menor precio
+/guatape/jacuzzi/asc → Glampings con jacuzzi en Guatapé, más económicos primero
+```
+
+**Backend**: Ya soportaba el parámetro `order_by` con valores `precio_asc` y `precio_desc` desde versiones anteriores.
+
+**Archivos modificados:**
+- `app/HomeClient.tsx` — botón de ordenamiento con dropdown
+- `lib/filtros.ts` — soporte para `/asc` y `/desc` en URLs
+- `hooks/useGlampings.ts` — configuración de caché React Query
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`

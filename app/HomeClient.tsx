@@ -380,7 +380,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
                   <button
                     type="button"
                     onClick={() => {
-                      const merged = { ...filtros, order_by: 'precio_asc' }
+                      const merged = { ...filtros, order_by: 'precio_asc' as const }
                       setFiltros(merged)
                       router.push(buildUrlFromFiltros(merged))
                       setShowOrderBy(false)
@@ -396,7 +396,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
                   <button
                     type="button"
                     onClick={() => {
-                      const merged = { ...filtros, order_by: 'precio_desc' }
+                      const merged = { ...filtros, order_by: 'precio_desc' as const }
                       setFiltros(merged)
                       router.push(buildUrlFromFiltros(merged))
                       setShowOrderBy(false)
