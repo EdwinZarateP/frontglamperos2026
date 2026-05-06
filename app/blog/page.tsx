@@ -67,7 +67,7 @@ export default async function BlogIndex({
   }
 
   // Primero, obtener el total de posts para decidir si consolidar
-  const countRes = await fetch(`${WP}/posts?per_page=1`, { next: { revalidate: 300 } })
+  const countRes = await fetch(`${WP}/posts?per_page=1`, { next: { revalidate: 3600 } })
   const totalPosts = Number(countRes.headers.get('X-WP-Total') || '0')
 
   // Umbral: si hay menos de 16 posts, mostrar todos en una sola página
@@ -76,7 +76,7 @@ export default async function BlogIndex({
   const postsPerPage = shouldConsolidate ? 100 : PER_PAGE  // 100 es el máximo de WordPress
 
   const url = `${WP}/posts?_embed&status=publish&orderby=date&order=desc&per_page=${postsPerPage}&page=${currentPage}`
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { revalidate: 3600 } })
   if (!res.ok) return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
 
   const totalPages = Number(res.headers.get('X-WP-TotalPages') || '1')

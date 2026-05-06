@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo, type ReactNode } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, X, ChevronRight, ChevronLeft, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon } from 'lucide-react'
+import { MapPin, X, ChevronRight, ChevronLeft, Home, Shield, Wallet, MessageCircle, MessageSquare, Sparkles, MapPin as MapPinIcon, ArrowUpDown } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useSearchStore } from '@/store/searchStore'
@@ -12,7 +12,7 @@ import { SearchBar, FilterChips } from '@/components/home/SearchFilters'
 import { GlampingCard } from '@/components/glamping/GlampingCard'
 import { SkeletonCard } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
-import { formatCOP } from '@/lib/utils'
+import { formatCOP, cn } from '@/lib/utils'
 import { buildUrlFromFiltros } from '@/lib/filtros'
 import { FaqCarousel } from '@/components/home/FaqCarousel'
 import { BenefitsCarousel } from '@/components/home/BenefitsCarousel'
@@ -112,6 +112,31 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   // Estado para transición suave de cards
   const [cardsVisible, setCardsVisible] = useState(true)
   const isTransitioning = useRef(false)
+
+  // Estado para dropdown de ordenamiento
+  const [showOrderBy, setShowOrderBy] = useState(false)
+  const orderByBtnRef = useRef<HTMLButtonElement>(null)
+  const orderByRef = useRef<HTMLDivElement>(null)
+
+  // Cerrar dropdown de ordenamiento al hacer click fuera o scroll
+  useEffect(() => {
+    if (!showOrderBy) return
+    const handler = (e: MouseEvent) => {
+      if (
+        orderByRef.current && !orderByRef.current.contains(e.target as Node) &&
+        orderByBtnRef.current && !orderByBtnRef.current.contains(e.target as Node)
+      ) setShowOrderBy(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showOrderBy])
+
+  useEffect(() => {
+    if (!showOrderBy) return
+    const handleScroll = () => setShowOrderBy(false)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [showOrderBy])
 
   // Sincronizar filtros con initialFiltros cuando cambia la URL
   useEffect(() => {
@@ -325,6 +350,68 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
                 </>
               )}
             </p>
+
+            {/* Botón de ordenamiento */}
+            <div className="relative">
+              <button
+                ref={orderByBtnRef}
+                type="button"
+                onClick={() => setShowOrderBy((v) => !v)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  filtros.order_by
+                    ? 'bg-stone-100 text-stone-900 border border-stone-200'
+                    : 'text-stone-600 hover:bg-stone-50 border border-transparent hover:border-stone-200'
+                )}
+              >
+                <ArrowUpDown size={14} />
+                <span>
+                  {filtros.order_by === 'precio_asc' ? 'Menor precio' :
+                   filtros.order_by === 'precio_desc' ? 'Mayor precio' :
+                   'Ordenar por precio'}
+                </span>
+              </button>
+
+              {showOrderBy && (
+                <div
+                  ref={orderByRef}
+                  className="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl shadow-lg border border-stone-200 py-1 z-20"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const merged = { ...filtros, order_by: 'precio_asc' }
+                      setFiltros(merged)
+                      router.push(buildUrlFromFiltros(merged))
+                      setShowOrderBy(false)
+                    }}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-stone-50',
+                      filtros.order_by === 'precio_asc' && 'bg-stone-100 text-stone-900'
+                    )}
+                  >
+                    <span>💰</span>
+                    <span>Más económicos primero</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const merged = { ...filtros, order_by: 'precio_desc' }
+                      setFiltros(merged)
+                      router.push(buildUrlFromFiltros(merged))
+                      setShowOrderBy(false)
+                    }}
+                    className={cn(
+                      'w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-stone-50',
+                      filtros.order_by === 'precio_desc' && 'bg-stone-100 text-stone-900'
+                    )}
+                  >
+                    <span>💎</span>
+                    <span>Más caros primero</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 transition-all duration-300 ease-out ${
             cardsVisible

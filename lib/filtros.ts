@@ -70,7 +70,7 @@ export async function fetchGlampingsSSR(filtros: Partial<FiltrosHome>): Promise<
     if (filtros.radio_km != null) params.set('radio_km',  String(filtros.radio_km))
     if (filtros.precio_max)      params.set('precio_max',  String(filtros.precio_max))
     if (filtros.order_by)        params.set('order_by',    filtros.order_by)
-    const res = await fetch(`${API_URL}/glampings/home?${params}`, { next: { revalidate: 300 } })
+    const res = await fetch(`${API_URL}/glampings/home?${params}`, { next: { revalidate: 3600 } })
     if (!res.ok) return undefined
     return res.json()
   } catch {
@@ -118,6 +118,10 @@ export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
   const amenSlug   = amenList.filter(a => FILTROS_AMENIDADES[a])
   const amenQuery  = amenList.filter(a => !FILTROS_AMENIDADES[a])
   amenSlug.forEach(a => parts.push(a))
+
+  // 4. Ordenamiento por precio → /asc o /desc al final
+  if (filtros.order_by === 'precio_asc') parts.push('asc')
+  if (filtros.order_by === 'precio_desc') parts.push('desc')
 
   const path = parts.length ? '/' + parts.join('/') : '/'
 
@@ -171,6 +175,17 @@ export function parseFiltrosFromSlug(slugs: string[]): Partial<FiltrosHome> | nu
       valid = true
       continue
     }
+    // 5. Ordenamiento por precio → /asc o /desc
+    if (seg === 'asc') {
+      f.order_by = 'precio_asc'
+      valid = true
+      continue
+    }
+    if (seg === 'desc') {
+      f.order_by = 'precio_desc'
+      valid = true
+      continue
+    }
   }
 
   return valid ? f : null
@@ -196,6 +211,7 @@ export function parseFiltrosFromSearchParams(sp: Record<string, string>): Partia
   if (sp.lng)          f.lng          = Number(sp.lng)
   if (sp.radio_km)     f.radio_km     = Number(sp.radio_km)
   if (sp.precio_max)   f.precio_max   = Number(sp.precio_max)
+  if (sp.order_by)     f.order_by     = sp.order_by as 'precio_asc' | 'precio_desc' | 'distancia' | 'calificacion'
   if (sp.page && Number(sp.page) > 1) f.page = Number(sp.page)
   if (sp.amenidades) {
     // Combina con las amenidades que ya vengan del slug (sin duplicados)

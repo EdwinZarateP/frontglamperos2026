@@ -59,8 +59,12 @@ app/
   perfil/page.tsx
   blog/[slug]/page.tsx
   acerca-de-nosotros/page.tsx
+  soporte/page.tsx                   — centro de ayuda con FAQ, canales de contacto
   pago/[reservaId]/page.tsx
   pago/resultado/page.tsx
+
+  [...slug]/page.tsx                 — catch-all para URLs semánticas (SEO)
+    → /cundinamarca, /antioquia, /boyaca/domo, /guatape/jacuzzi
 ```
 
 ## Auth
@@ -123,6 +127,40 @@ const ogDesc = (precioDesc + rawDesc).slice(0, 160)
 
 ## Glamping Detail — Botón Reservar (`app/glamping/[id]/GlampingDetailClient.tsx`)
 - Botón "Reservar" siempre verde (`variant="brand"`) independientemente de si hay fechas seleccionadas
+
+## URLs Semánticas y SEO Programático (`app/[...slug]/page.tsx`)
+- Catch-all route que genera páginas dinámicamente para cualquier combinación de filtros
+- **Patrones soportados**:
+  - `/departamento` → `/antioquia`, `/boyaca`, `/cundinamarca`
+  - `/ciudad` → `/guatape`, `/paipa`, `/villa-de-leyva`
+  - `/departamento/tipo` → `/boyaca/domo`, `/antioquia/cabana`
+  - `/ciudad/amenidad` → `/medellin/jacuzzi`, `/guatape/piscina`
+- **Funciones clave** en `/lib/filtros.ts`:
+  - `parseFiltrosFromSlug(slugs)` — interpreta los segmentos de la URL
+  - `buildUrlFromFiltros(filtros)` — construye URL limpia desde filtros
+  - `FILTROS_DEPARTAMENTOS` — mapeo de slugs a nombres de departamentos
+  - `FILTROS_TIPOS` — tipos de glamping (domo, cabana, chalet, etc.)
+  - `FILTROS_AMENIDADES` — amenidades principales (jacuzzi, piscina)
+- **Metadata dinámica**: cada página tiene title, description, OG, JSON-LD únicos
+- **Redirects 301** en `next.config.ts` para URLs antiguas
+
+## Home — Sección de Regiones (`components/home/RegionCards.tsx`)
+- Cards de 4 regiones principales con imagen representativa
+- Cada card lleva a la página de la región: `/cundinamarca`, `/antioquia`, `/santander`, `/boyaca`
+- Ubicadas debajo de "¿Por qué reservar glampings en Glamperos?"
+- Imágenes desde Google Cloud Storage
+
+## Página de Soporte (`app/soporte/page.tsx`)
+- Centro de ayuda con información de contacto:
+  - Email: soporte@glamperos.com
+  - WhatsApp: +57 321 869 5196
+- Secciones:
+  - Canales de contacto directo (email, WhatsApp, formulario)
+  - Horario de atención
+  - Preguntas frecuentes (FAQ) con acordeón
+  - Temas de ayuda rápida con links
+  - CTA para ser anfitrión
+- Accesible desde footer en "Centro de ayuda"
 
 ## Convenciones
 - Componentes de página del servidor en `page.tsx` (sin 'use client')

@@ -27,7 +27,7 @@ const WP = process.env.NEXT_PUBLIC_WORDPRESS_API
 
 async function getPost(slug: string) {
   if (!WP) return null
-  const res = await fetch(`${WP}/posts?slug=${slug}&_embed`, { next: { revalidate: 300 } })
+  const res = await fetch(`${WP}/posts?slug=${slug}&_embed`, { next: { revalidate: 3600 } })
   if (!res.ok) return null
   const posts = await res.json()
   return posts?.[0] ?? null
