@@ -30,6 +30,9 @@ export async function generateMetadata({
 
   const firstImage = glamping.imagenes?.[0]
 
+  // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
+  const seoName = glamping.nombrePropiedad || glamping.nombreGlamping
+
   // Descripción limpia: quita frases de relleno y muestra precio
   const rawDesc = (glamping.descripcionGlamping ?? '')
     .replace(/\*?este glamping te ofrece\*?[\s:,]*/gi, '')
@@ -41,17 +44,17 @@ export async function generateMetadata({
   const ogDesc = (precioDesc + rawDesc).slice(0, 160)
 
   return {
-    title: `${glamping.nombreGlamping} — ${glamping.ciudadDepartamento}`,
+    title: `${seoName} — ${glamping.ciudadDepartamento}`,
     description: ogDesc,
     openGraph: {
-      title: `${glamping.nombreGlamping} — ${glamping.ciudadDepartamento}`,
+      title: `${seoName} — ${glamping.ciudadDepartamento}`,
       description: ogDesc,
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: glamping.nombreGlamping,
+      title: seoName,
       description: ogDesc,
       images: firstImage ? [firstImage] : undefined,
     },
@@ -74,7 +77,12 @@ export default async function GlampingPage({
   const lodgingJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
-    name: glamping.nombreGlamping,
+    // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
+    name: glamping.nombrePropiedad || glamping.nombreGlamping,
+    // alternateName: nombre que ven los usuarios (opcional, ayuda a Google a entender)
+    ...(glamping.nombrePropiedad && glamping.nombrePropiedad !== glamping.nombreGlamping
+      ? { alternateName: glamping.nombreGlamping }
+      : {}),
     description: glamping.descripcionGlamping,
     url: glampingUrl,
     image: glamping.imagenes,
@@ -105,6 +113,9 @@ export default async function GlampingPage({
       : undefined,
   }
 
+  // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
+  const seoName = glamping.nombrePropiedad || glamping.nombreGlamping
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -130,10 +141,10 @@ export default async function GlampingPage({
       {
         '@type': 'ListItem',
         position: 3,
-        name: glamping.nombreGlamping,
+        name: seoName,
         item: {
           '@id': glampingUrl,
-          'name': glamping.nombreGlamping,
+          'name': seoName,
         },
       },
     ],
