@@ -21,9 +21,9 @@ import { formatCOP, formatDate, amenidadIconos, calcularNoches, tipoGlampingLabe
 import { NearbyGlampings } from '@/components/glamping/NearbyGlampings'
 import type { Glamping, ServicioExtra } from '@/types'
 import { UNIDAD_LABELS } from '@/lib/catalogoExtras'
-// Orden de los extras en la página pública — juegoMenteCriminal siempre primero
+// Orden de los extras en la página pública — casoMenteCriminal siempre primero
 const PUBLIC_EXTRAS_ORDER = [
-  'juegoMenteCriminal',
+  'casoMenteCriminal',
   'cabalgata', 'jacuzzi', 'masajes', 'masaje', 'desayuno', 'almuerzo',
   'cenaEstandar', 'cenaRomantica', 'decoracionSencilla', 'decoracionEspecial',
   'picnic', 'pelicula', 'paseoLancha', 'paseoBicicleta', 'caminataGuiada',
