@@ -132,6 +132,7 @@ export default function EditarGlampingPage({ params }: Props) {
   const [guardandoFotos, setGuardandoFotos] = useState(false)
   const [rntFile, setRntFile] = useState<File | null>(null)
   const rntInputRef = useRef<HTMLInputElement>(null)
+  const imagenesEnProcesoRef = useRef<Set<string>>(new Set())  // Track images being uploaded by name+size
 
   // Unidades
   const [editandoUnidad, setEditandoUnidad] = useState<string | null>(null)
@@ -224,8 +225,20 @@ export default function EditarGlampingPage({ params }: Props) {
   // Subir fotos nuevas — retorna la lista final de URLs (existentes + recién subidas)
   const guardarImagenes = useCallback(async (): Promise<string[]> => {
     const saved = imagenes.filter((i): i is string => typeof i === 'string')
-    const pendientes = imagenes.filter((i): i is File => i instanceof File)
+    // Filtrar imágenes que aún no se han subido y no están en proceso
+    const pendientes = imagenes.filter((i): i is File => {
+      if (!(i instanceof File)) return false
+      const key = `${i.name}_${i.size}`
+      return !imagenesEnProcesoRef.current.has(key)
+    })
     if (!pendientes.length) return saved
+
+    // Marcar imágenes como en proceso
+    pendientes.forEach((img) => {
+      const key = `${img.name}_${img.size}`
+      imagenesEnProcesoRef.current.add(key)
+    })
+
     setGuardandoFotos(true)
     const fd = new window.FormData()
     pendientes.forEach((img) => fd.append('imagenes', img))
@@ -234,11 +247,23 @@ export default function EditarGlampingPage({ params }: Props) {
       const urls: string[] = Array.isArray(data)
         ? data.map((item: { url: string }) => item.url)
         : (data.imagenes ?? data.urls ?? [])
+      // Limpiar marcas de proceso
+      pendientes.forEach((img) => {
+        const key = `${img.name}_${img.size}`
+        imagenesEnProcesoRef.current.delete(key)
+      })
       const finalList = [...saved, ...urls]
       setImagenes(finalList)
       return finalList
-    } catch { toast.error('Error al subir fotos'); return saved }
-    finally { setGuardandoFotos(false) }
+    } catch {
+      // En caso de error, remover del proceso para reintentar
+      pendientes.forEach((img) => {
+        const key = `${img.name}_${img.size}`
+        imagenesEnProcesoRef.current.delete(key)
+      })
+      toast.error('Error al subir fotos')
+      return saved
+    } finally { setGuardandoFotos(false) }
   }, [id, imagenes])
 
   // Guardar cambios

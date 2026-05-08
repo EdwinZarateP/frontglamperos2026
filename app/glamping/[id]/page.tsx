@@ -33,6 +33,9 @@ export async function generateMetadata({
   // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
   const seoName = glamping.nombrePropiedad || glamping.nombreGlamping
 
+  // Para compartir (WhatsApp/OG): SIEMPRE usar nombre de la unidad (nombreGlamping)
+  const shareName = glamping.nombreGlamping
+
   // Descripción limpia: quita frases de relleno y muestra precio
   const rawDesc = (glamping.descripcionGlamping ?? '')
     .replace(/\*?este glamping te ofrece\*?[\s:,]*/gi, '')
@@ -47,14 +50,14 @@ export async function generateMetadata({
     title: `${seoName} — ${glamping.ciudadDepartamento}`,
     description: ogDesc,
     openGraph: {
-      title: `${seoName} — ${glamping.ciudadDepartamento}`,
+      title: `${shareName} — ${glamping.ciudadDepartamento}`,
       description: ogDesc,
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: seoName,
+      title: shareName,
       description: ogDesc,
       images: firstImage ? [firstImage] : undefined,
     },

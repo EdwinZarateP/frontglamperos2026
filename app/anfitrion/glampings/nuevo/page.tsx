@@ -183,6 +183,7 @@ export default function NuevoGlampingPage() {
   const [rntUrl, setRntUrl] = useState<string>('')
   const dirtyRef = useRef(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const imagenesEnProcesoRef = useRef<Set<string>>(new Set())  // Track images being uploaded by name+size
 
   // Admin: asignar propietario
   const isAdmin = perfil?.rol === 'admin'
@@ -356,12 +357,24 @@ export default function NuevoGlampingPage() {
     } finally {
       setGuardando(false)
     }
-  }, [draftId, amenidades, ubicacion])
+  }, [draftId, amenidades, ubicacion, extras, catalogoExtras])
 
   // Subir imágenes pendientes (File[]) y reemplazarlas por sus URLs en el estado
   const guardarImagenes = useCallback(async (targetId: string) => {
-    const pendientes = imagenes.filter((i): i is File => i instanceof File)
+    // Filtrar imágenes que aún no se han subido y no están en proceso
+    const pendientes = imagenes.filter((i): i is File => {
+      if (!(i instanceof File)) return false
+      const key = `${i.name}_${i.size}`
+      return !imagenesEnProcesoRef.current.has(key)
+    })
     if (!pendientes.length) return
+
+    // Marcar imágenes como en proceso
+    pendientes.forEach((img) => {
+      const key = `${img.name}_${img.size}`
+      imagenesEnProcesoRef.current.add(key)
+    })
+
     const fd = new window.FormData()
     pendientes.forEach((img) => fd.append('imagenes', img))
     try {
@@ -371,12 +384,22 @@ export default function NuevoGlampingPage() {
       let urlIdx = 0
       setImagenes((prev) =>
         prev.map((item) => {
-          if (item instanceof File) return nuevasUrls[urlIdx++] ?? item
+          if (item instanceof File) {
+            const key = `${item.name}_${item.size}`
+            if (imagenesEnProcesoRef.current.has(key)) {
+              imagenesEnProcesoRef.current.delete(key)
+              return nuevasUrls[urlIdx++] ?? item
+            }
+          }
           return item
         })
       )
     } catch {
-      // silencioso — las imágenes se intentarán subir al publicar
+      // En caso de error, remover del proceso para reintentar
+      pendientes.forEach((img) => {
+        const key = `${img.name}_${img.size}`
+        imagenesEnProcesoRef.current.delete(key)
+      })
     }
   }, [imagenes])
 
