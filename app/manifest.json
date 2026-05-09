@@ -1,0 +1,25 @@
+{
+  "name": "Glamperos — Glamping en Colombia",
+  "short_name": "Glamperos",
+  "description": "Descubre los mejores glampings de Colombia. Domos, cabañas, treehouses y experiencias únicas en la naturaleza.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#052e16",
+  "orientation": "portrait",
+  "categories": ["travel", "lodging", "lifestyle"],
+  "icons": [
+    {
+      "src": "https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -226,18 +226,6 @@ export function GlampingDetailClient({ glamping }: Props) {
   })
 
   const handleReservar = () => {
-    if (!isAuthenticated) {
-      const reservarParams = new URLSearchParams()
-      if (fechaInicio) reservarParams.set('fechaInicio', fechaInicio)
-      if (fechaFin) reservarParams.set('fechaFin', fechaFin)
-      reservarParams.set('huespedes', String(huespedes))
-      if (extrasSeleccionados.length > 0) reservarParams.set('extras', extrasSeleccionados.join(','))
-      if (cantidadMascotas > 0) reservarParams.set('mascotas', String(cantidadMascotas))
-      const qs = reservarParams.toString()
-      const destino = `/glamping/${glamping._id}/reservar${qs ? `?${qs}` : ''}`
-      router.push(`/auth/login?redirect=${encodeURIComponent(destino)}`)
-      return
-    }
     if (!fechaInicio || !fechaFin) {
       toast.error('Selecciona las fechas')
       return
@@ -731,11 +719,7 @@ export function GlampingDetailClient({ glamping }: Props) {
                   <button
                     onClick={() => {
                       const destino = `/glamping/${glamping._id}/reservar?tipo=PASADIA`
-                      if (!isAuthenticated) {
-                        router.push(`/auth/login?redirect=${encodeURIComponent(destino)}`)
-                      } else {
-                        router.push(destino)
-                      }
+                      router.push(destino)
                     }}
                     className="w-full px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors"
                   >

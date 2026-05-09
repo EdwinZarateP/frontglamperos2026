@@ -42,10 +42,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg', sizes: '48x48' },
-      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+      { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg', sizes: '512x512' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg', sizes: '180x180' },
     ],
   },
 }
@@ -93,6 +93,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={inter.variable}>
       <head>
+
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="https://storage.googleapis.com/glamperos-imagenes/Imagenes/logoMiniatura.jpeg" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Glamperos" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Glamperos" />
 
         {/* Google Tag Manager (head) */}
         <Script id="gtm-script" strategy="afterInteractive">

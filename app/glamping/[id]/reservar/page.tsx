@@ -102,6 +102,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const [comprobante, setComprobante]       = useState<File | null>(null)
   const [acompanantes, setAcompanantes]     = useState<{ nombreCompleto: string; telefono: string }[]>([])
   const [showResumenMobile, setShowResumenMobile] = useState(false)
+  const [showRegistroModal, setShowRegistroModal] = useState(false)  // Modal de registro opcional
 
   const { data: glamping, isLoading } = useGlamping(id)
   const { data: fechasBloqueadas = [] } = useFechasBloqueadas(id)
@@ -202,13 +203,16 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   }, [])
 
   // ─── Guards ────────────────────────────────────────────────────────────────
-  if (!isAuthenticated) {
-    const qs = searchParams.toString()
-    const redirectTo = `/glamping/${id}/reservar${qs ? `?${qs}` : ''}`
-    router.push(`/auth/login?redirect=${encodeURIComponent(redirectTo)}`)
-    return null
-  }
   if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Spinner /></div>
+
+  // Mostrar modal de registro opcional si NO está autenticado
+  useEffect(() => {
+    if (!isLoading && !glamping) return
+    if (!isAuthenticated && glamping) {
+      // Mostrar modal solo la primera vez que se detecta que no está autenticado
+      setShowRegistroModal(true)
+    }
+  }, [isAuthenticated, isLoading, glamping])
   if (!glamping) return <div className="p-8 text-center text-stone-500">Glamping no encontrado</div>
 
   // ─── Derived values ────────────────────────────────────────────────────────
@@ -405,6 +409,52 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
       )}
     </div>
   )
+
+  // ─── Modal de registro opcional ─────────────────────────────────────────────
+  const RegistroOpcionalModal = () => {
+    if (!showRegistroModal) return null
+
+    const qs = searchParams.toString()
+    const redirectTo = `/glamping/${id}/reservar${qs ? `?${qs}` : ''}`
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/50" onClick={() => setShowRegistroModal(false)} />
+        <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <ShieldCheck size={24} className="text-emerald-600" />
+            </div>
+            <h3 className="text-xl font-bold text-stone-900">¿Tienes una cuenta en Glamperos?</h3>
+            <p className="text-sm text-stone-500 mt-2">
+              Si ya tienes cuenta o deseas crear una, iniciar sesión te permitirá hacer seguimiento a tu reserva más fácilmente.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(redirectTo)}`)}
+              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+            >
+              Sí, quiero iniciar sesión o registrarme
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRegistroModal(false)}
+              className="w-full py-3 px-4 rounded-xl border-2 border-stone-200 hover:border-stone-300 text-stone-700 font-semibold transition-colors"
+            >
+              No, continuar como invitado
+            </button>
+          </div>
+
+          <p className="text-xs text-stone-400 text-center">
+            Como invitado, recibirás toda la información por correo electrónico.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-8">
@@ -1027,6 +1077,9 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       )}
+
+      {/* Modal de registro opcional */}
+      <RegistroOpcionalModal />
     </div>
   )
 }
