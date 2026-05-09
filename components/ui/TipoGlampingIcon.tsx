@@ -1,4 +1,4 @@
-import { GiHabitatDome, GiHut, GiWoodCabin } from 'react-icons/gi'
+import { GiHabitatDome, GiHut, GiWoodCabin, GiBoilingBubbles } from 'react-icons/gi'
 import { MdOutlineCabin, MdOutlineHouse } from 'react-icons/md'
 import { FaCaravan } from 'react-icons/fa'
 
@@ -26,6 +26,8 @@ export function TipoGlampingIcon({ tipo, size = 24, className = '' }: Props) {
       return <img src={`${GCS}/lumi.svg`} alt="Lumipod" width={size} height={size} className={className} />
     case 'loto':
       return <img src={`${GCS}/loto%20icono.png`} alt="Loto" width={size} height={size} className={className} />
+    case 'burbuja':
+      return <GiBoilingBubbles size={size} className={className} />
     case 'bogota':
       return <img src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos/icono%20Bogota2.svg" alt="Bogota" width={size} height={size} className={className} />
     case 'medellin':

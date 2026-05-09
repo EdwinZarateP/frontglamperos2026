@@ -241,7 +241,7 @@ const RAW: string[] = [
   // Valle del Cauca
   "Cali, Valle del Cauca", "Buenaventura, Valle del Cauca", "Palmira, Valle del Cauca",
   "Tuluá, Valle del Cauca", "Buga, Valle del Cauca", "Cartago, Valle del Cauca",
-  "Yumbo, Valle del Cauca", "Jamundí, Valle del Cauca", "Candelaria, Valle del Cauca",
+  "Yumbo, Valle del Cauca", "Jamundí, Valle del Cauca","Dapa, Valle del Cauca", "Candelaria, Valle del Cauca",
   "Dagua, Valle del Cauca", "Ginebra, Valle del Cauca", "Sevilla, Valle del Cauca",
   "Caicedonia, Valle del Cauca", "Trujillo, Valle del Cauca", "Riofrío, Valle del Cauca",
   "Ansermanuevo, Valle del Cauca", "La Unión, Valle del Cauca", "Roldanillo, Valle del Cauca",

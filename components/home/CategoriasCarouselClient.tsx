@@ -95,7 +95,7 @@ export function CategoriasCarouselClient({ glampings }: Props) {
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h4 className="text-sm font-bold text-white truncate drop-shadow">{g.nombre}</h4>
                       <div className="flex items-center justify-between gap-1 mt-1">
-                        <p className="text-xs text-white/80 capitalize truncate">{tipoGlampingLabels[g.tipo] ?? g.tipo} · {g.ciudad.split(',')[0]}</p>
+                        <p className="text-xs text-white/80 truncate">{tipoGlampingLabels[g.tipo] ?? g.tipo} · {g.ciudad.split(',')[0]}</p>
                         {g.precio > 0 && (
                           <p className="text-xs font-bold text-white whitespace-nowrap drop-shadow">
                             {formatCOP(calcularComision(g.precio))}/noche

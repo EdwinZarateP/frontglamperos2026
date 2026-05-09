@@ -134,6 +134,7 @@ export const tipoGlampingLabels: Record<string, string> = {
   chalet:     'Chalet',
   tipi:       'Tipi',
   loto:       'Loto',
+  burbuja:    'Burbuja',
 }
 
 // ─── Calcula noches entre 2 fechas ────────────────────────────────────────────

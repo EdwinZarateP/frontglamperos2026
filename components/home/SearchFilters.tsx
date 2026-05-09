@@ -6,6 +6,7 @@ import {
   Search, X, Users, Calendar, MapPin, Dog,
   ChevronLeft, ChevronRight as ChevronRightIcon,
 } from 'lucide-react'
+import { FaCat } from 'react-icons/fa'
 import {
   addMonths, startOfMonth, endOfMonth, eachDayOfInterval,
   isSameDay, isBefore, isAfter, isWithinInterval, startOfDay,
@@ -32,6 +33,7 @@ type FiltroChip =
 const FILTROS_RAPIDOS: FiltroChip[] = [
   { key: 'bogota',     label: 'Bogotá',     icon: <img src={`${GCS}/icono%20Bogota2.svg`}      width={20} height={20} alt="" />, ciudadNombre: 'Bogotá, Cundinamarca' },
   { key: 'medellin',   label: 'Medellín',   icon: <img src={`${GCS}/icono%20Medellin%201.svg`} width={20} height={20} alt="" />, ciudadNombre: 'Medellín, Antioquia' },
+  { key: 'cali',       label: 'Cali',       icon: <CatIconGreen size={20} />, ciudadNombre: 'Cali, Valle del Cauca' },
   { key: 'domo',       label: 'Domo',       icon: <TipoGlampingIcon tipo="domo"       size={20} />, tipo: 'domo' },
   { key: 'cabana',     label: 'Cabaña',     icon: <TipoGlampingIcon tipo="cabana"     size={20} />, tipo: 'cabana' },
   { key: 'chalet',     label: 'Chalet',     icon: <TipoGlampingIcon tipo="chalet"     size={20} />, tipo: 'chalet' },
@@ -41,6 +43,11 @@ const FILTROS_RAPIDOS: FiltroChip[] = [
   { key: 'piscina',    label: 'Piscina',    icon: <img src={`${GCS}/icono%20Piscina%201.svg`} width={20} height={20} alt="" />, amenidad: 'piscina' },
   { key: 'mascotas',   label: 'Mascotas',   icon: <span className="text-lg leading-none">🐾</span>, mascotas: true as const },
 ]
+
+// Icono de gato verde sin facciones
+function CatIconGreen({ size = 20 }: { size?: number }) {
+  return <FaCat size={size} style={{ color: '#315B2C' }} />
+}
 
 function fmtDate(d: string) {
   try { return format(parseISO(d), 'd MMM', { locale: es }) } catch { return d }
@@ -343,6 +350,7 @@ export function SearchBar() {
   const CIUDADES_SUGERIDAS = [
     { key: 'bogota',   label: 'Bogotá',   sub: 'Cundinamarca', ciudad: 'Bogotá',   departamento: 'Cundinamarca', icon: `${GCS}/icono%20Bogota2.svg` },
     { key: 'medellin', label: 'Medellín', sub: 'Antioquia',    ciudad: 'Medellín', departamento: 'Antioquia',    icon: `${GCS}/icono%20Medellin%201.svg` },
+    { key: 'cali',     label: 'Cali',     sub: 'Valle',        ciudad: 'Cali',     departamento: 'Valle del Cauca', icon: 'cat-green' },
   ]
 
   const selectMobileCity = (ciudad: string, departamento: string, label: string) => {
@@ -461,7 +469,13 @@ export function SearchBar() {
                           className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-stone-50 text-left"
                         >
                           <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center shrink-0">
-                            <img src={c.icon} width={28} height={28} alt="" />
+                            {c.icon === 'cat-green' ? (
+                              <CatIconGreen size={28} />
+                            ) : typeof c.icon === 'string' && c.icon.startsWith('http') ? (
+                              <img src={c.icon} width={28} height={28} alt="" />
+                            ) : (
+                              <span className="text-2xl">{c.icon}</span>
+                            )}
                           </div>
                           <div>
                             <p className="text-sm font-semibold text-stone-800">{c.label}</p>
@@ -673,7 +687,13 @@ export function SearchBar() {
                       onClick={() => selectCity(c.ciudad, c.departamento, `${c.label}, ${c.sub}`)}
                       className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-sm text-stone-700 flex items-center gap-2"
                     >
-                      <img src={c.icon} width={16} height={16} alt="" className="shrink-0" />
+                      {c.icon === 'cat-green' ? (
+                        <CatIconGreen size={16} />
+                      ) : typeof c.icon === 'string' && c.icon.startsWith('http') ? (
+                        <img src={c.icon} width={16} height={16} alt="" className="shrink-0" />
+                      ) : (
+                        <span className="text-base shrink-0">{c.icon}</span>
+                      )}
                       <span>
                         <span className="font-medium">{c.label}</span>
                         <span className="text-stone-400">, {c.sub}</span>
