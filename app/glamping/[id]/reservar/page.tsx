@@ -119,13 +119,15 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     resolver: zodResolver(schema) as import('react-hook-form').Resolver<FormData>,
   })
 
-  // DEBUG TEMPORAL
+  // Mostrar modal de registro opcional si NO está autenticado
   useEffect(() => {
-    console.log('=== RENDER RESERVAR PAGE ===')
-    console.log('glamping:', glamping)
-    console.log('aceptaMascotas:', glamping?.aceptaMascotas)
-  }, [glamping])
+    if (!isLoading && !glamping) return
+    if (!isAuthenticated && glamping) {
+      setShowRegistroModal(true)
+    }
+  }, [isAuthenticated, isLoading, glamping])
 
+  // Auto-fill user data when authenticated
   useEffect(() => {
     if (user) {
       setValue('nombreTitular', user.nombre || '')
@@ -176,6 +178,57 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     onError: (err) => toast.error(getErrorMessage(err)),
   })
 
+  const toggleExtra = useCallback((key: string) => {
+    setExtrasSeleccionados((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    )
+  }, [])
+
+  // ─── Derived values ────────────────────────────────────────────────────────
+  const maxHuespedes      = glamping?.cantidadHuespedes + (glamping?.cantidadHuespedesAdicionales ?? 0) ?? 0
+  // Excluir personaAdicional (se maneja con el contador) y mascotaAdicional (se maneja con el toggle)
+  const extrasDisponibles = glamping?.extras?.filter((e) =>
+    e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'
+  ) ?? []
+  const precioDefecto     = glamping ? precioMaxTarifas(glamping.tarifasNoche as Record<string, number> | undefined, glamping.precioNoche) : 0
+  const noches            = cotizacion?.noches ?? 0
+  // Buscar el extra de mascota (precioPublico ya tiene el incremento del 10% calculado por el backend)
+  const mascotaExtra = glamping?.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
+  const precioMascotaUnitario = mascotaExtra?.precioPublico ?? 0
+
+  const precioMascota = cantidadMascotas > 0 && glamping?.aceptaMascotas && precioMascotaUnitario > 0
+    ? precioMascotaUnitario * cantidadMascotas * Math.max(noches, 1)
+    : 0
+  const hayFechas         = !!fechaInicio && !!fechaFin
+  // Precios pasadía para la leyenda del calendario (con comisión Glamperos)
+  const tarifasPasadia = glamping?.tarifasPasadia as Record<string, number> | undefined
+  const _pasadiaDiaSemanaBase = tarifasPasadia?.lunes || tarifasPasadia?.martes || 0
+  const pasadiaDiaSemana = _pasadiaDiaSemanaBase > 0 ? Math.round(calcularComision(_pasadiaDiaSemanaBase)) : undefined
+  const _pasadiaFinDeSemanaBase = tarifasPasadia?.sabado || (glamping?.precioNoche as number) || 0
+  const pasadiaFinDeSemana = _pasadiaFinDeSemanaBase > 0 ? Math.round(calcularComision(_pasadiaFinDeSemanaBase)) : undefined
+  // Festivos para los dos próximos años (cubre siempre el rango del calendario)
+  const now = new Date()
+  const festivosSet = new Set([
+    ...colombianHolidays(now.getFullYear()),
+    ...colombianHolidays(now.getFullYear() + 1),
+  ])
+
+  const totalBase         = tipo === 'PASADIA'
+    ? (fechaPasadia && glamping ? getPasadiaPrice(glamping as unknown as Record<string, unknown>, fechaPasadia) : 0)
+    : (cotizacion ? cotizacion.total + precioMascota : 0)
+  // Redondear al múltiplo de 50 (denominación mínima COP)
+  const floor50 = (x: number) => Math.floor(x / 50) * 50
+  const ceil50  = (x: number) => Math.ceil(x / 50) * 50
+  // totalWompi: base redondeado abajo + fee redondeado arriba
+  const wompiBase         = floor50(totalBase)
+  const wompiFee          = ceil50(wompiBase * 0.05)
+  const totalWompi        = wompiBase + wompiFee   // siempre múltiplo de 50
+  const totalMostrar      = metodoPago === 'wompi' ? totalWompi : totalBase
+
+  // Para el selector de porcentaje: el abono debe ser múltiplo de 50
+  const wompiAbono50      = floor50(totalWompi * 0.5)
+  const wompiAbono100     = totalWompi
+
   const onFormSubmit = (data: FormData) => {
     if (tipo === 'NOCHES' && !hayFechas) { toast.error('Selecciona las fechas'); return }
     if (tipo === 'PASADIA' && !fechaPasadia) { toast.error('Selecciona la fecha del pasadía'); return }
@@ -195,70 +248,6 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     }
     crearReserva.mutate(data)
   }
-
-  const toggleExtra = useCallback((key: string) => {
-    setExtrasSeleccionados((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-    )
-  }, [])
-
-  // ─── Guards ────────────────────────────────────────────────────────────────
-  if (isLoading) return <div className="flex items-center justify-center min-h-screen"><Spinner /></div>
-
-  // Mostrar modal de registro opcional si NO está autenticado
-  useEffect(() => {
-    if (!isLoading && !glamping) return
-    if (!isAuthenticated && glamping) {
-      // Mostrar modal solo la primera vez que se detecta que no está autenticado
-      setShowRegistroModal(true)
-    }
-  }, [isAuthenticated, isLoading, glamping])
-  if (!glamping) return <div className="p-8 text-center text-stone-500">Glamping no encontrado</div>
-
-  // ─── Derived values ────────────────────────────────────────────────────────
-  const maxHuespedes      = glamping.cantidadHuespedes + (glamping.cantidadHuespedesAdicionales ?? 0)
-  // Excluir personaAdicional (se maneja con el contador) y mascotaAdicional (se maneja con el toggle)
-  const extrasDisponibles = glamping.extras?.filter((e) =>
-    e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'
-  ) ?? []
-  const precioDefecto     = precioMaxTarifas(glamping.tarifasNoche as Record<string, number> | undefined, glamping.precioNoche)
-  const noches            = cotizacion?.noches ?? 0
-  // Buscar el extra de mascota (precioPublico ya tiene el incremento del 10% calculado por el backend)
-  const mascotaExtra = glamping.extras?.find((e: ServicioExtra) => e.key === 'mascotaAdicional')
-  const precioMascotaUnitario = mascotaExtra?.precioPublico ?? 0
-
-  const precioMascota = cantidadMascotas > 0 && glamping.aceptaMascotas && precioMascotaUnitario > 0
-    ? precioMascotaUnitario * cantidadMascotas * Math.max(noches, 1)
-    : 0
-  const hayFechas         = !!fechaInicio && !!fechaFin
-  // Precios pasadía para la leyenda del calendario (con comisión Glamperos)
-  const tarifasPasadia = glamping.tarifasPasadia as Record<string, number> | undefined
-  const _pasadiaDiaSemanaBase = tarifasPasadia?.lunes || tarifasPasadia?.martes || 0
-  const pasadiaDiaSemana = _pasadiaDiaSemanaBase > 0 ? Math.round(calcularComision(_pasadiaDiaSemanaBase)) : undefined
-  const _pasadiaFinDeSemanaBase = tarifasPasadia?.sabado || (glamping.precioNoche as number) || 0
-  const pasadiaFinDeSemana = _pasadiaFinDeSemanaBase > 0 ? Math.round(calcularComision(_pasadiaFinDeSemanaBase)) : undefined
-  // Festivos para los dos próximos años (cubre siempre el rango del calendario)
-  const now = new Date()
-  const festivosSet = new Set([
-    ...colombianHolidays(now.getFullYear()),
-    ...colombianHolidays(now.getFullYear() + 1),
-  ])
-
-  const totalBase         = tipo === 'PASADIA'
-    ? (fechaPasadia ? getPasadiaPrice(glamping as unknown as Record<string, unknown>, fechaPasadia) : 0)
-    : (cotizacion ? cotizacion.total + precioMascota : 0)
-  // Redondear al múltiplo de 50 (denominación mínima COP)
-  const floor50 = (x: number) => Math.floor(x / 50) * 50
-  const ceil50  = (x: number) => Math.ceil(x / 50) * 50
-  // totalWompi: base redondeado abajo + fee redondeado arriba
-  const wompiBase         = floor50(totalBase)
-  const wompiFee          = ceil50(wompiBase * 0.05)
-  const totalWompi        = wompiBase + wompiFee   // siempre múltiplo de 50
-  const totalMostrar      = metodoPago === 'wompi' ? totalWompi : totalBase
-
-  // Para el selector de porcentaje: el abono debe ser múltiplo de 50
-  const wompiAbono50      = floor50(totalWompi * 0.5)
-  const wompiAbono100     = totalWompi
 
   // ─── Componente resumen (reutilizado en desktop y mobile sheet) ────────────
   const ResumenContent = () => (
@@ -411,13 +400,11 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   )
 
   // ─── Modal de registro opcional ─────────────────────────────────────────────
+  const qs = searchParams.toString()
+  const redirectTo = `/glamping/${id}/reservar${qs ? `?${qs}` : ''}`
+
   const RegistroOpcionalModal = () => {
-    if (!showRegistroModal) return null
-
-    const qs = searchParams.toString()
-    const redirectTo = `/glamping/${id}/reservar${qs ? `?${qs}` : ''}`
-
-    return (
+    return showRegistroModal ? (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/50" onClick={() => setShowRegistroModal(false)} />
         <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
@@ -453,7 +440,17 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
           </p>
         </div>
       </div>
-    )
+    ) : null
+  }
+
+  // Loading state
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen"><Spinner /></div>
+  }
+
+  // Not found state
+  if (!glamping) {
+    return <div className="p-8 text-center text-stone-500">Glamping no encontrado</div>
   }
 
   return (
