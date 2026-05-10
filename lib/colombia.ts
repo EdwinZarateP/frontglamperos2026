@@ -245,7 +245,7 @@ const RAW: string[] = [
   "Dagua, Valle del Cauca", "Ginebra, Valle del Cauca", "Sevilla, Valle del Cauca",
   "Caicedonia, Valle del Cauca", "Trujillo, Valle del Cauca", "Riofrío, Valle del Cauca",
   "Ansermanuevo, Valle del Cauca", "La Unión, Valle del Cauca", "Roldanillo, Valle del Cauca",
-  "El Cerrito, Valle del Cauca", "Guacarí, Valle del Cauca", "Restrepo, Valle del Cauca",
+  "El Cerrito, Valle del Cauca", "Guacarí, Valle del Cauca", "Restrepo, Valle del Cauca","La Cumbre, Valle del Cauca",
 
   // Vaupés
   "Mitú, Vaupés",
