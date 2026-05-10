@@ -391,7 +391,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
             <p className="text-xs text-stone-400">Precio referencial</p>
             <p className="font-bold text-stone-900">
               {formatCOP(precioDefecto)}
-              <span className="text-xs font-normal text-stone-400"> / noche para 2</span>
+              <span className="text-xs font-normal text-stone-400"> / noche para {glamping?.cantidadHuespedes || 2}</span>
             </p>
           </div>
         </div>

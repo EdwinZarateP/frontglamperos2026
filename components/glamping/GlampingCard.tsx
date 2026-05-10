@@ -210,11 +210,11 @@ export function GlampingCard({ glamping }: Props) {
         {/* Ciudad - Departamento */}
         <p className="text-xs text-stone-500 mt-1 truncate">{ciudadLabel}</p>
 
-        {/* Precio más alto (sábado) — noche para 2 */}
+        {/* Precio más alto (sábado) — noche para X */}
         <div className="mt-auto pt-3">
           <p className="font-bold text-stone-900 text-base leading-tight">
             {formatCOP(glamping.precioSabado)}
-            <span className="text-xs font-normal text-stone-400"> / noche para 2</span>
+            <span className="text-xs font-normal text-stone-400"> / noche para {glamping.cantidadHuespedes || 2}</span>
           </p>
         </div>
       </Link>

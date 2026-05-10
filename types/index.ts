@@ -110,6 +110,7 @@ export interface GlampingCard {
   esFavorito: boolean
   aceptaMascotas?: boolean
   minimoNoches?: number
+  cantidadHuespedes?: number
 }
 
 export interface HomeResponse {
