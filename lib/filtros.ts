@@ -226,6 +226,7 @@ export function parseFiltrosFromSearchParams(sp: Record<string, string>): Partia
 const CITY_INTROS: Record<string, string> = {
   bogota: 'Escápate de la ciudad sin alejarte demasiado. A menos de 2 horas de Bogotá encontrarás cúpulas geodésicas, domos y cabañas de lujo rodeadas de la naturaleza de Cundinamarca.',
   medellin: 'Montañas, embalses y pueblos coloniales a pocas horas de Medellín. Antioquia ofrece algunas de las experiencias de glamping más espectaculares de Colombia.',
+  cali: 'Cali, Jamundí, Dapa, Tuluá y alrededores. Descubre el Valle del Cauca con glampings únicos rodeados de naturaleza, caña de azúcar y paisajes verdes.',
   paipa: 'Aguas termales, historia y paisajes boyacenses de ensueño. Paipa es uno de los destinos de glamping más buscados de Colombia por su clima y gastronomía.',
   'villa-de-leyva': 'El pueblo colonial más bello de Colombia te espera. Domos y cabañas de lujo rodeados del paisaje árido y mágico de Villa de Leyva, Boyacá.',
   tinjaca: 'Entre viñedos y paisajes boyacenses, Tinjacá ofrece retiros de glamping únicos a pocos kilómetros de Villa de Leyva.',

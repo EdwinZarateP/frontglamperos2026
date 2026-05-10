@@ -27,10 +27,27 @@ export async function generateMetadata({
   const filtros     = { ...slugFiltros, ...spFiltros }
   const { title, description } = buildSeoMeta(filtros)
   const canonicalPath = '/' + slug.join('/')
+
+  // Imagen OG específica para ciudades
+  const citySlug = slug[0]
+  const cityOgImages: Record<string, string> = {
+    cali: 'https://storage.googleapis.com/glamperos-imagenes/glampings/alas-glamping_20260509_201121_e646e67e.webp',
+    bogota: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/cundinamarca.jpg',
+    medellin: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/antioquiacard.jpg',
+  }
+  const ogImage = cityOgImages[citySlug] || `${SITE_URL}/og-default.jpg`
+
   return {
     title,
     description,
     alternates: { canonical: canonicalPath },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}${canonicalPath}`,
+      siteName: 'Glamperos',
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
   }
 }
 

@@ -35,6 +35,7 @@ const FILTROS_RAPIDOS: FiltroChip[] = [
   { key: 'medellin',   label: 'Medellín',   icon: <img src={`${GCS}/icono%20Medellin%201.svg`} width={20} height={20} alt="" />, ciudadNombre: 'Medellín, Antioquia' },
   { key: 'cali',       label: 'Cali',       icon: <CatIconGreen size={20} />, ciudadNombre: 'Cali, Valle del Cauca' },
   { key: 'domo',       label: 'Domo',       icon: <TipoGlampingIcon tipo="domo"       size={20} />, tipo: 'domo' },
+  { key: 'burbuja',    label: 'Burbuja',    icon: <TipoGlampingIcon tipo="burbuja"    size={20} />, tipo: 'burbuja' },
   { key: 'cabana',     label: 'Cabaña',     icon: <TipoGlampingIcon tipo="cabana"     size={20} />, tipo: 'cabana' },
   { key: 'chalet',     label: 'Chalet',     icon: <TipoGlampingIcon tipo="chalet"     size={20} />, tipo: 'chalet' },
   { key: 'tiny-house', label: 'Tiny House', icon: <TipoGlampingIcon tipo="tiny-house" size={20} />, tipo: 'tiny-house' },

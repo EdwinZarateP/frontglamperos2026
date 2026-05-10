@@ -230,15 +230,20 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
         const ciudad = filtros.ciudad ?? ''
         const esBogota   = ciudad.toLowerCase().includes('bogot')
         const esMedellin = ciudad.toLowerCase().includes('medell')
+        const esCali     = ciudad.toLowerCase().includes('cali')
         const heroImg = esBogota
           ? 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/monserrate_optimizado.webp'
           : esMedellin
           ? 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/piedra_guatape.webp'
+          : esCali
+          ? 'https://storage.googleapis.com/glamperos-imagenes/glampings/alas-glamping_20260509_201121_e646e67e.webp'
           : 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
         const defaultHeroText = esBogota
           ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE BOGOTÁ'
           : esMedellin
           ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE MEDELLÍN'
+          : esCali
+          ? 'RESERVA LOS MEJORES GLAMPINGS CERCA DE CALI'
           : 'DESCUBRE GLAMPING Y ALOJAMIENTOS RURALES INCREÍBLES PARA RESERVAR EN COLOMBIA'
 
         const displayTitle = heroTitle ? heroTitle.toUpperCase() : defaultHeroText

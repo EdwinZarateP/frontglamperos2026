@@ -27,7 +27,7 @@ export function TipoGlampingIcon({ tipo, size = 24, className = '' }: Props) {
     case 'loto':
       return <img src={`${GCS}/loto%20icono.png`} alt="Loto" width={size} height={size} className={className} />
     case 'burbuja':
-      return <GiBoilingBubbles size={size} className={className} />
+      return <GiBoilingBubbles size={size} className={className} style={{ color: '#315B2C' }} />
     case 'bogota':
       return <img src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos/icono%20Bogota2.svg" alt="Bogota" width={size} height={size} className={className} />
     case 'medellin':
