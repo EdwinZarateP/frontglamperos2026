@@ -185,7 +185,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   }, [])
 
   // ─── Derived values ────────────────────────────────────────────────────────
-  const maxHuespedes      = glamping?.cantidadHuespedes + (glamping?.cantidadHuespedesAdicionales ?? 0) ?? 0
+  const maxHuespedes      = (glamping?.cantidadHuespedes ?? 0) + (glamping?.cantidadHuespedesAdicionales ?? 0)
   // Excluir personaAdicional (se maneja con el contador) y mascotaAdicional (se maneja con el toggle)
   const extrasDisponibles = glamping?.extras?.filter((e) =>
     e.disponible && e.key !== 'personaAdicional' && e.key !== 'mascotaAdicional'
