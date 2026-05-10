@@ -302,8 +302,8 @@ export function SearchBar() {
       ).slice(0, 8)
     : []
 
-  const selectCity = (ciudad: string, departamento: string, label: string) => {
-    setLocationInput(label)
+  const selectCity = (ciudad: string, departamento: string, label: string, labelCompleto?: string) => {
+    setLocationInput(labelCompleto || label)
     setActivePanel('dates')
   }
 
@@ -348,18 +348,27 @@ export function SearchBar() {
     return parts.join(', ') || null
   })()
 
-  const CIUDADES_SUGERIDAS = [
-    { key: 'bogota',   label: 'Bogotá',   sub: 'Cundinamarca', ciudad: 'Bogotá',   departamento: 'Cundinamarca', icon: `${GCS}/icono%20Bogota2.svg` },
-    { key: 'medellin', label: 'Medellín', sub: 'Antioquia',    ciudad: 'Medellín', departamento: 'Antioquia',    icon: `${GCS}/icono%20Medellin%201.svg` },
-    { key: 'cali',     label: 'Cali',     sub: 'Valle',        ciudad: 'Cali',     departamento: 'Valle del Cauca', icon: 'cat-green' },
+  const CIUDADES_SUGERIDAS: Array<{
+    key: string
+    label: string
+    sub: string
+    ciudad: string
+    departamento: string
+    labelCompleto: string
+    icon: string | 'cat-green'
+  }> = [
+    { key: 'bogota',   label: 'Bogotá',   sub: 'Cundinamarca', ciudad: 'Bogotá',   departamento: 'Cundinamarca', labelCompleto: 'Bogotá, Cundinamarca', icon: `${GCS}/icono%20Bogota2.svg` },
+    { key: 'medellin', label: 'Medellín', sub: 'Antioquia',    ciudad: 'Medellín', departamento: 'Antioquia',    labelCompleto: 'Medellín, Antioquia', icon: `${GCS}/icono%20Medellin%201.svg` },
+    { key: 'cali',     label: 'Cali',     sub: 'Valle del Cauca', ciudad: 'Cali', departamento: 'Valle del Cauca', labelCompleto: 'Cali, Valle del Cauca', icon: 'cat-green' },
   ]
 
-  const selectMobileCity = (ciudad: string, departamento: string, label: string) => {
-    setLocationInput(label)
+  const selectMobileCity = (ciudad: string, departamento: string, label: string, labelCompleto?: string) => {
+    const displayLabel = labelCompleto || label
+    setLocationInput(displayLabel)
     const coords = getCoordenadas(ciudad, departamento)
     const merged = {
       ...filtros,
-      ciudad: label,
+      ciudad: displayLabel,
       lat: coords?.lat,
       lng: coords?.lng,
       radio_km: coords ? 130 : undefined,
@@ -466,7 +475,7 @@ export function SearchBar() {
                         <button
                           key={c.key}
                           type="button"
-                          onClick={() => selectMobileCity(c.ciudad, c.departamento, `${c.label}, ${c.sub}`)}
+                          onClick={() => selectMobileCity(c.ciudad, c.departamento, c.labelCompleto || `${c.label}, ${c.sub}`, c.labelCompleto)}
                           className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-stone-50 text-left"
                         >
                           <div className="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center shrink-0">
@@ -685,7 +694,7 @@ export function SearchBar() {
                     <button
                       key={c.key}
                       type="button"
-                      onClick={() => selectCity(c.ciudad, c.departamento, `${c.label}, ${c.sub}`)}
+                      onClick={() => selectCity(c.ciudad, c.departamento, c.labelCompleto || `${c.label}, ${c.sub}`, c.labelCompleto)}
                       className="w-full text-left px-3 py-2 rounded-lg hover:bg-stone-50 text-sm text-stone-700 flex items-center gap-2"
                     >
                       {c.icon === 'cat-green' ? (
@@ -916,9 +925,30 @@ export function FilterChips() {
           nextFiltros = { acepta_mascotas: isActive ? undefined : true }
         } else {
           isActive = filtros.ciudad === f.ciudadNombre
+          const coords = isActive
+            ? { lat: undefined, lng: undefined, radio_km: undefined }
+            : (() => {
+                const found = CIUDADES_COLOMBIA.find(c => c.label === f.ciudadNombre)
+                if (found) {
+                  const coords = getCoordenadas(found.ciudad, found.departamento)
+                  if (coords) {
+                    return { lat: coords.lat, lng: coords.lng, radio_km: 130 }
+                  }
+                }
+                // Fallback: usar coordenadas hardcodeadas para ciudades principales
+                const hardcoded: Record<string, { lat: number; lng: number }> = {
+                  'Bogotá, Cundinamarca': { lat: 4.7110, lng: -74.0721 },
+                  'Medellín, Antioquia': { lat: 6.2576, lng: -75.5658 },
+                  'Cali, Valle del Cauca': { lat: 3.4516, lng: -76.5320 },
+                }
+                const fallback = hardcoded[f.ciudadNombre]
+                return fallback
+                  ? { lat: fallback.lat, lng: fallback.lng, radio_km: 130 }
+                  : { lat: undefined, lng: undefined, radio_km: undefined }
+              })()
           nextFiltros = isActive
-            ? { ciudad: undefined }
-            : { ciudad: f.ciudadNombre }
+            ? { ciudad: undefined, ...coords }
+            : { ciudad: f.ciudadNombre, ...coords }
         }
 
         return (
@@ -928,7 +958,7 @@ export function FilterChips() {
             onClick={() => {
               // Reset page to 1 when changing main filters (city, type, amenities)
               const merged = { ...filtros, ...nextFiltros, page: undefined }
-              setFiltros(nextFiltros)
+              setFiltros(merged)
               router.push(buildUrlFromFiltros(merged))
             }}
             className={cn(
