@@ -641,13 +641,17 @@ export function SearchBar() {
                 onClick={(e) => {
                   e.stopPropagation()
                   setLocationInput('')
-                  setFiltros({ ciudad: undefined, lat: undefined, lng: undefined })
+                  const filtrosSinCiudad = { ...filtros, ciudad: undefined, lat: undefined, lng: undefined }
+                  setFiltros(filtrosSinCiudad)
+                  router.push(buildUrlFromFiltros(filtrosSinCiudad))
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.stopPropagation()
                     setLocationInput('')
-                    setFiltros({ ciudad: undefined, lat: undefined, lng: undefined })
+                    const filtrosSinCiudad = { ...filtros, ciudad: undefined, lat: undefined, lng: undefined }
+                    setFiltros(filtrosSinCiudad)
+                    router.push(buildUrlFromFiltros(filtrosSinCiudad))
                   }
                 }}
                 className="cursor-pointer shrink-0"
