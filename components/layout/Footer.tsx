@@ -62,6 +62,18 @@ export function Footer() {
           </ul>
         </div>
 
+        {/* Destinos populares */}
+        <div className="space-y-3">
+          <h4 className="text-white font-semibold text-sm">Destinos populares</h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link href="/bogota" className="hover:text-white transition-colors">Glamping en Bogotá</Link></li>
+            <li><Link href="/medellin" className="hover:text-white transition-colors">Glamping en Medellín</Link></li>
+            <li><Link href="/cali" className="hover:text-white transition-colors">Glamping en Cali</Link></li>
+            <li><Link href="/paipa" className="hover:text-white transition-colors">Glamping en Paipa</Link></li>
+            <li><Link href="/bucaramanga" className="hover:text-white transition-colors">Glamping en Bucaramanga</Link></li>
+          </ul>
+        </div>
+
         {/* Síguenos */}
         <div className="space-y-3">
           <h4 className="text-white font-semibold text-sm">Síguenos</h4>

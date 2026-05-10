@@ -17,6 +17,7 @@ import { buildUrlFromFiltros } from '@/lib/filtros'
 import { FaqCarousel } from '@/components/home/FaqCarousel'
 import { BenefitsCarousel } from '@/components/home/BenefitsCarousel'
 import { RegionCards } from '@/components/home/RegionCards'
+import { CiudadesLinks } from '@/components/home/CiudadesLinks'
 import { TierramontSection } from '@/components/home/TierramontSection'
 import type { FiltrosHome, HomeResponse } from '@/types'
 
@@ -476,6 +477,9 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
       {/* ── Region Cards ────────────────────────────────────────────────── */}
       <RegionCards />
+
+      {/* ── Ciudades Links (SEO) ────────────────────────────────────────── */}
+      <CiudadesLinks />
 
       {/* ── Carrusel de Categorías ──────────────────────────────────────── */}
       {carouselSection}
