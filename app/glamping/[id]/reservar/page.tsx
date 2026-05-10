@@ -253,15 +253,15 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const ResumenContent = () => (
     <div className="space-y-1">
       {/* Imagen */}
-      {glamping.imagenes?.[0] && (
+      {glamping?.imagenes?.[0] && (
         <img
           src={glamping.imagenes[0]}
-          alt={glamping.nombreGlamping}
+          alt={glamping.nombreGlamping ?? ''}
           className="w-full h-36 object-cover rounded-xl mb-4"
         />
       )}
-      <p className="font-semibold text-stone-800 text-sm">{glamping.nombreGlamping}</p>
-      <p className="text-xs text-stone-400 mb-3">{glamping.ciudadDepartamento}</p>
+      <p className="font-semibold text-stone-800 text-sm">{glamping?.nombreGlamping}</p>
+      <p className="text-xs text-stone-400 mb-3">{glamping?.ciudadDepartamento}</p>
 
       {/* Fechas y huéspedes */}
       <div className="text-sm space-y-2 text-stone-600">
@@ -297,7 +297,7 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* Desglose cotización */}
-      {tipo === 'PASADIA' && fechaPasadia ? (
+      {tipo === 'PASADIA' && fechaPasadia && glamping ? (
         <div className="border-t border-stone-100 mt-3 pt-3 space-y-2 text-sm">
           <div className="flex justify-between text-stone-600">
             <span>Pasadía</span>
