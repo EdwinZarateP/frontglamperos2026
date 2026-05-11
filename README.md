@@ -870,6 +870,22 @@ El campo `precioMascotas` fue eliminado del formulario del anfitrión. El precio
 
 ---
 
+### v1.6 — 2026-05-10
+
+#### Capacidad dinámica en cards del home
+
+**Problema:** Las cards mostraban hardcoded "/noche para 2" sin considerar la capacidad real del glamping.
+
+**Fix:**
+- **Backend** (`routers/glampings.py`): Agregado `"cantidadHuespedes"` al response de `_build_card()`
+- **Frontend** (`types/index.ts`): Agregado `cantidadHuespedes?: number` al tipo `GlampingCard`
+- **Frontend** (`GlampingCard.tsx`): Cambiado hardcoded "para 2" por `{glamping.cantidadHuespedes || 2}`
+- **Frontend** (`reservar/page.tsx`): Actualizado para mostrar capacidad dinámica en precio referencial
+
+**Resultado:** Un glamping con `cantidadHuespedes: 4` ahora muestra "/noche para 4" en su card, reflejando su capacidad real.
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`

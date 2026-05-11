@@ -278,6 +278,53 @@ export function GlampingDetailClient({ glamping }: Props) {
     }
     lines.push('')
 
+    // Tarifas de pasadía (si tiene)
+    const tp = glamping.tarifasPasadia
+    if (tp && typeof tp === 'object' && diasLabels.some(([k]) => (tp as Record<string,number>)[k] > 0)) {
+      lines.push('')
+      lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━')
+      lines.push('💰 *Precios pasadía (09:00 – 17:00):*')
+      // Agrupar: entre semana (Lu-Vi) y fin de semana (Sá-Do)
+      const entreSemana = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes']
+      const finSemana = ['sabado', 'domingo']
+
+      let precioEntreSemana: number | null = null
+      for (const dia of entreSemana) {
+        const p = (tp as Record<string,number>)[dia]
+        if (p && p > 0) {
+          precioEntreSemana = p
+          break
+        }
+      }
+
+      let precioFinSemana: number | null = null
+      for (const dia of finSemana) {
+        const p = (tp as Record<string,number>)[dia]
+        if (p && p > 0) {
+          precioFinSemana = p
+          break
+        }
+      }
+
+      if (precioEntreSemana) {
+        lines.push(`• Entre semana (Lu – Vi, sin festivos): ${comision(precioEntreSemana)}`)
+      }
+      if (precioFinSemana) {
+        lines.push(`• Fin de semana (Sá – Do y festivos): ${comision(precioFinSemana)}`)
+      }
+
+      // Descripción de qué incluye la pasadía
+      if (glamping.descripcionPasadia) {
+        lines.push('')
+        lines.push('📋 *Incluye:*')
+        const items = glamping.descripcionPasadia.split('\n').map(s => s.trim()).filter(Boolean)
+        for (const item of items) {
+          lines.push(`• ${item}`)
+        }
+      }
+      lines.push('')
+    }
+
     lines.push(`🕐 Check-in: ${glamping.checkInNoche} | Check-out: ${glamping.checkOutNoche}`)
     if (glamping.cantidadHuespedes) {
       let capLine = `👥 Precio base INCLUYE ${glamping.cantidadHuespedes} ${glamping.cantidadHuespedes === 1 ? 'persona' : 'personas'}`
