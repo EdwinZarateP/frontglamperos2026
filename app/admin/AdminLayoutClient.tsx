@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Tent, Users, MessageSquare, CalendarDays, ShieldCheck, Bot, Settings } from 'lucide-react'
+import { LayoutDashboard, Tent, Users, MessageSquare, CalendarDays, ShieldCheck, Bot, Settings, BarChart3 } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/comentarios', label: 'Comentarios', icon: MessageSquare },
   { href: '/admin/bot',         label: 'Bot WhatsApp', icon: Bot },
+  { href: '/admin/bot/estadisticas', label: 'Estadísticas Bot', icon: BarChart3 },
   { href: '/admin/sistema',      label: 'Sistema', icon: Settings },
 ]
 

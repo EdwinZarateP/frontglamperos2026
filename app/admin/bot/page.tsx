@@ -27,14 +27,41 @@ function fmtFecha(iso: string) {
   if (mins < 60) return `hace ${mins} min`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24)  return `hace ${hrs}h`
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', timeZone: 'America/Bogota' })
+  // Convertir a hora Colombia para la fecha
+  const colombiaTime = new Date(d.getTime() - (5 * 60 * 60 * 1000))
+  return colombiaTime.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })
 }
 
 function fmtHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('es-CO', {
+  const d = new Date(iso)
+  // Convertir a hora Colombia restando 5 horas (UTC-5)
+  const colombiaTime = new Date(d.getTime() - (5 * 60 * 60 * 1000))
+  return colombiaTime.toLocaleTimeString('es-CO', {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'America/Bogota'
+    hour12: true
+  })
+}
+
+function fmtFechaCompleta(iso: string) {
+  const d = new Date(iso)
+  // Convertir a hora Colombia restando 5 horas (UTC-5)
+  const colombiaTime = new Date(d.getTime() - (5 * 60 * 60 * 1000))
+  return colombiaTime.toLocaleDateString('es-CO', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+function fmtFechaCorta(iso: string) {
+  const d = new Date(iso)
+  // Convertir a hora Colombia restando 5 horas (UTC-5)
+  const colombiaTime = new Date(d.getTime() - (5 * 60 * 60 * 1000))
+  return colombiaTime.toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: 'short'
   })
 }
 
@@ -154,7 +181,12 @@ export default function AdminBotPage() {
               </button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-stone-900 truncate">+{selected}</p>
-                <p className="text-xs text-stone-400">{mensajes.length} mensajes</p>
+                <p className="text-xs text-stone-400">
+                  {mensajes.length} mensajes
+                  {mensajes.length > 0 && (
+                    <span className="ml-1">· {fmtFechaCorta(mensajes[0].timestamp)}</span>
+                  )}
+                </p>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-stone-400 shrink-0">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -168,25 +200,43 @@ export default function AdminBotPage() {
               ) : mensajes.length === 0 ? (
                 <p className="text-center text-stone-400 text-sm py-10">Sin mensajes</p>
               ) : (
-                mensajes.map((m, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${m.rol === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
-                        ${m.rol === 'user'
-                          ? 'bg-emerald-500 text-white rounded-br-sm'
-                          : 'bg-stone-100 text-stone-800 rounded-bl-sm'}`}
-                    >
-                      <p className="whitespace-pre-wrap break-words">{m.mensaje}</p>
-                      <p className={`text-[10px] mt-1 text-right
-                        ${m.rol === 'user' ? 'text-emerald-100' : 'text-stone-400'}`}>
-                        {fmtHora(m.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))
+                <>
+                  {mensajes.map((m, i) => {
+                    // Mostrar separador de fecha si cambia el día
+                    const showDateSeparator = i === 0 || (
+                      new Date(m.timestamp).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) !==
+                      new Date(mensajes[i - 1].timestamp).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })
+                    )
+
+                    return (
+                      <div key={i}>
+                        {showDateSeparator && (
+                          <div className="flex justify-center my-4">
+                            <span className="text-[11px] font-medium text-stone-400 bg-stone-100 px-3 py-1 rounded-full">
+                              {fmtFechaCompleta(m.timestamp)}
+                            </span>
+                          </div>
+                        )}
+                        <div
+                          className={`flex ${m.rol === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
+                              ${m.rol === 'user'
+                                ? 'bg-emerald-500 text-white rounded-br-sm'
+                                : 'bg-stone-100 text-stone-800 rounded-bl-sm'}`}
+                          >
+                            <p className="whitespace-pre-wrap break-words">{m.mensaje}</p>
+                            <p className={`text-[10px] mt-1 text-right
+                              ${m.rol === 'user' ? 'text-emerald-100' : 'text-stone-400'}`}>
+                              {fmtHora(m.timestamp)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
               )}
             </div>
           </>
