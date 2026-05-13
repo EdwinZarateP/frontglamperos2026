@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { BarChart3, Users, MessageSquare, TrendingUp, Calendar, RefreshCw, Download } from 'lucide-react'
+import { BarChart3, Users, MessageSquare, TrendingUp, Calendar, RefreshCw, Download, Clock } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -19,9 +19,36 @@ interface BotStats {
     fecha: string
     conversaciones: number
     total_mensajes: number
-    mensajes_usuario: number
-    mensajes_bot: number
   }>
+}
+
+interface BotStatsHoras {
+  periodo_dias: number
+  por_hora: Array<{
+    hora: string
+    total_mensajes: number
+    conversaciones: number
+  }>
+  hora_pico: {
+    hora: string
+    total_mensajes: number
+    conversaciones: number
+  } | null
+  total_mensajes: number
+}
+
+interface BotStatsDiaSemana {
+  periodo_dias: number
+  por_dia_semana: Array<{
+    dia_semana: string
+    conversaciones: number
+    total_mensajes: number
+  }>
+  dia_mas_activo: {
+    dia_semana: string
+    conversaciones: number
+    total_mensajes: number
+  } | null
 }
 
 export default function AdminBotStatsPage() {
@@ -41,6 +68,22 @@ export default function AdminBotStatsPage() {
       }
       return (await api.get(url)).data as BotStats
     },
+    refetchInterval: 60_000,
+  })
+
+  const diasParam = dateRange === '7d' ? 7 : dateRange === '90d' ? 90 : 30
+
+  // Estadísticas por hora
+  const { data: statsHoras, isLoading: isLoadingHoras } = useQuery({
+    queryKey: ['bot-stats-horas', diasParam],
+    queryFn: async () => (await api.get(`/bot/estadisticas/horas?dias=${diasParam}`)).data as BotStatsHoras,
+    refetchInterval: 60_000,
+  })
+
+  // Estadísticas por día de semana
+  const { data: statsDiaSemana, isLoading: isLoadingDiaSemana } = useQuery({
+    queryKey: ['bot-stats-dia-semana', diasParam],
+    queryFn: async () => (await api.get(`/bot/estadisticas/dia-semana?dias=${diasParam}`)).data as BotStatsDiaSemana,
     refetchInterval: 60_000,
   })
 
@@ -67,13 +110,11 @@ export default function AdminBotStatsPage() {
   const downloadCSV = () => {
     if (!stats) return
 
-    const headers = ['Fecha', 'Conversaciones', 'Mensajes totales', 'Mensajes usuario', 'Mensajes bot']
+    const headers = ['Fecha', 'Conversaciones', 'Mensajes totales']
     const rows = stats.por_dia.map(d => [
       d.fecha,
       d.conversaciones.toString(),
-      d.total_mensajes.toString(),
-      d.mensajes_usuario.toString(),
-      d.mensajes_bot.toString()
+      d.total_mensajes.toString()
     ])
 
     const csv = [headers, ...rows]
@@ -257,154 +298,264 @@ export default function AdminBotStatsPage() {
             </div>
 
             <div className="p-5">
-              {/* Gráfico de barras - DISEÑO NUEVO */}
-              <div className="space-y-4">
-                {/* Contenedor principal */}
-                <div className="bg-white rounded-xl border border-stone-200 p-6">
-
-                  {/* Header del gráfico */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-sm font-semibold text-stone-900">Conversaciones por día</h3>
-                      <p className="text-xs text-stone-500 mt-0.5">
-                        {stats.fecha_inicio} → {stats.fecha_fin}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-stone-500">Máximo del periodo</p>
-                      <p className="text-lg font-bold text-brand">
-                        {Math.max(...stats.por_dia.map(d => d.conversaciones))}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Área del gráfico */}
-                  <div className="relative" style={{ height: '300px' }}>
-
-                    {/* Líneas de guía horizontales */}
-                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none" style={{ paddingBottom: '40px' }}>
+              {/* Gráfico: Conversaciones por día */}
+              <div className="space-y-3">
+                <div className="bg-stone-50 rounded-xl p-4 border border-stone-100">
+                  {/* Líneas de guía y barras */}
+                  <div className="relative" style={{ height: '260px' }}>
+                    {/* Grid horizontal */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8">
                       {[0, 1, 2, 3, 4].map((i) => (
-                        <div
-                          key={i}
-                          className="w-full border-t border-stone-100"
-                        />
+                        <div key={i} className="w-full border-t border-stone-200/60" />
                       ))}
                     </div>
 
-                    {/* TODOS los días en un solo contenedor flex */}
-                    <div className="absolute inset-0 flex items-end" style={{ paddingBottom: '40px' }}>
-                      {stats.por_dia.map((dia, idx) => {
-                        const maxVal = Math.max(...stats.por_dia.map(d => d.conversaciones), 1)
-                        const alturaPx = (dia.conversaciones / maxVal) * 240
-                        const esHoy = idx === stats.por_dia.length - 1
+                    {/* Barras - responsive inteligente */}
+                    <div className="absolute inset-0 flex items-end pb-8">
+                      {/* Scroll wrapper solo para móvil */}
+                      <div className="w-full overflow-x-auto overflow-y-hidden scrollbar-thin sm:overflow-visible">
+                        <div className="flex items-end justify-between gap-1 px-1 min-w-full sm:min-w-0">
+                          {stats.por_dia.map((dia, idx) => {
+                            const maxVal = Math.max(...stats.por_dia.map(d => d.conversaciones), 1)
+                            const alturaPx = (dia.conversaciones / maxVal) * 210
+                            const esHoy = idx === stats.por_dia.length - 1
 
-                        return (
-                          <div
-                            key={dia.fecha}
-                            className="flex-1 flex flex-col items-center justify-end group relative"
-                          >
-                            {/* Tooltip */}
-                            <div className="relative mb-2">
-                              <div className={`
-                                absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-                                bg-stone-800 text-white text-xs font-medium
-                                px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100
-                                transition-opacity whitespace-nowrap z-10
-                                shadow-xl pointer-events-none
-                              `}>
-                                <div className="font-bold text-emerald-400">{dia.conversaciones} conversaciones</div>
-                                <div className="text-[10px] text-stone-300">{fmtFechaCompleta(dia.fecha)}</div>
-                                <div className="text-[10px] text-stone-400 mt-1">{dia.total_mensajes} mensajes</div>
+                            return (
+                              <div
+                                key={dia.fecha}
+                                className="flex flex-col items-center justify-end group relative"
+                                style={{ flex: '1 1 0%', minWidth: '18px', maxWidth: '60px' }}
+                              >
+                                {/* Tooltip */}
+                                <div className="relative mb-1.5">
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 bg-stone-800 text-white text-[10px] font-medium px-2 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-xl pointer-events-none">
+                                    <div className="font-bold text-emerald-400">{dia.conversaciones}</div>
+                                    <div className="text-[9px] text-stone-300">{fmtFechaStats(dia.fecha)}</div>
+                                  </div>
+                                  <div className={`text-center font-bold text-xs ${esHoy ? 'text-brand' : 'text-stone-600'}`}>
+                                    {dia.conversaciones}
+                                  </div>
+                                </div>
+
+                                {/* Barra */}
+                                <div
+                                  className={`w-full rounded-t-md transition-all duration-200 ${
+                                    esHoy
+                                      ? 'bg-gradient-to-t from-emerald-500 to-emerald-400 shadow-md shadow-emerald-500/20'
+                                      : 'bg-gradient-to-t from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500'
+                                  } ${dia.conversaciones === 0 ? 'opacity-15' : ''}`}
+                                  style={{ height: `${Math.max(alturaPx, dia.conversaciones > 0 ? 6 : 2)}px` }}
+                                />
+
+                                {/* Etiqueta día */}
+                                <div className={`text-[10px] mt-1.5 font-medium text-center leading-none ${esHoy ? 'text-brand' : 'text-stone-500'}`}>
+                                  {fmtDia(dia.fecha)}
+                                </div>
                               </div>
-
-                              {/* Número de conversaciones */}
-                              <div className={`
-                                text-center font-bold text-base mb-1
-                                ${esHoy ? 'text-brand' : 'text-stone-700'}
-                              `}>
-                                {dia.conversaciones}
-                              </div>
-                            </div>
-
-                            {/* Barra */}
-                            <div
-                              className={`
-                                w-10 rounded-t-lg transition-all duration-300
-                                ${esHoy
-                                  ? 'bg-gradient-to-t from-emerald-500 to-emerald-400 shadow-lg shadow-emerald-500/20'
-                                  : 'bg-gradient-to-t from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500'
-                                }
-                                ${dia.conversaciones === 0 ? 'opacity-20' : ''}
-                              `}
-                              style={{
-                                height: `${Math.max(alturaPx, dia.conversaciones > 0 ? 8 : 2)}px`,
-                              }}
-                            />
-
-                            {/* Día del mes */}
-                            <div className={`
-                              text-[11px] mt-2 text-center font-medium
-                              ${esHoy ? 'text-brand font-bold' : 'text-stone-600'}
-                            `}>
-                              {fmtDia(dia.fecha)}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Etiquetas de meses - ABAJO de los días */}
-                    <div className="absolute bottom-0 left-0 right-0 h-10 flex border-t border-stone-200">
-                      {(() => {
-                        // Calcular posición de cada mes
-                        const gruposPorMes: { [key: string]: { dias: typeof stats.por_dia, startIdx: number, endIdx: number } } = {}
-
-                        stats.por_dia.forEach((dia, idx) => {
-                          const mes = new Date(dia.fecha + 'T00:00:00').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
-                          if (!gruposPorMes[mes]) {
-                            gruposPorMes[mes] = { dias: [], startIdx: idx, endIdx: idx }
-                          }
-                          gruposPorMes[mes].dias.push(dia)
-                          gruposPorMes[mes].endIdx = idx
-                        })
-
-                        const total = stats.por_dia.length
-
-                        return Object.entries(gruposPorMes).map(([mes, grupo]) => {
-                          const startPct = (grupo.startIdx / total) * 100
-                          const endPct = ((grupo.endIdx + 1) / total) * 100
-                          const widthPct = endPct - startPct
-
-                          return (
-                            <div
-                              key={mes}
-                              className="absolute top-0 bottom-0 flex items-center justify-center text-xs font-semibold text-stone-500 uppercase bg-stone-50 px-2"
-                              style={{
-                                left: `${startPct}%`,
-                                width: `${widthPct}%`,
-                              }}
-                            >
-                              {mes}
-                            </div>
-                          )
-                        })
-                      })()}
+                            )
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Leyenda */}
-                  <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-stone-100 text-xs text-stone-500">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-gradient-to-t from-blue-500 to-blue-400" />
-                      <span>Días normales</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-gradient-to-t from-emerald-500 to-emerald-400 shadow-lg shadow-emerald-500/20" />
-                      <span>Hoy</span>
+                  {/* Meses */}
+                  <div className="flex border-t border-stone-200 mt-1 overflow-x-auto scrollbar-thin">
+                    <div className="flex w-full justify-between">
+                      {(() => {
+                        const gruposPorMes: { [key: string ]: { dias: typeof stats.por_dia, count: number } } = {}
+                        stats.por_dia.forEach((dia) => {
+                          const mes = new Date(dia.fecha + 'T00:00:00').toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
+                          if (!gruposPorMes[mes]) gruposPorMes[mes] = { dias: [], count: 0 }
+                          gruposPorMes[mes].dias.push(dia)
+                          gruposPorMes[mes].count++
+                        })
+                        const totalMeses = Object.keys(gruposPorMes).length
+                        return Object.entries(gruposPorMes).map(([mes, grupo]) => (
+                          <div key={mes} className="text-[9px] font-semibold text-stone-500 uppercase bg-stone-50 px-2 py-1 border-r border-stone-200 text-center shrink-0" style={{ flex: `${grupo.count} 1 0%` }}>
+                            {mes}
+                          </div>
+                        ))
+                      })()}
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Gráfico por horas del día */}
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="text-brand" size={18} />
+                <div>
+                  <h2 className="text-sm font-semibold text-stone-900">Conversaciones por hora del día</h2>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Últimos {statsHoras?.periodo_dias || 30} días • Hora pico: {statsHoras?.hora_pico ? `${statsHoras.hora_pico.hora}:00 (${statsHoras.hora_pico.total_mensajes} mensajes)` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5">
+              {isLoadingHoras ? (
+                <div className="flex justify-center py-8"><Spinner /></div>
+              ) : statsHoras ? (
+                <div className="space-y-3">
+                  <div className="bg-stone-50 rounded-xl p-4 border border-stone-100">
+                    {/* Grid y barras */}
+                    <div className="relative" style={{ height: '180px' }}>
+                      {/* Grid horizontal */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-6">
+                        {[0, 1, 2, 3].map((i) => (
+                          <div key={i} className="w-full border-t border-stone-200/60" />
+                        ))}
+                      </div>
+
+                      {/* Barras - distribuidas equitativamente */}
+                      <div className="absolute inset-0 flex items-end justify-between pb-6 px-1">
+                        {statsHoras.por_hora.map((hora) => {
+                          const maxMensajes = Math.max(...statsHoras.por_hora.map(h => h.total_mensajes), 1)
+                          const alturaPx = (hora.total_mensajes / maxMensajes) * 140
+                          const esHoraPico = statsHoras.hora_pico?.hora === hora.hora
+
+                          return (
+                            <div
+                              key={hora.hora}
+                              className="flex flex-col items-center justify-end group relative"
+                              style={{ flex: '1 1 0%', minWidth: '12px', maxWidth: '45px' }}
+                            >
+                              <div className="relative mb-1">
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-stone-800 text-white text-[9px] font-medium px-1.5 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg pointer-events-none">
+                                  {hora.hora}:00 • {hora.total_mensajes}
+                                </div>
+                                <div className={`text-[9px] font-bold text-center ${esHoraPico ? 'text-brand' : 'text-stone-500'}`}>
+                                  {hora.total_mensajes > 0 ? hora.total_mensajes : ''}
+                                </div>
+                              </div>
+                              <div
+                                className={`w-full rounded-t transition-all duration-200 ${
+                                  esHoraPico
+                                    ? 'bg-gradient-to-t from-orange-500 to-orange-400 shadow-md shadow-orange-500/20'
+                                    : 'bg-gradient-to-t from-purple-500 to-purple-400 hover:from-purple-600 hover:to-purple-500'
+                                } ${hora.total_mensajes === 0 ? 'opacity-10' : ''}`}
+                                style={{ height: `${Math.max(alturaPx, hora.total_mensajes > 0 ? 4 : 1)}px` }}
+                              />
+                              <div className={`text-[8px] mt-1 text-center leading-none ${esHoraPico ? 'text-brand font-bold' : 'text-stone-400'}`}>
+                                {parseInt(hora.hora)}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leyenda compacta */}
+                  <div className="flex items-center justify-center gap-3 text-[10px] text-stone-500 pt-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded bg-gradient-to-t from-purple-500 to-purple-400" />
+                      <span>Normal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded bg-gradient-to-t from-orange-500 to-orange-400" />
+                      <span>Pico</span>
+                    </div>
+                    <span className="text-stone-300">|</span>
+                    <span>{statsHoras.total_mensajes} msgs</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-stone-400 text-sm py-6">Sin datos de horas</p>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico por día de la semana */}
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+            <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="text-brand" size={18} />
+                <div>
+                  <h2 className="text-sm font-semibold text-stone-900">Conversaciones por día de la semana</h2>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Últimos {statsDiaSemana?.periodo_dias || 30} días • Más activo: {statsDiaSemana?.dia_mas_activo?.dia_semana || 'N/A'} ({statsDiaSemana?.dia_mas_activo?.conversaciones || 0})
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-5">
+              {isLoadingDiaSemana ? (
+                <div className="flex justify-center py-8"><Spinner /></div>
+              ) : statsDiaSemana ? (
+                <div className="space-y-3">
+                  <div className="bg-stone-50 rounded-xl p-4 border border-stone-100">
+                    {/* Grid y barras */}
+                    <div className="relative" style={{ height: '180px' }}>
+                      {/* Grid horizontal */}
+                      <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-7">
+                        {[0, 1, 2, 3].map((i) => (
+                          <div key={i} className="w-full border-t border-stone-200/60" />
+                        ))}
+                      </div>
+
+                      {/* Barras - distribuidas equitativamente */}
+                      <div className="absolute inset-0 flex items-end justify-between pb-7 px-2">
+                        {statsDiaSemana.por_dia_semana.map((dia) => {
+                          const maxConversaciones = Math.max(...statsDiaSemana.por_dia_semana.map(d => d.conversaciones), 1)
+                          const alturaPx = (dia.conversaciones / maxConversaciones) * 135
+                          const esMasActivo = statsDiaSemana.dia_mas_activo?.dia_semana === dia.dia_semana
+
+                          return (
+                            <div
+                              key={dia.dia_semana}
+                              className="flex flex-col items-center justify-end group relative"
+                              style={{ flex: '1 1 0%', minWidth: '35px', maxWidth: '80px' }}
+                            >
+                              <div className="relative mb-1.5">
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 bg-stone-800 text-white text-[10px] font-medium px-2 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow-lg pointer-events-none">
+                                  <div className="font-bold text-emerald-400">{dia.conversaciones}</div>
+                                  <div className="text-[9px] text-stone-300">{dia.total_mensajes} msgs</div>
+                                </div>
+                                <div className={`text-sm sm:text-base font-bold text-center ${esMasActivo ? 'text-brand' : 'text-stone-600'}`}>
+                                  {dia.conversaciones}
+                                </div>
+                              </div>
+                              <div
+                                className={`rounded-t-lg transition-all duration-200 ${
+                                  esMasActivo
+                                    ? 'bg-gradient-to-t from-brand to-brand-light shadow-md shadow-brand/20'
+                                    : 'bg-gradient-to-t from-indigo-500 to-indigo-400 hover:from-indigo-600 hover:to-indigo-500'
+                                } ${dia.conversaciones === 0 ? 'opacity-15' : ''}`}
+                                style={{ height: `${Math.max(alturaPx, dia.conversaciones > 0 ? 8 : 2)}px`, width: '100%', maxWidth: '55px' }}
+                              />
+                              <div className={`text-[10px] sm:text-xs font-semibold mt-1.5 text-center leading-tight ${esMasActivo ? 'text-brand' : 'text-stone-500'}`}>
+                                {dia.dia_semana.charAt(0).toUpperCase() + dia.dia_semana.slice(1, 3)}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leyenda compacta */}
+                  <div className="flex items-center justify-center gap-3 text-[10px] text-stone-500 pt-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded bg-gradient-to-t from-indigo-500 to-indigo-400" />
+                      <span>Normal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded bg-gradient-to-t from-brand to-brand-light" />
+                      <span>Popular</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-stone-400 text-sm py-6">Sin datos de día de semana</p>
+              )}
             </div>
           </div>
 
