@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Tent, CalendarDays, PlusCircle } from 'lucide-react'
@@ -15,22 +15,17 @@ const navItems = [
 ]
 
 export default function AnfitrionLayoutClient({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
-  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    setHydrated(true)
-  }, [])
-
-  useEffect(() => {
-    if (hydrated && !isAuthenticated) {
+    if (_hasHydrated && !isAuthenticated) {
       router.push('/auth/login')
     }
-  }, [hydrated, isAuthenticated, router])
+  }, [_hasHydrated, isAuthenticated, router])
 
-  if (!hydrated) return null
+  if (!_hasHydrated) return null
   if (!isAuthenticated) return null
 
   return (

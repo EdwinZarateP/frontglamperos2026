@@ -19,15 +19,25 @@ const navItems = [
 ]
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!isAuthenticated || user?.rol !== 'admin') {
+    // Solo redirigir después de que Zustand haya hidratado desde localStorage
+    if (_hasHydrated && (!isAuthenticated || user?.rol !== 'admin')) {
       router.push('/')
     }
-  }, [isAuthenticated, user, router])
+  }, [isAuthenticated, user, router, _hasHydrated])
+
+  // Mostrar loading mientras Zustand hidrata
+  if (!_hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <div className="text-stone-400 text-sm">Cargando...</div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated || user?.rol !== 'admin') return null
 
