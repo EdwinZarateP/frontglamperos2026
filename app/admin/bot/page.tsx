@@ -27,11 +27,15 @@ function fmtFecha(iso: string) {
   if (mins < 60) return `hace ${mins} min`
   const hrs = Math.floor(mins / 60)
   if (hrs < 24)  return `hace ${hrs}h`
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', timeZone: 'America/Bogota' })
 }
 
 function fmtHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('es-CO', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Bogota'
+  })
 }
 
 export default function AdminBotPage() {
