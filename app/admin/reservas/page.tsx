@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { Star, Copy, X } from 'lucide-react'
+import { Star, Copy, X, Eye } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { formatCOP, formatDate, estadoColors, estadoLabel } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +21,7 @@ export default function AdminReservasPage() {
   const [modalRechazo, setModalRechazo] = useState<{ reservaId: string; nombre: string } | null>(null)
   const [motivoRechazo, setMotivoRechazo] = useState('')
   const [modalLink, setModalLink] = useState<LinkCalificacion | null>(null)
+  const [modalComprobante, setModalComprobante] = useState<{ url: string; nombre: string } | null>(null)
   const [generandoLink, setGenerandoLink] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
@@ -154,14 +155,12 @@ export default function AdminReservasPage() {
 
                   {/* Comprobante */}
                   {reserva.comprobantePago && (
-                    <a
-                      href={reserva.comprobantePago}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-brand hover:underline mt-1 block"
+                    <button
+                      onClick={() => setModalComprobante({ url: reserva.comprobantePago!, nombre: reserva.nombreTitular })}
+                      className="text-xs text-brand hover:underline mt-1 block text-left flex items-center gap-1"
                     >
-                      Ver comprobante →
-                    </a>
+                      <Eye size={12} /> Ver comprobante
+                    </button>
                   )}
                 </div>
 
@@ -310,6 +309,49 @@ export default function AdminReservasPage() {
               </Button>
               <Button variant="outline" fullWidth onClick={() => setModalRechazo(null)}>
                 Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal comprobante */}
+      {modalComprobante && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-stone-200">
+              <h2 className="text-lg font-bold text-stone-900">Comprobante de pago</h2>
+              <button onClick={() => setModalComprobante(null)} className="text-stone-400 hover:text-stone-700">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-stone-50">
+              {modalComprobante.url.toLowerCase().endsWith('.pdf') ? (
+                <iframe
+                  src={modalComprobante.url}
+                  className="w-full h-[70vh] rounded-xl border border-stone-200"
+                  title="Comprobante PDF"
+                />
+              ) : (
+                <img
+                  src={modalComprobante.url}
+                  alt="Comprobante de pago"
+                  className="max-w-full max-h-[70vh] object-contain rounded-xl"
+                />
+              )}
+            </div>
+            <div className="p-4 border-t border-stone-200 flex justify-end gap-3">
+              <a
+                href={modalComprobante.url}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+              >
+                Descargar
+              </a>
+              <Button variant="outline" onClick={() => setModalComprobante(null)}>
+                Cerrar
               </Button>
             </div>
           </div>
