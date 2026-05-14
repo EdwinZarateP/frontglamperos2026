@@ -31,7 +31,7 @@ export async function generateMetadata({
   const firstImage = glamping.imagenes?.[0]
 
   // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
-  const seoName = glamping.nombrePropiedad || glamping.nombreGlamping
+  const seoName = glamping.nombreGlamping
 
   // Para compartir (WhatsApp/OG): SIEMPRE usar nombre de la unidad (nombreGlamping)
   const shareName = glamping.nombreGlamping
@@ -117,7 +117,7 @@ export default async function GlampingPage({
   }
 
   // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
-  const seoName = glamping.nombrePropiedad || glamping.nombreGlamping
+  const seoName = glamping.nombreGlamping
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
