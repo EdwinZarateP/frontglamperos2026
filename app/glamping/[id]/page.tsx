@@ -26,42 +26,50 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   const glamping = await getGlamping(id)
+
   if (!glamping) return { title: 'Glamping no encontrado' }
 
   const firstImage = glamping.imagenes?.[0]
 
-  // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
-  const seoName = glamping.nombreGlamping
+  // Nombre visible para el usuario: pestaña del navegador, WhatsApp, redes sociales
+  const displayName = glamping.nombreGlamping
 
-  // Para compartir (WhatsApp/OG): SIEMPRE usar nombre de la unidad (nombreGlamping)
-  const shareName = glamping.nombreGlamping
+  // Nombre real de la propiedad: se usará en datos estructurados para Google
+  const propertyName = glamping.nombrePropiedad || glamping.nombreGlamping
 
   // Descripción limpia: quita frases de relleno y muestra precio
   const rawDesc = (glamping.descripcionGlamping ?? '')
     .replace(/\*?este glamping te ofrece\*?[\s:,]*/gi, '')
     .replace(/\*?ven y disfruta\*?[\s,]*/gi, '')
     .trim()
+
   const precioDesc = glamping.precioNoche
     ? `Desde $${Math.round(calcularComision(glamping.precioNoche)).toLocaleString('es-CO')}/noche. `
     : ''
+
   const ogDesc = (precioDesc + rawDesc).slice(0, 160)
 
   return {
-    title: `${seoName} — ${glamping.ciudadDepartamento}`,
+    title: `${displayName} | Glamping en ${glamping.ciudadDepartamento} | Glamperos`,
     description: ogDesc,
     openGraph: {
-      title: `${shareName} — ${glamping.ciudadDepartamento}`,
+      title: `${displayName} | Reserva en Glamperos`,
       description: ogDesc,
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: shareName,
+      title: displayName,
       description: ogDesc,
       images: firstImage ? [firstImage] : undefined,
     },
-    alternates: { canonical: `/glamping/${id}` },
+    alternates: {
+      canonical: `/glamping/${id}`,
+    },
+    other: {
+      'property-name': propertyName,
+    },
   }
 }
 
@@ -77,15 +85,24 @@ export default async function GlampingPage({
 
   const glampingUrl = `${SITE_URL}/glamping/${id}`
 
+  // Nombre visible para el usuario
+  const displayName = glamping.nombreGlamping
+
+  // Nombre real de la propiedad para Google
+  const propertyName = glamping.nombrePropiedad || glamping.nombreGlamping
+
   const lodgingJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LodgingBusiness',
-    // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
-    name: glamping.nombrePropiedad || glamping.nombreGlamping,
-    // alternateName: nombre que ven los usuarios (opcional, ayuda a Google a entender)
-    ...(glamping.nombrePropiedad && glamping.nombrePropiedad !== glamping.nombreGlamping
-      ? { alternateName: glamping.nombreGlamping }
+
+    // Google puede leer el nombre real de la propiedad
+    name: propertyName,
+
+    // Google también entiende el nombre visible/comercial del glamping
+    ...(propertyName !== displayName
+      ? { alternateName: displayName }
       : {}),
+
     description: glamping.descripcionGlamping,
     url: glampingUrl,
     image: glamping.imagenes,
@@ -116,9 +133,6 @@ export default async function GlampingPage({
       : undefined,
   }
 
-  // Para SEO: usar nombrePropiedad si existe (lo ve Google), sino nombreGlamping
-  const seoName = glamping.nombreGlamping
-
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -129,7 +143,7 @@ export default async function GlampingPage({
         name: 'Inicio',
         item: {
           '@id': SITE_URL,
-          'name': 'Inicio',
+          name: 'Inicio',
         },
       },
       {
@@ -138,16 +152,16 @@ export default async function GlampingPage({
         name: glamping.ciudadDepartamento,
         item: {
           '@id': `${SITE_URL}/?ciudad=${encodeURIComponent(glamping.ciudadDepartamento)}`,
-          'name': glamping.ciudadDepartamento,
+          name: glamping.ciudadDepartamento,
         },
       },
       {
         '@type': 'ListItem',
         position: 3,
-        name: seoName,
+        name: displayName,
         item: {
           '@id': glampingUrl,
-          'name': seoName,
+          name: displayName,
         },
       },
     ],
