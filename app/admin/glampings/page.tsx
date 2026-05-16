@@ -58,6 +58,7 @@ function ModalAnfitriones({
 }) {
   const queryClient = useQueryClient()
   const [buscarEmail, setBuscarEmail] = useState('')
+  const [transferirModal, setTransferirModal] = useState<Anfitrion | null>(null)
 
   const { data: anfitriones = [], isLoading, refetch } = useQuery<Anfitrion[]>({
     queryKey: ['glamping-anfitriones', glamping._id],
@@ -91,6 +92,38 @@ function ModalAnfitriones({
     },
     onError: (e) => toast.error(getErrorMessage(e)),
   })
+
+  const transferirPropiedad = useMutation({
+    mutationFn: async (nuevoPropietarioId: string) => {
+      if (!transferirModal) return
+      // Transferir propiedad
+      await api.put(`/glampings/${glamping._id}/anfitriones/${nuevoPropietarioId}/transferir-propiedad`)
+      // Eliminar al antiguo propietario de la lista
+      await api.delete(`/glampings/${glamping._id}/anfitriones/${transferirModal.id}`)
+    },
+    onSuccess: () => {
+      refetch()
+      setTransferirModal(null)
+      toast.success('Propiedad transferida y anfitrión eliminado')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
+  const handleQuitarClick = (anfitrion: Anfitrion) => {
+    if (anfitrion.esPropietarioPrincipal) {
+      // Verificar si hay otros anfitriones
+      const otrosAnfitriones = anfitriones.filter(a => a.id !== anfitrion.id)
+      if (otrosAnfitriones.length === 0) {
+        toast.error('Debe haber al menos un co-anfitrión antes de eliminar al propietario principal')
+        return
+      }
+      // Abrir modal para seleccionar nuevo propietario
+      setTransferirModal(anfitrion)
+    } else {
+      // Eliminar directamente
+      quitar.mutate(anfitrion.id)
+    }
+  }
 
   const anfitrionIds = new Set(anfitriones.map((a) => a.id))
   const sugeridos = buscarEmail.trim()
@@ -127,21 +160,22 @@ function ModalAnfitriones({
                   {a.nombre?.[0]?.toUpperCase() ?? '?'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-stone-800 truncate">{a.nombre ?? '—'}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-stone-800 truncate">{a.nombre ?? '—'}</p>
+                    {a.esPropietarioPrincipal && (
+                      <span className="shrink-0 text-[10px] bg-emerald-100 text-brand-light font-semibold px-2 py-0.5 rounded-full">Principal</span>
+                    )}
+                  </div>
                   <p className="text-xs text-stone-400 truncate">{a.email}</p>
                 </div>
-                {a.esPropietarioPrincipal ? (
-                  <span className="shrink-0 text-[10px] bg-emerald-100 text-brand-light font-semibold px-2 py-0.5 rounded-full">Principal</span>
-                ) : (
-                  <button
-                    onClick={() => quitar.mutate(a.id)}
-                    disabled={quitar.isPending}
-                    className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Quitar anfitrión"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
+                <button
+                  onClick={() => handleQuitarClick(a)}
+                  disabled={quitar.isPending || transferirPropiedad.isPending}
+                  className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title={a.esPropietarioPrincipal ? "Transferir propiedad y eliminar" : "Quitar anfitrión"}
+                >
+                  <Trash2 size={14} />
+                </button>
               </li>
             ))}
           </ul>
@@ -180,6 +214,62 @@ function ModalAnfitriones({
             </ul>
           )}
         </div>
+
+        {/* Modal de transferencia de propiedad */}
+        {transferirModal && (
+          <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-stone-900">Transferir propiedad</h3>
+                  <p className="text-xs text-stone-400">Selecciona el nuevo propietario</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-stone-600">
+                Vas a eliminar a <strong>{transferirModal.nombre}</strong> como propietario principal.
+                Selecciona a quién transferir la propiedad:
+              </p>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {anfitriones
+                  .filter(a => a.id !== transferirModal.id)
+                  .map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() => transferirPropiedad.mutate(a.id)}
+                      disabled={transferirPropiedad.isPending}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-stone-200 hover:border-brand hover:bg-brand/5 transition-all disabled:opacity-50"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-brand-light font-bold text-sm shrink-0">
+                        {a.nombre?.[0]?.toUpperCase() ?? '?'}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-medium text-stone-800">{a.nombre ?? '—'}</p>
+                        <p className="text-xs text-stone-400">{a.email}</p>
+                      </div>
+                      <div className="text-brand">
+                        <CheckCircle size={18} />
+                      </div>
+                    </button>
+                  ))}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setTransferirModal(null)}
+                  disabled={transferirPropiedad.isPending}
+                  className="flex-1 px-4 py-2 rounded-xl border border-stone-300 text-sm text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
