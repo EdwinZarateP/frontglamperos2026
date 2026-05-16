@@ -18,6 +18,7 @@ import { cn, formatCOP, colombianHolidays } from '@/lib/utils'
 import { buildUrlFromFiltros, FILTROS_TIPOS } from '@/lib/filtros'
 import { CIUDADES_COLOMBIA, getCoordenadas } from '@/lib/colombia'
 import { TipoGlampingIcon } from '@/components/ui/TipoGlampingIcon'
+import type { FiltrosHome } from '@/types'
 
 const GCS = 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/iconos'
 
