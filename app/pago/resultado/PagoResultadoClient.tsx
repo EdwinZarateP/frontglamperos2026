@@ -36,11 +36,13 @@ export function PagoResultadoClient() {
         // Enviar evento purchase a GA4 cuando el pago es exitoso
         const esExitoso = res.data.pagadoCompleto || (res.data.montoPagado ?? 0) > 0
         if (esExitoso && res.data.reservaId) {
+          console.log('[PagoResultado] Pago exitoso, obteniendo reserva para evento purchase:', res.data.reservaId)
           try {
             // Obtener la reserva completa para tener los datos del glamping
             const reservaRes = await api.get<Reserva>(`/reservas/${res.data.reservaId}`)
             const reserva = reservaRes.data
 
+            console.log('[PagoResultado] Enviando evento purchase completo:', reserva._id, 'valor:', res.data.montoPagado || reserva.precioTotal)
             trackPurchase({
               transaction_id: reserva._id || res.data.reservaId,
               value: res.data.montoPagado || reserva.precioTotal || 0,
@@ -48,11 +50,29 @@ export function PagoResultadoClient() {
               items: [buildPurchaseItemFromReserva(reserva)],
             })
           } catch (err) {
-            console.error('[GA4] Error al obtener reserva para evento purchase:', err)
+            console.error('[PagoResultado] Error al obtener reserva para evento purchase:', err)
+            // Enviar evento purchase básico aunque no tengamos los datos completos
+            if (window.gtag) {
+              window.gtag('event', 'conversion', {
+                send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+                transaction_id: res.data.reservaId,
+                value: res.data.montoPagado || 0,
+                currency: 'COP',
+              })
+              console.log('[PagoResultado] Evento conversion básico enviado')
+            }
           }
         }
-      } catch {
-        // silencioso
+      } catch (err) {
+        console.error('[PagoResultado] Error al verificar estado del pago:', err)
+        // Si falla, enviar evento purchase con el ID que viene de la URL
+        if (reservaId && window.gtag) {
+          window.gtag('event', 'conversion', {
+            send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+            transaction_id: reservaId,
+          })
+          console.log('[PagoResultado] Evento conversion básico enviado (desde URL):', reservaId)
+        }
       } finally {
         setLoading(false)
       }

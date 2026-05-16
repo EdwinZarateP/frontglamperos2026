@@ -22,7 +22,7 @@ interface PurchaseEventParams {
 }
 
 /**
- * Envía el evento purchase a GA4 cuando se completa una transacción
+ * Envía el evento purchase a GA4 y Google Ads cuando se completa una transacción
  */
 export function trackPurchase(params: PurchaseEventParams): void {
   if (typeof window === 'undefined' || !window.gtag) {
@@ -31,6 +31,7 @@ export function trackPurchase(params: PurchaseEventParams): void {
   }
 
   try {
+    // Enviar a GA4
     window.gtag('event', 'purchase', {
       transaction_id: params.transaction_id,
       value: params.value,
@@ -38,8 +39,17 @@ export function trackPurchase(params: PurchaseEventParams): void {
       items: params.items,
     })
     console.log('[GA4] Evento purchase enviado:', params)
+
+    // Enviar a Google Ads (conversión)
+    window.gtag('event', 'conversion', {
+      send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+      value: params.value,
+      currency: params.currency,
+      transaction_id: params.transaction_id,
+    })
+    console.log('[Google Ads] Evento conversion enviado:', params)
   } catch (error) {
-    console.error('[GA4] Error al enviar evento purchase:', error)
+    console.error('[GA4/Ads] Error al enviar evento purchase:', error)
   }
 }
 

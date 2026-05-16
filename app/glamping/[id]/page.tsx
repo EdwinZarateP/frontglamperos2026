@@ -34,6 +34,10 @@ export async function generateMetadata({
   // Nombre visible para el usuario: pestaña del navegador, WhatsApp, redes sociales
   const displayName = glamping.nombreGlamping
 
+  // Extraer municipio y departamento para compartir en WhatsApp
+  const [municipio, departamento] = glamping.ciudadDepartamento.split(',').map(s => s.trim())
+  const shareTitle = `${displayName} - ${municipio}, ${departamento || ''}`.trim()
+
   // Nombre real de la propiedad: se usará en datos estructurados para Google
   const propertyName = glamping.nombrePropiedad || glamping.nombreGlamping
 
@@ -53,14 +57,14 @@ export async function generateMetadata({
     title: `${displayName} | Glamping en ${glamping.ciudadDepartamento} | Glamperos`,
     description: ogDesc,
     openGraph: {
-      title: `${displayName} | Reserva en Glamperos`,
+      title: shareTitle,  // "La Choza - San Francisco, Cundinamarca"
       description: ogDesc,
       images: firstImage ? [{ url: firstImage, width: 1200, height: 630 }] : [],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: displayName,
+      title: shareTitle,  // Mismo formato para Twitter/X
       description: ogDesc,
       images: firstImage ? [firstImage] : undefined,
     },

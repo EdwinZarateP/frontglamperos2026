@@ -40,9 +40,10 @@ export function GraciasClient() {
           metodoPago: metodo || reserva.metodoPago || 'transferencia',
         })
 
-        // Enviar evento purchase a GA4 solo la primera vez que carga la reserva
+        // Enviar evento purchase a GA4 y Google Ads solo la primera vez
         if (!purchaseTracked && reserva._id) {
           setPurchaseTracked(true)
+          console.log('[Gracias] Enviando evento purchase para reserva:', reserva._id, 'valor:', reserva.precioTotal)
           try {
             trackPurchase({
               transaction_id: reserva._id,
@@ -54,12 +55,31 @@ export function GraciasClient() {
             console.error('[GA4] Error al enviar evento purchase:', err)
           }
         }
-      } catch {
-        // Si falla, mostramos estado genérico
+      } catch (err) {
+        // Si falla la petición (JWT expirado, etc.), enviamos evento purchase con datos mínimos
+        console.error('[Gracias] Error al obtener reserva:', err)
         setEstado({
           reserva: {} as Reserva,
           metodoPago: metodo || 'transferencia',
         })
+
+        // Enviar evento purchase básico aunque no tengamos todos los datos
+        if (!purchaseTracked && reservaId) {
+          setPurchaseTracked(true)
+          console.log('[Gracias] Enviando evento purchase básico (sin datos de reserva):', reservaId)
+          try {
+            // Evento mínimo para no perder la conversión
+            if (window.gtag) {
+              window.gtag('event', 'conversion', {
+                send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+                transaction_id: reservaId,
+              })
+              console.log('[Google Ads] Evento conversion básico enviado')
+            }
+          } catch (e) {
+            console.error('[Google Ads] Error al enviar evento conversion básico:', e)
+          }
+        }
       } finally {
         setLoading(false)
       }
