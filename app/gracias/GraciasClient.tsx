@@ -70,11 +70,15 @@ export function GraciasClient() {
           try {
             // Evento mínimo para no perder la conversión
             if (window.gtag) {
+              const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
+              const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
+              const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
+
               window.gtag('event', 'conversion', {
-                send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+                send_to: conversionLabel,
                 transaction_id: reservaId,
               })
-              console.log('[Google Ads] Evento conversion básico enviado')
+              console.log('[Google Ads] Evento conversion básico enviado:', conversionLabel)
             }
           } catch (e) {
             console.error('[Google Ads] Error al enviar evento conversion básico:', e)

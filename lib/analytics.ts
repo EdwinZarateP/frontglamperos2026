@@ -41,13 +41,17 @@ export function trackPurchase(params: PurchaseEventParams): void {
     console.log('[GA4] Evento purchase enviado:', params)
 
     // Enviar a Google Ads (conversión)
+    const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
+    const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
+    const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
+
     window.gtag('event', 'conversion', {
-      send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+      send_to: conversionLabel,
       value: params.value,
       currency: params.currency,
       transaction_id: params.transaction_id,
     })
-    console.log('[Google Ads] Evento conversion enviado:', params)
+    console.log('[Google Ads] Evento conversion enviado:', conversionLabel, params)
   } catch (error) {
     console.error('[GA4/Ads] Error al enviar evento purchase:', error)
   }

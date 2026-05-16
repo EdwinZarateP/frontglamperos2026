@@ -53,13 +53,17 @@ export function PagoResultadoClient() {
             console.error('[PagoResultado] Error al obtener reserva para evento purchase:', err)
             // Enviar evento purchase básico aunque no tengamos los datos completos
             if (window.gtag) {
+              const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
+              const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
+              const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
+
               window.gtag('event', 'conversion', {
-                send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+                send_to: conversionLabel,
                 transaction_id: res.data.reservaId,
                 value: res.data.montoPagado || 0,
                 currency: 'COP',
               })
-              console.log('[PagoResultado] Evento conversion básico enviado')
+              console.log('[PagoResultado] Evento conversion básico enviado:', conversionLabel)
             }
           }
         }
@@ -67,11 +71,15 @@ export function PagoResultadoClient() {
         console.error('[PagoResultado] Error al verificar estado del pago:', err)
         // Si falla, enviar evento purchase con el ID que viene de la URL
         if (reservaId && window.gtag) {
+          const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
+          const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
+          const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
+
           window.gtag('event', 'conversion', {
-            send_to: 'AW-17234612701/-XFcCM-0mZQZEIXKy-MB',
+            send_to: conversionLabel,
             transaction_id: reservaId,
           })
-          console.log('[PagoResultado] Evento conversion básico enviado (desde URL):', reservaId)
+          console.log('[PagoResultado] Evento conversion básico enviado (desde URL):', reservaId, conversionLabel)
         }
       } finally {
         setLoading(false)
