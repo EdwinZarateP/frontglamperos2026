@@ -155,6 +155,11 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   const pageFromUrl = searchParams.get('page')
   const effectivePage = pageFromUrl ? Number(pageFromUrl) : 1
 
+  // Función auxiliar para preservar UTMs al construir URLs
+  const buildUrlPreservingUtm = (filtros: Partial<FiltrosHome>): string => {
+    return buildUrlFromFiltros(filtros, searchParams)
+  }
+
   // useMemo para estabilizar el objeto y que React Query detecte cambios correctamente
   const effectiveFiltros = useMemo(() => ({
     ...filtros,
@@ -220,7 +225,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
       updated = { ...filtros, [key]: undefined }
     }
     setFiltros(updated)
-    router.push(buildUrlFromFiltros(updated))
+    router.push(buildUrlPreservingUtm(updated))
   }
 
   return (
@@ -388,7 +393,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
                     onClick={() => {
                       const merged = { ...filtros, order_by: 'precio_asc' as const }
                       setFiltros(merged)
-                      router.push(buildUrlFromFiltros(merged))
+                      router.push(buildUrlPreservingUtm(merged))
                       setShowOrderBy(false)
                     }}
                     className={cn(
@@ -404,7 +409,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
                     onClick={() => {
                       const merged = { ...filtros, order_by: 'precio_desc' as const }
                       setFiltros(merged)
-                      router.push(buildUrlFromFiltros(merged))
+                      router.push(buildUrlPreservingUtm(merged))
                       setShowOrderBy(false)
                     }}
                     className={cn(
@@ -430,7 +435,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
             <nav aria-label="Paginación de glampings" className="flex justify-center items-center gap-3 mt-12">
               {currentPage > 1 ? (
                 <Link
-                  href={buildUrlFromFiltros({ ...filtros, page: currentPage - 1 })}
+                  href={buildUrlPreservingUtm({ ...filtros, page: currentPage - 1 })}
                   rel="prev"
                   onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
                   className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:border-brand hover:text-brand transition-colors text-sm font-medium"
@@ -455,7 +460,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
 
               {currentPage < totalPages ? (
                 <Link
-                  href={buildUrlFromFiltros({ ...filtros, page: currentPage + 1 })}
+                  href={buildUrlPreservingUtm({ ...filtros, page: currentPage + 1 })}
                   rel="next"
                   onClick={() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth' })}
                   className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 hover:border-brand hover:text-brand transition-colors text-sm font-medium"

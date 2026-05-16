@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 const CATEGORIAS = [
   {
@@ -62,6 +65,19 @@ interface Props {
 
 export function CategoriasCarouselStatic({ glampingImage }: Props) {
   const imageUrl = glampingImage || PLACEHOLDER_IMAGE
+  const searchParams = useSearchParams()
+
+  // Preservar parámetros UTM al navegar al detalle del glamping
+  const buildGlampingUrl = (glampingId: string): string => {
+    const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid']
+    const params = new URLSearchParams()
+    utmParams.forEach(param => {
+      const value = searchParams.get(param)
+      if (value) params.set(param, value)
+    })
+    const qs = params.toString()
+    return `/glamping/${glampingId}${qs ? `?${qs}` : ''}`
+  }
 
   return (
     <section className="mt-20 mb-20">
@@ -74,7 +90,7 @@ export function CategoriasCarouselStatic({ glampingImage }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {CATEGORIAS.map((categoria, index) => (
           <div key={index}>
-            <Link href="/glamping/69b8b1a4776b87a18af6b6f8">
+            <Link href={buildGlampingUrl('69b8b1a4776b87a18af6b6f8')}>
               <div className="relative rounded-2xl overflow-hidden group cursor-pointer">
                 {/* Imagen de fondo */}
                 <img

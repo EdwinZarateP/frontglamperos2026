@@ -8,6 +8,8 @@ import { api } from '@/lib/api'
 import { formatCOP } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { trackPurchase, buildPurchaseItemFromReserva } from '@/lib/analytics'
+import type { Reserva } from '@/types'
 
 interface EstadoPago {
   reservaId: string
@@ -15,6 +17,7 @@ interface EstadoPago {
   montoPagado: number
   saldoPendiente: number
   pagadoCompleto: boolean
+  reserva?: Reserva
 }
 
 export function PagoResultadoClient() {
@@ -29,6 +32,25 @@ export function PagoResultadoClient() {
       try {
         const res = await api.get(`/pagos/wompi/estado/${reservaId}`)
         setEstado(res.data)
+
+        // Enviar evento purchase a GA4 cuando el pago es exitoso
+        const esExitoso = res.data.pagadoCompleto || (res.data.montoPagado ?? 0) > 0
+        if (esExitoso && res.data.reservaId) {
+          try {
+            // Obtener la reserva completa para tener los datos del glamping
+            const reservaRes = await api.get<Reserva>(`/reservas/${res.data.reservaId}`)
+            const reserva = reservaRes.data
+
+            trackPurchase({
+              transaction_id: reserva._id || res.data.reservaId,
+              value: res.data.montoPagado || reserva.precioTotal || 0,
+              currency: 'COP',
+              items: [buildPurchaseItemFromReserva(reserva)],
+            })
+          } catch (err) {
+            console.error('[GA4] Error al obtener reserva para evento purchase:', err)
+          }
+        }
       } catch {
         // silencioso
       } finally {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Search, X, Users, Calendar, MapPin, Dog,
   ChevronLeft, ChevronRight as ChevronRightIcon,
@@ -250,6 +250,12 @@ function CalendarioRango({
 export function SearchBar() {
   const { filtros, setFiltros, resetFiltros } = useSearchStore()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Función auxiliar para preservar UTMs al construir URLs
+  const buildUrlPreservingUtm = (filtros: Partial<FiltrosHome>): string => {
+    return buildUrlFromFiltros(filtros, searchParams)
+  }
 
   const [activePanel, setActivePanel] = useState<Panel>(null)
   const [showMobile, setShowMobile] = useState(false)
@@ -331,7 +337,7 @@ export function SearchBar() {
     }
     setFiltros(merged)
     setActivePanel(null)
-    router.push(buildUrlFromFiltros(merged))
+    router.push(buildUrlPreservingUtm(merged))
   }
 
   const datesLabel = (() => {
@@ -396,7 +402,7 @@ export function SearchBar() {
     }
     setFiltros(merged)
     setShowMobile(false)
-    router.push(buildUrlFromFiltros(merged))
+    router.push(buildUrlPreservingUtm(merged))
   }
 
   return (
@@ -643,7 +649,7 @@ export function SearchBar() {
                   setLocationInput('')
                   const filtrosSinCiudad = { ...filtros, ciudad: undefined, lat: undefined, lng: undefined }
                   setFiltros(filtrosSinCiudad)
-                  router.push(buildUrlFromFiltros(filtrosSinCiudad))
+                  router.push(buildUrlPreservingUtm(filtrosSinCiudad))
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -651,7 +657,7 @@ export function SearchBar() {
                     setLocationInput('')
                     const filtrosSinCiudad = { ...filtros, ciudad: undefined, lat: undefined, lng: undefined }
                     setFiltros(filtrosSinCiudad)
-                    router.push(buildUrlFromFiltros(filtrosSinCiudad))
+                    router.push(buildUrlPreservingUtm(filtrosSinCiudad))
                   }
                 }}
                 className="cursor-pointer shrink-0"
@@ -856,6 +862,13 @@ export function SearchBar() {
 export function FilterChips() {
   const { filtros, setFiltros, resetFiltros } = useSearchStore()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Función auxiliar para preservar UTMs al construir URLs
+  const buildUrlPreservingUtm = (filtros: Partial<FiltrosHome>): string => {
+    return buildUrlFromFiltros(filtros, searchParams)
+  }
+
   const [showPrice, setShowPrice] = useState(false)
   const [localPrecioMax, setLocalPrecioMax] = useState<number | undefined>(filtros.precio_max)
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 })
@@ -887,7 +900,7 @@ export function FilterChips() {
   const applyPrice = () => {
     const merged = { ...filtros, precio_max: localPrecioMax }
     setFiltros(merged)
-    router.push(buildUrlFromFiltros(merged))
+    router.push(buildUrlPreservingUtm(merged))
     setShowPrice(false)
   }
 
@@ -963,7 +976,7 @@ export function FilterChips() {
               // Reset page to 1 when changing main filters (city, type, amenities)
               const merged = { ...filtros, ...nextFiltros, page: undefined }
               setFiltros(merged)
-              router.push(buildUrlFromFiltros(merged))
+              router.push(buildUrlPreservingUtm(merged))
             }}
             className={cn(
               'shrink-0 flex flex-col items-center gap-1 px-4 py-1.5 relative transition-all',
@@ -1036,7 +1049,7 @@ export function FilterChips() {
                     setLocalPrecioMax(undefined)
                     const merged = { ...filtros, precio_max: undefined }
                     setFiltros(merged)
-                    router.push(buildUrlFromFiltros(merged))
+                    router.push(buildUrlPreservingUtm(merged))
                     setShowPrice(false)
                   }}
                   className="flex-1 py-2 rounded-xl border border-stone-200 text-sm text-stone-500 hover:bg-stone-50"

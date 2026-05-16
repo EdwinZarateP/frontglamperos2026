@@ -92,7 +92,7 @@ export function findCiudadByNombre(ciudad: string) {
 }
 
 /** Filtros → URL limpia con path segments + query params opcionales */
-export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
+export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>, preserveUtmParams?: URLSearchParams): string {
   const parts: string[] = []
 
   // 1. Ciudad o Departamento
@@ -135,6 +135,18 @@ export function buildUrlFromFiltros(filtros: Partial<FiltrosHome>): string {
   // Incluir page si está presente y > 1 (page=1 no se muestra en URL para URLs limpias)
   if (filtros.page && filtros.page > 1) {
     params.set('page', String(filtros.page))
+  }
+
+  // PRESERVAR PARÁMETROS UTM para tracking de marketing
+  if (preserveUtmParams) {
+    const utmParams = [
+      'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+      'gclid', 'fbclid', 'msclkid' // otros parámetros de tracking comunes
+    ]
+    utmParams.forEach(param => {
+      const value = preserveUtmParams.get(param)
+      if (value) params.set(param, value)
+    })
   }
 
   const qs = params.toString()

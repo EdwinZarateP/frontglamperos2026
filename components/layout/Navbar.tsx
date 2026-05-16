@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Heart, Menu, X, User, LogOut, LayoutDashboard, Home, ChevronDown } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
@@ -14,7 +14,20 @@ export function Navbar() {
   const { user, isAuthenticated } = useAuthStore()
   const logout = useLogout()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Preservar parámetros UTM al navegar al home desde el logo
+  const buildHomeUrl = (): string => {
+    const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid']
+    const params = new URLSearchParams()
+    utmParams.forEach(param => {
+      const value = searchParams.get(param)
+      if (value) params.set(param, value)
+    })
+    const qs = params.toString()
+    return qs ? `/?${qs}` : '/'
+  }
 
   const isAdmin = user?.rol === 'admin'
   const isAnfitrion = user?.rol === 'anfitrion' || user?.rol === 'admin'
@@ -35,7 +48,7 @@ export function Navbar() {
     <header suppressHydrationWarning className="sticky top-0 z-40" style={{ backgroundColor: '#0D261B' }}>
       <nav className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center">
         {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0 relative z-10">
+        <Link href={buildHomeUrl()} className="flex items-center shrink-0 relative z-10">
           <div className="h-16 flex items-center justify-center overflow-hidden">
             <img 
               src="https://storage.googleapis.com/glamperos-imagenes/Imagenes/logo_glamepros_2026.png" 

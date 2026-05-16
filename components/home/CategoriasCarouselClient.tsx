@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { tipoGlampingLabels, calcularComision, formatCOP } from '@/lib/utils'
 
 const PLACEHOLDER_IMAGE = 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/fondo%20general%20home.png'
@@ -25,6 +26,19 @@ export function CategoriasCarouselClient({ glampings }: Props) {
   const [itemsPerView, setItemsPerView] = useState(5)
   const touchStartRef = useRef<number>(0)
   const touchEndRef = useRef<number>(0)
+  const searchParams = useSearchParams()
+
+  // Preservar parámetros UTM al navegar al detalle del glamping
+  const buildGlampingUrl = (glampingId: string): string => {
+    const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid']
+    const params = new URLSearchParams()
+    utmParams.forEach(param => {
+      const value = searchParams.get(param)
+      if (value) params.set(param, value)
+    })
+    const qs = params.toString()
+    return `/glamping/${glampingId}${qs ? `?${qs}` : ''}`
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => { touchStartRef.current = e.targetTouches[0].clientX }
   const handleTouchMove  = (e: React.TouchEvent) => { touchEndRef.current  = e.targetTouches[0].clientX }
@@ -84,7 +98,7 @@ export function CategoriasCarouselClient({ glampings }: Props) {
           >
             {glampings.map((g) => (
               <div key={g.id} className={`flex-shrink-0 ${widthClass} px-1.5`}>
-                <Link href={`/glamping/${g.id}`}>
+                <Link href={buildGlampingUrl(g.id)}>
                   <div className="relative rounded-xl overflow-hidden group cursor-pointer aspect-square">
                     <img
                       src={g.imagen || PLACEHOLDER_IMAGE}

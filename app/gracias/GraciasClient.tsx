@@ -8,6 +8,7 @@ import { api } from '@/lib/api'
 import { formatCOP, formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { trackPurchase, buildPurchaseItemFromReserva } from '@/lib/analytics'
 import type { Reserva } from '@/types'
 
 interface EstadoReserva {
@@ -21,6 +22,7 @@ export function GraciasClient() {
   const metodo = searchParams.get('metodo') as 'transferencia' | 'wompi' | null
   const [estado, setEstado] = useState<EstadoReserva | null>(null)
   const [loading, setLoading] = useState(true)
+  const [purchaseTracked, setPurchaseTracked] = useState(false)
 
   useEffect(() => {
     if (!reservaId) {
@@ -31,10 +33,27 @@ export function GraciasClient() {
     const fetchReserva = async () => {
       try {
         const res = await api.get<Reserva>(`/reservas/${reservaId}`)
+        const reserva = res.data
+
         setEstado({
-          reserva: res.data,
-          metodoPago: metodo || res.data.metodoPago || 'transferencia',
+          reserva,
+          metodoPago: metodo || reserva.metodoPago || 'transferencia',
         })
+
+        // Enviar evento purchase a GA4 solo la primera vez que carga la reserva
+        if (!purchaseTracked && reserva._id) {
+          setPurchaseTracked(true)
+          try {
+            trackPurchase({
+              transaction_id: reserva._id,
+              value: reserva.precioTotal || 0,
+              currency: 'COP',
+              items: [buildPurchaseItemFromReserva(reserva)],
+            })
+          } catch (err) {
+            console.error('[GA4] Error al enviar evento purchase:', err)
+          }
+        }
       } catch {
         // Si falla, mostramos estado genérico
         setEstado({
@@ -47,7 +66,7 @@ export function GraciasClient() {
     }
 
     fetchReserva()
-  }, [reservaId, metodo])
+  }, [reservaId, metodo, purchaseTracked])
 
   if (loading) {
     return (

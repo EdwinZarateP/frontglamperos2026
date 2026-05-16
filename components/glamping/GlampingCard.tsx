@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
 import { FaPaw } from 'react-icons/fa'
 import { AiTwotoneHeart } from 'react-icons/ai'
@@ -22,6 +23,19 @@ export function GlampingCard({ glamping }: Props) {
   const [currentImg, setCurrentImg] = useState(0)
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
+  const searchParams = useSearchParams()
+
+  // Preservar parámetros UTM al navegar al detalle del glamping
+  const buildGlampingUrl = (glampingId: string): string => {
+    const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid']
+    const params = new URLSearchParams()
+    utmParams.forEach(param => {
+      const value = searchParams.get(param)
+      if (value) params.set(param, value)
+    })
+    const qs = params.toString()
+    return `/glamping/${glampingId}${qs ? `?${qs}` : ''}`
+  }
 
   const toggleFavorito = useMutation({
     mutationFn: async () => {
@@ -104,7 +118,7 @@ export function GlampingCard({ glamping }: Props) {
       >
         {/* Tira de imágenes — se desplaza con translateX */}
         <Link
-          href={`/glamping/${glamping.id}`}
+          href={buildGlampingUrl(glamping.id)}
           className="block w-full h-full"
           onClick={(e) => { if (swipeOccurred.current) e.preventDefault() }}
         >
@@ -191,7 +205,7 @@ export function GlampingCard({ glamping }: Props) {
       </div>
 
       {/* Contenido */}
-      <Link href={`/glamping/${glamping.id}`} className="flex flex-col flex-1 p-4">
+      <Link href={buildGlampingUrl(glamping.id)} className="flex flex-col flex-1 p-4">
         {/* Tipo + amenidad destacada | Calificación */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-stone-900 text-sm leading-tight line-clamp-1">
