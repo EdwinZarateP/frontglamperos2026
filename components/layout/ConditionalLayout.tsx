@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
 import { WhatsAppFloatingButton } from '@/components/home/WhatsAppFloatingButton'
@@ -19,11 +20,29 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {!hideNavbar && <Navbar />}
+      {!hideNavbar && (
+        <Suspense fallback={<NavbarFallback />}>
+          <Navbar />
+        </Suspense>
+      )}
       <main className={hideNavbar && hideFooter ? '' : 'min-h-screen'}>{children}</main>
       {!hideFooter && <Footer />}
       {/* WhatsApp button en home, páginas de búsqueda y detalle de glamping */}
       {!hideWhatsApp && <WhatsAppFloatingButton />}
     </>
+  )
+}
+
+// Fallback del Navbar mientras se carga (evita layout shift)
+function NavbarFallback() {
+  return (
+    <header className="sticky top-0 z-40 h-16 flex items-center px-4 sm:px-6 bg-stone-100 animate-pulse" style={{ backgroundColor: '#0D261B' }}>
+      <div className="w-32 h-8 bg-white/10 rounded" />
+      <div className="flex-1" />
+      <div className="flex gap-2">
+        <div className="w-20 h-8 bg-white/10 rounded" />
+        <div className="w-20 h-8 bg-white/10 rounded" />
+      </div>
+    </header>
   )
 }
