@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { Search, Pencil, Eye, MapPin, MapPinOff, Download, Users, X, Trash2, UserPlus, Plus, ImageIcon } from 'lucide-react'
+import { Search, Pencil, Eye, MapPin, MapPinOff, Download, Users, X, Trash2, UserPlus, Plus, ImageIcon, CheckCircle } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { formatCOP, tipoGlampingLabels } from '@/lib/utils'
 import { Spinner } from '@/components/ui/Spinner'
