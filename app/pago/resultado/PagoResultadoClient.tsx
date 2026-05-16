@@ -69,17 +69,32 @@ export function PagoResultadoClient() {
         }
       } catch (err) {
         console.error('[PagoResultado] Error al verificar estado del pago:', err)
-        // Si falla, enviar evento purchase con el ID que viene de la URL
+        // Si falla todo, enviar evento de conversión mínimo con el ID de la URL
+        // Intentar obtener el valor de parámetros de la URL si están disponibles
+        const valorUrl = searchParams.get('valor')
         if (reservaId && window.gtag) {
           const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
           const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
           const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
 
-          window.gtag('event', 'conversion', {
+          const eventData: {
+            send_to: string
+            transaction_id: string
+            value?: number
+            currency?: string
+          } = {
             send_to: conversionLabel,
             transaction_id: reservaId,
-          })
-          console.log('[PagoResultado] Evento conversion básico enviado (desde URL):', reservaId, conversionLabel)
+          }
+
+          // Agregar valor si está disponible en la URL
+          if (valorUrl) {
+            eventData.value = Number(valorUrl)
+            eventData.currency = 'COP'
+          }
+
+          window.gtag('event', 'conversion', eventData)
+          console.log('[PagoResultado] Evento conversion enviado (fallback):', reservaId, eventData)
         }
       } finally {
         setLoading(false)

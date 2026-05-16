@@ -20,6 +20,9 @@ export function GraciasClient() {
   const searchParams = useSearchParams()
   const reservaId = searchParams.get('reserva')
   const metodo = searchParams.get('metodo') as 'transferencia' | 'wompi' | null
+  // Leer valor y moneda de la URL para el fallback cuando JWT expira
+  const valorUrl = searchParams.get('valor')
+  const monedaUrl = searchParams.get('moneda') || 'COP'
   const [estado, setEstado] = useState<EstadoReserva | null>(null)
   const [loading, setLoading] = useState(true)
   const [purchaseTracked, setPurchaseTracked] = useState(false)
@@ -66,9 +69,12 @@ export function GraciasClient() {
         // Enviar evento purchase básico aunque no tengamos todos los datos
         if (!purchaseTracked && reservaId) {
           setPurchaseTracked(true)
-          console.log('[Gracias] Enviando evento purchase básico (sin datos de reserva):', reservaId)
+          console.log('[Gracias] Enviando evento purchase básico (JWT expirado):', reservaId)
           try {
-            // Evento mínimo para no perder la conversión
+            // Usar el valor de la URL si está disponible
+            const valor = valorUrl ? Number(valorUrl) : 0
+            const moneda = monedaUrl
+
             if (window.gtag) {
               const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
               const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
@@ -77,11 +83,13 @@ export function GraciasClient() {
               window.gtag('event', 'conversion', {
                 send_to: conversionLabel,
                 transaction_id: reservaId,
+                value: valor,
+                currency: moneda,
               })
-              console.log('[Google Ads] Evento conversion básico enviado:', conversionLabel)
+              console.log('[Google Ads] Evento conversion enviado con valor:', conversionLabel, { valor, moneda })
             }
           } catch (e) {
-            console.error('[Google Ads] Error al enviar evento conversion básico:', e)
+            console.error('[Google Ads] Error al enviar evento conversion:', e)
           }
         }
       } finally {

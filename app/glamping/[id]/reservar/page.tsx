@@ -172,7 +172,14 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
         window.location.href = `${apiUrl}/pagos/wompi/checkout/${reserva._id}?porcentaje=${porcentaje}`
       } else {
         toast.success('¡Solicitud enviada! Recibirás confirmación por email')
-        router.push(`/gracias?reserva=${reserva._id}&metodo=transferencia`)
+        // Pasamos el valor en la URL para el fallback de conversión cuando JWT expira
+        const params = new URLSearchParams({
+          reserva: reserva._id,
+          metodo: 'transferencia',
+          valor: String(reserva.precioTotal || 0),
+          moneda: 'COP',
+        })
+        router.push(`/gracias?${params.toString()}`)
       }
     },
     onError: (err) => toast.error(getErrorMessage(err)),
