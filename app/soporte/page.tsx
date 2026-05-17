@@ -95,7 +95,7 @@ export default function SoportePage() {
 
           {/* WhatsApp */}
           <a
-            href="https://wa.me/573218695196"
+            href="https://wa.me/573226492307"
             target="_blank"
             rel="noopener noreferrer"
             className="group bg-white rounded-2xl p-6 border border-stone-200 hover:border-brand hover:shadow-lg transition-all"
@@ -242,7 +242,7 @@ export default function SoportePage() {
             <Mail size={18} /> Enviar correo
           </a>
           <a
-            href="https://wa.me/573218695196"
+            href="https://wa.me/573226492307"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold px-6 py-3 rounded-xl transition-colors"

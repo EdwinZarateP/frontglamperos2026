@@ -644,7 +644,7 @@ Carrusel de hasta 10 glampings cercanos al final de la página de detalle, entre
 
 #### Botones WhatsApp apuntan al bot
 - `components/home/WhatsAppFloatingButton.tsx` — número actualizado a `573215658594` (bot)
-- `components/layout/Footer.tsx` — mismo cambio; el humano (+573218695196) solo es contactado desde el bot cuando el cliente lo solicita
+- `components/layout/Footer.tsx` — mismo cambio; el humano (+573226492307) solo es contactado desde el bot cuando el cliente lo solicita
 
 #### SEO — mejoras globales
 - `app/sitemap.ts` — ahora incluye `/blog`, `/acerca-de-nosotros` y todos los posts del blog (fetched desde WordPress API con ISR 1h)
