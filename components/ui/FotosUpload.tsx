@@ -1,7 +1,8 @@
 'use client'
 
 import { useRef } from 'react'
-import { Upload, X, GripVertical } from 'lucide-react'
+import { Upload, X, GripVertical, AlertCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 import {
   DndContext,
   closestCenter,
@@ -106,6 +107,23 @@ export function FotosUpload({ imagenes, onChange }: Props) {
 
   const handleAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
+
+    // Validar formatos no soportados (AVIF, HEIC, HEIF)
+    const noSoportados = files.filter(file => {
+      const ext = file.name.toLowerCase().split('.').pop()
+      return ext === 'avif' || ext === 'heic' || ext === 'heif'
+    })
+
+    if (noSoportados.length > 0) {
+      const nombres = noSoportados.map(f => f.name).join(', ')
+      toast.error(
+        `Formato no soportado: ${nombres}. Por favor usa JPG, PNG o WebP.`,
+        { duration: 5000 }
+      )
+      // Remover archivos no soportados
+      return
+    }
+
     onChange([...imagenes, ...files].slice(0, 30))
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -121,8 +139,8 @@ export function FotosUpload({ imagenes, onChange }: Props) {
       <label className="flex flex-col items-center justify-center border-2 border-dashed border-stone-300 rounded-xl p-6 sm:p-8 cursor-pointer hover:border-emerald-400 transition-colors">
         <Upload size={28} className="text-stone-400 mb-2" />
         <span className="text-sm font-medium text-stone-600">Sube hasta 30 fotos</span>
-        <span className="text-xs text-stone-400 mt-1">Mínimo 5 · JPG, PNG, WebP</span>
-        <input ref={inputRef} type="file" accept="image/*" multiple className="sr-only" onChange={handleAdd} />
+        <span className="text-xs text-stone-400 mt-1">Mínimo 5 · JPG, PNG, WebP (no AVIF/HEIC)</span>
+        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={handleAdd} />
       </label>
 
       {imagenes.length > 0 && (
