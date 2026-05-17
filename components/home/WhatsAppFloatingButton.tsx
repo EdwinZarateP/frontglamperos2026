@@ -45,7 +45,7 @@ export function WhatsAppFloatingButton() {
   const whatsappNumber = enableOwnerLookup && ownerPhone ? ownerPhone : DEFAULT_NUMBER
   const message = hasGlampingId
     ? 'quiero informacion de este glamping'
-    : 'hola, quiero saber informacion de glamping'
+    : 'Hola, vengo del sitio web y quiero reservar un glamping'
 
   const whatsappUrl = currentUrl
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`${currentUrl}\n\n${message}`)}`
