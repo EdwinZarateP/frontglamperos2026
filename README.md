@@ -886,6 +886,38 @@ El campo `precioMascotas` fue eliminado del formulario del anfitrión. El precio
 
 ---
 
+### v1.7 — 2026-05-19
+
+#### Preview de imágenes en WhatsApp Bot
+
+El bot de WhatsApp ahora muestra la imagen de portada de cada glamping cuando envía links.
+
+**Configuración en el frontend (ya existente):**
+- ✅ Open Graph tags correctos en `app/glamping/[id]/page.tsx`
+- ✅ Imágenes con dimensiones correctas (1200x630)
+- ✅ `og:image`, `og:title`, `og:description` configurados
+
+**Cambios en el backend:**
+- `routers/bot_whatsapp.py`: `preview_url` activado cuando el mensaje contiene URLs de glamping
+- Cada mensaje de glamping enviado por el bot muestra ahora su preview individual
+
+**Resultado visual:**
+```
+Mensaje 1: Aquí tienes opciones cerca de Bogotá 😊
+
+Mensaje 2: *La Choza* — San Francisco, Cundinamarca — desde $387.000/noche 🐾
+🔗 https://glamperos.com/glamping/69b8b1a4776b87a18af6b6f8
+          ↑↑↑ [Preview con imagen de portada]
+
+Mensaje 3: *Castilla* — San Francisco, Cundinamarca — desde $588.000/noche 🐾
+🔗 https://glamperos.com/glamping/69b8c4a1d54005b71437d9cf
+          ↑↑↑ [Preview con imagen de portada]
+```
+
+No se requieren cambios en el frontend; esta funcionalidad ya estaba soportada por los meta tags existentes.
+
+---
+
 ### v1.0 — 2026-03-17
 - Home con buscador tipo Airbnb (paneles por sección, estado local, API solo en "Buscar")
 - URLs SEO limpias con catch-all route `[...slug]`
