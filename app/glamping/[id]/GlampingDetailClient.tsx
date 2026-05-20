@@ -105,23 +105,36 @@ export function GlampingDetailClient({ glamping }: Props) {
     return dias[date.getDay()]
   }
 
+  const esDiaPrevioAFestivo = (fecha: string): boolean => {
+    const date = new Date(fecha + 'T00:00:00')
+    const manana = new Date(date)
+    manana.setDate(date.getDate() + 1)
+    const mananaStr = manana.toISOString().split('T')[0]
+    return festivosSet.has(mananaStr)
+  }
+
   const getPrecioPorNoche = (fecha: string): number => {
     if (!glamping.tarifasNoche) {
       return glamping.precioNoche
     }
-    
-    const dia = getDiaSemana(fecha)
+
+    let dia = getDiaSemana(fecha)
+    // Solo el día ANTERIOR al festivo se cobra como sábado
+    if (dia !== 'sabado' && dia !== 'viernes' && esDiaPrevioAFestivo(fecha)) {
+      dia = 'sabado'
+    }
+
     const precioDia = (glamping.tarifasNoche as Record<string, number>)[dia]
-    
+
     if (precioDia && precioDia > 0) {
       return precioDia
     }
-    
+
     const preciosValidos = Object.values(glamping.tarifasNoche).filter((p: any) => p > 0) as number[]
     if (preciosValidos.length > 0) {
       return Math.min(...preciosValidos)
     }
-    
+
     return glamping.precioNoche
   }
 
@@ -1275,11 +1288,11 @@ export function GlampingDetailClient({ glamping }: Props) {
       {/* Barra fija inferior — solo móvil (simplificado: solo total + botón) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-stone-200 px-4 pt-3 pb-4">
         <div className="flex items-center justify-between gap-3">
-          <div 
+          <div
             className="flex-1 cursor-pointer"
             onClick={() => {
               if (!fechaInicio || !fechaFin) {
-                toast.error('Selecciona las fechas')
+                setShowCalendar(true)
                 return
               }
               setShowReservationModal(true)
