@@ -1031,6 +1031,51 @@ function getInitial(nombre: string): string {
 
 ---
 
+#### Fix página /gracias — Imágenes del glamping pobladas
+
+**`app/gracias/GraciasClient.tsx` + `types/index.ts`**
+
+**Problema:** TypeScript error `Property 'imagenes' does not exist on type 'Reserva'` al intentar mostrar la imagen del glamping en la página de gracias.
+
+**Fix:**
+- Backend ahora pobla `reserva.glamping` con `_id`, `nombreGlamping`, `ciudadDepartamento`, `imagenes`
+- Frontend accede vía `reserva.glamping?.imagenes` en lugar de `reserva.imagenes`
+- Fallbacks a campos legacy por compatibilidad
+
+```typescript
+{reserva.glamping?.imagenes?.[0] && (
+  <div className="flex items-start gap-3 pb-4 border-b border-stone-200">
+    <img
+      src={reserva.glamping.imagenes[0]}
+      alt=""
+      className="w-16 h-16 rounded-xl object-cover shrink-0"
+    />
+    <div className="min-w-0">
+      <p className="font-semibold text-stone-900 truncate">
+        {reserva.glamping.nombreGlamping || reserva.nombreGlamping}
+      </p>
+      <p className="text-sm text-stone-500 flex items-center gap-1">
+        <MapPin size={12} />
+        {reserva.glamping.ciudadDepartamento || reserva.ciudadDepartamento}
+      </p>
+    </div>
+  </div>
+)}
+```
+
+**`types/index.ts` — Campos legacy agregados:**
+```typescript
+export interface Reserva {
+  // ...
+  glamping?: Glamping
+  // Legacy fields (cuando glamping no está poblado)
+  nombreGlamping?: string
+  ciudadDepartamento?: string
+}
+```
+
+---
+
 ### v1.7 — 2026-05-19
 
 #### Preview de imágenes en WhatsApp Bot
