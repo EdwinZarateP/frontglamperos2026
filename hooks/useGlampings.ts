@@ -44,6 +44,8 @@ export function useGlamping(id: string) {
       return data
     },
     enabled: !!id,
+    staleTime: 30_000, // 30 segundos - cambios en precios se reflejan rápido
+    gcTime: 5 * 60_000, // 5 minutos - mantiene datos en memoria
   })
 }
 

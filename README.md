@@ -886,6 +886,151 @@ El campo `precioMascotas` fue eliminado del formulario del anfitrión. El precio
 
 ---
 
+### v1.8 — 2026-05-22
+
+#### Acompañantes obligatorios cuando huespedes > 1
+
+**`app/glamping/[id]/reservar/page.tsx`**
+
+**Validación mejorada:**
+- Cuando `huespedes > 1`: acompañantes son obligatorios
+- Mensaje de error específico si no se registra al menos 1 acompañante
+- Auto-popula campos cuando aumenta el número de huéspedes
+- Elimina campos vacíos cuando `huespedes <= 1`
+
+```typescript
+// Texto dinámico según número de huéspedes
+<p className="text-sm font-medium text-stone-700">
+  Acompañantes {huespedes > 1 && <span className="text-red-500 font-normal">* (obligatorio)</span>}
+  {huespedes <= 1 && <span className="text-stone-400 font-normal">(opcional)</span>}
+</p>
+
+// Validación en submit
+if (huespedes > 1) {
+  const hasValidAcompanante = acompanantes.some(
+    a => a.nombreCompleto.trim().length > 0 && a.telefono.trim().length >= 10
+  )
+  if (!hasValidAcompanante) {
+    toast.error('Debes registrar al menos 1 acompañante con nombre y teléfono')
+    return
+  }
+}
+```
+
+**Auto-ajuste de campos:**
+```typescript
+useEffect(() => {
+  setAcompanantes(prev => {
+    if (huespedes > 1) {
+      const minAcompanantes = huespedes - 1
+      if (prev.length < minAcompanantes) {
+        const nuevos = [...prev]
+        while (nuevos.length < minAcompanantes) {
+          nuevos.push({ nombreCompleto: '', telefono: '' })
+        }
+        return nuevos
+      }
+    }
+    if (huespedes <= 1) {
+      return prev.filter(a => a.nombreCompleto.trim() || a.telefono.trim())
+    }
+    return prev
+  })
+}, [huespedes])
+```
+
+---
+
+#### Eliminado campo "Notas especiales"
+
+**`app/glamping/[id]/reservar/page.tsx`**
+
+**Cambios:**
+- Removido del schema de validación Zod
+- Eliminado del estado `FormData`
+- Ya no se envía al backend
+- Simplifica el formulario (el campo no se usaba)
+
+```typescript
+const schema = z.object({
+  nombreTitular: z.string().min(3, 'Nombre requerido'),
+  cedulaTitular: z.string()...
+  celularTitular: z.string()...
+  emailTitular: z.string().email('Email inválido'),
+  // REMOVIDO: notasEspeciales
+})
+```
+
+---
+
+#### Admin usuarios — Fotos con fallback a iniciales
+
+**`app/admin/usuarios/page.tsx`**
+
+**Problema:** Las fotos de Google no se mostraban por CORS.
+
+**Fix implementado:**
+```typescript
+// Helper para obtener la primera letra
+function getInitial(nombre: string): string {
+  if (!nombre) return '?'
+  return nombre.trim()[0].toUpperCase()
+}
+
+// Avatar con foto + fallback
+{u.foto ? (
+  <>
+    <img
+      src={u.foto}
+      alt=""
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      className="w-9 h-9 rounded-full object-cover shrink-0"
+      onError={(e) => {
+        e.currentTarget.style.display = 'none'
+        const target = e.currentTarget as HTMLImageElement
+        const fallback = target.nextElementSibling as HTMLElement
+        if (fallback) {
+          fallback.style.display = 'flex'
+          fallback.setAttribute('data-visible', 'true')
+        }
+      }}
+    />
+    <div
+      data-visible="false"
+      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+      style={{
+        display: 'none',
+        backgroundColor: u.rol === 'admin' ? '#dc2626' : u.rol === 'anfitrion' ? '#059669' : '#64748b'
+      }}
+    >
+      {getInitial(u.nombre)}
+    </div>
+  </>
+) : (
+  <div
+    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+    style={{
+      backgroundColor: u.rol === 'admin' ? '#dc2626' : u.rol === 'anfitrion' ? '#059669' : '#64748b'
+    }}
+  >
+    {getInitial(u.nombre)}
+  </div>
+)}
+```
+
+**Colores por rol:**
+- Admin → Rojo (#dc2626)
+- Anfitrión → Verde (#059669)
+- Usuario → Gris (#64748b)
+
+**Resultado:**
+- Fotos de Google se muestran correctamente (CORS fix)
+- Si falla la carga → fallback automático a iniciales
+- Si no hay foto → iniciales directamente
+
+---
+
 ### v1.7 — 2026-05-19
 
 #### Preview de imágenes en WhatsApp Bot

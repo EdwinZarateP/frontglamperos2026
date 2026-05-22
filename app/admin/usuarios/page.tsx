@@ -115,6 +115,12 @@ function GlampingAutocomplete({ options, value, onChange, placeholder = "Buscar 
   )
 }
 
+// Helper para obtener la primera letra del nombre
+function getInitial(nombre: string): string {
+  if (!nombre) return '?'
+  return nombre.trim()[0].toUpperCase()
+}
+
 interface Usuario {
   id?: string
   _id?: string
@@ -368,10 +374,43 @@ export default function AdminUsuariosPage() {
             {filtrados.map((u, i) => (
               <li key={uid(u) || i} className="flex items-center gap-3 px-5 py-4">
                 {u.foto ? (
-                  <img src={u.foto} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  <>
+                    <img
+                      src={u.foto}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                      onError={(e) => {
+                        // Si la imagen falla al cargar, ocultarla y mostrar iniciales
+                        e.currentTarget.style.display = 'none'
+                        const target = e.currentTarget as HTMLImageElement
+                        const fallback = target.nextElementSibling as HTMLElement
+                        if (fallback) {
+                          fallback.style.display = 'flex'
+                          fallback.setAttribute('data-visible', 'true')
+                        }
+                      }}
+                    />
+                    <div
+                      data-visible="false"
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+                      style={{
+                        display: 'none',
+                        backgroundColor: u.rol === 'admin' ? '#dc2626' : u.rol === 'anfitrion' ? '#059669' : '#64748b'
+                      }}
+                    >
+                      {getInitial(u.nombre)}
+                    </div>
+                  </>
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-bold text-sm shrink-0">
-                    {u.nombre?.[0]?.toUpperCase()}
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+                    style={{
+                      backgroundColor: u.rol === 'admin' ? '#dc2626' : u.rol === 'anfitrion' ? '#059669' : '#64748b'
+                    }}
+                  >
+                    {getInitial(u.nombre)}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">

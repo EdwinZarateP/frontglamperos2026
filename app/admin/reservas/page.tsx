@@ -102,9 +102,9 @@ export default function AdminReservasPage() {
           {data?.data.map((reserva) => (
             <div
               key={reserva._id}
-              className="bg-white rounded-2xl border border-stone-200 p-5"
+              className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5"
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span
@@ -157,19 +157,20 @@ export default function AdminReservasPage() {
                   {reserva.comprobantePago && (
                     <button
                       onClick={() => setModalComprobante({ url: reserva.comprobantePago!, nombre: reserva.nombreTitular })}
-                      className="text-xs text-brand hover:underline mt-1 block text-left flex items-center gap-1"
+                      className="mt-2 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors"
                     >
-                      <Eye size={12} /> Ver comprobante
+                      <Eye size={14} /> Ver comprobante
                     </button>
                   )}
                 </div>
 
                 {/* Acciones */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                   {reserva.estado === 'PENDIENTE_APROBACION' && (
                     <>
                       <Button
                         size="sm"
+                        className="flex-1 sm:flex-none"
                         onClick={() => cambiarEstado.mutate({ id: reserva._id, estado: 'CONFIRMADA' })}
                         loading={cambiarEstado.isPending}
                       >
@@ -178,6 +179,7 @@ export default function AdminReservasPage() {
                       <Button
                         size="sm"
                         variant="danger"
+                        className="flex-1 sm:flex-none"
                         onClick={() => {
                           setMotivoRechazo('')
                           setModalRechazo({ reservaId: reserva._id, nombre: reserva.nombreTitular })
@@ -190,6 +192,7 @@ export default function AdminReservasPage() {
                   {reserva.estado === 'PAGO_RECIBIDO' && (
                     <Button
                       size="sm"
+                      className="w-full sm:w-auto"
                       onClick={() => cambiarEstado.mutate({ id: reserva._id, estado: 'CONFIRMADA' })}
                     >
                       Confirmar
@@ -199,6 +202,7 @@ export default function AdminReservasPage() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="w-full sm:w-auto"
                       onClick={() => cambiarEstado.mutate({ id: reserva._id, estado: 'COMPLETADA' })}
                     >
                       Marcar completada
@@ -208,6 +212,7 @@ export default function AdminReservasPage() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="w-full sm:w-auto text-sm sm:text-base"
                       loading={generandoLink === reserva._id}
                       onClick={() => generarLinkCalificacion(reserva._id)}
                     >
@@ -317,40 +322,43 @@ export default function AdminReservasPage() {
 
       {/* Modal comprobante */}
       {modalComprobante && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-stone-200">
-              <h2 className="text-lg font-bold text-stone-900">Comprobante de pago</h2>
-              <button onClick={() => setModalComprobante(null)} className="text-stone-400 hover:text-stone-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 sm:px-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl sm:max-w-4xl max-h-[90vh] md:max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-stone-200 shrink-0">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-stone-900">Comprobante de pago</h2>
+                <span className="text-xs text-stone-500 truncate max-w-[150px] sm:max-w-xs">{modalComprobante.nombre}</span>
+              </div>
+              <button onClick={() => setModalComprobante(null)} className="text-stone-400 hover:text-stone-700 shrink-0">
                 <X size={20} />
               </button>
             </div>
-            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-stone-50">
+            <div className="flex-1 overflow-auto p-3 sm:p-4 flex items-center justify-center bg-stone-50 min-h-0">
               {modalComprobante.url.toLowerCase().endsWith('.pdf') ? (
                 <iframe
                   src={modalComprobante.url}
-                  className="w-full h-[70vh] rounded-xl border border-stone-200"
+                  className="w-full h-[50vh] sm:h-[60vh] md:h-[70vh] rounded-xl border border-stone-200"
                   title="Comprobante PDF"
                 />
               ) : (
                 <img
                   src={modalComprobante.url}
                   alt="Comprobante de pago"
-                  className="max-w-full max-h-[70vh] object-contain rounded-xl"
+                  className="w-full h-auto max-h-[50vh] sm:max-h-[60vh] md:max-h-[70vh] object-contain rounded-xl"
                 />
               )}
             </div>
-            <div className="p-4 border-t border-stone-200 flex justify-end gap-3">
+            <div className="p-3 sm:p-4 border-t border-stone-200 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 shrink-0">
               <a
                 href={modalComprobante.url}
                 download
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 bg-stone-900 text-white rounded-xl text-sm font-medium hover:bg-stone-800 transition-colors text-center"
               >
                 Descargar
               </a>
-              <Button variant="outline" onClick={() => setModalComprobante(null)}>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setModalComprobante(null)}>
                 Cerrar
               </Button>
             </div>

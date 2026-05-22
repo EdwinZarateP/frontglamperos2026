@@ -20,7 +20,6 @@ export function GraciasClient() {
   const searchParams = useSearchParams()
   const reservaId = searchParams.get('reserva')
   const metodo = searchParams.get('metodo') as 'transferencia' | 'wompi' | null
-  // Leer valor y moneda de la URL para el fallback cuando JWT expira
   const valorUrl = searchParams.get('valor')
   const monedaUrl = searchParams.get('moneda') || 'COP'
   const [estado, setEstado] = useState<EstadoReserva | null>(null)
@@ -43,7 +42,6 @@ export function GraciasClient() {
           metodoPago: metodo || reserva.metodoPago || 'transferencia',
         })
 
-        // Enviar evento purchase a GA4 y Google Ads solo la primera vez
         if (!purchaseTracked && reserva._id) {
           setPurchaseTracked(true)
           console.log('[Gracias] Enviando evento purchase para reserva:', reserva._id, 'valor:', reserva.precioTotal)
@@ -58,41 +56,48 @@ export function GraciasClient() {
             console.error('[GA4] Error al enviar evento purchase:', err)
           }
         }
-      } catch (err) {
-        // Si falla la petición (JWT expirado, etc.), enviamos evento purchase con datos mínimos
-        console.error('[Gracias] Error al obtener reserva:', err)
-        setEstado({
-          reserva: {} as Reserva,
-          metodoPago: metodo || 'transferencia',
-        })
-
-        // Enviar evento purchase básico aunque no tengamos todos los datos
-        if (!purchaseTracked && reservaId) {
-          setPurchaseTracked(true)
-          console.log('[Gracias] Enviando evento purchase básico (JWT expirado):', reservaId)
+        setLoading(false)
+      } catch (err: any) {
+        if (err.response?.status === 403) {
+          console.log('[Gracias] Usuario no autenticado, usando endpoint público')
           try {
-            // Usar el valor de la URL si está disponible
-            const valor = valorUrl ? Number(valorUrl) : 0
-            const moneda = monedaUrl
+            const resPublico = await api.get<Reserva>(`/reservas/${reservaId}/publico`)
+            const reserva = resPublico.data
 
-            if (window.gtag) {
-              const adwordsId = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_ID || '17234612701'
-              const adwordsLabel = process.env.NEXT_PUBLIC_GA4_ADWORDS_CONVERSION_LABEL || 'iUXpCLu7ktQbEN2jjZpA'
-              const conversionLabel = `AW-${adwordsId}/${adwordsLabel}`
+            setEstado({
+              reserva,
+              metodoPago: metodo || reserva.metodoPago || 'transferencia',
+            })
 
-              window.gtag('event', 'conversion', {
-                send_to: conversionLabel,
-                transaction_id: reservaId,
-                value: valor,
-                currency: moneda,
-              })
-              console.log('[Google Ads] Evento conversion enviado con valor:', conversionLabel, { valor, moneda })
+            if (!purchaseTracked && reserva._id) {
+              setPurchaseTracked(true)
+              console.log('[Gracias] Enviando evento purchase (endpoint público):', reserva._id, 'valor:', reserva.precioTotal)
+              try {
+                trackPurchase({
+                  transaction_id: reserva._id,
+                  value: reserva.precioTotal || 0,
+                  currency: 'COP',
+                  items: [buildPurchaseItemFromReserva(reserva)],
+                })
+              } catch (err2) {
+                console.error('[GA4] Error al enviar evento purchase:', err2)
+              }
             }
-          } catch (e) {
-            console.error('[Google Ads] Error al enviar evento conversion:', e)
+          } catch (err2) {
+            console.error('[Gracias] Error al obtener reserva pública:', err2)
+            setEstado({
+              reserva: {} as Reserva,
+              metodoPago: metodo || 'transferencia',
+            })
           }
+        } else {
+          console.error('[Gracias] Error al obtener reserva:', err)
+          setEstado({
+            reserva: {} as Reserva,
+            metodoPago: metodo || 'transferencia',
+          })
         }
-      } finally {
+
         setLoading(false)
       }
     }
@@ -118,9 +123,7 @@ export function GraciasClient() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-brand-light/20 px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        {/* Card principal */}
         <div className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden">
-          {/* Header con gradiente */}
           <div className={`bg-gradient-to-r px-8 py-10 ${
             esExitoso
               ? 'from-emerald-500 to-brand text-white'
@@ -146,9 +149,7 @@ export function GraciasClient() {
             </p>
           </div>
 
-          {/* Contenido */}
           <div className="p-8 space-y-6">
-            {/* Mensaje según estado */}
             <div className={`rounded-2xl p-5 ${
               esExitoso
                 ? 'bg-emerald-50 border border-emerald-100'
@@ -177,7 +178,6 @@ export function GraciasClient() {
               </div>
             </div>
 
-            {/* Detalle de la reserva */}
             {reserva && reserva._id && (
               <div className="bg-stone-50 rounded-2xl p-5 space-y-4">
                 <h3 className="font-semibold text-stone-800 flex items-center gap-2">
@@ -185,29 +185,25 @@ export function GraciasClient() {
                   Detalle de tu reserva
                 </h3>
 
-                {/* Nombre del glamping */}
-                {reserva.glamping && (
+                {reserva.imagenes?.[0] && (
                   <div className="flex items-start gap-3 pb-4 border-b border-stone-200">
-                    {reserva.glamping.imagenes?.[0] && (
-                      <img
-                        src={reserva.glamping.imagenes[0]}
-                        alt=""
-                        className="w-16 h-16 rounded-xl object-cover shrink-0"
-                      />
-                    )}
+                    <img
+                      src={reserva.imagenes[0]}
+                      alt=""
+                      className="w-16 h-16 rounded-xl object-cover shrink-0"
+                    />
                     <div className="min-w-0">
                       <p className="font-semibold text-stone-900 truncate">
-                        {reserva.glamping.nombreGlamping}
+                        {reserva.nombreGlamping}
                       </p>
                       <p className="text-sm text-stone-500 flex items-center gap-1">
                         <MapPin size={12} />
-                        {reserva.glamping.ciudadDepartamento}
+                        {reserva.ciudadDepartamento}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Fechas y huéspedes */}
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-3 text-stone-600">
                     <Calendar size={16} className="text-stone-400" />
@@ -223,7 +219,6 @@ export function GraciasClient() {
                   </div>
                 </div>
 
-                {/* Método de pago */}
                 <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                   esWompi
                     ? 'bg-blue-50 text-blue-700'
@@ -242,7 +237,6 @@ export function GraciasClient() {
                   )}
                 </div>
 
-                {/* Montos */}
                 <div className="pt-3 border-t border-stone-200 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-stone-500">Total reserva</span>
@@ -268,7 +262,6 @@ export function GraciasClient() {
               </div>
             )}
 
-            {/* Qué sigue */}
             <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100">
               <h4 className="font-semibold text-blue-900 mb-2">¿Qué sigue?</h4>
               <ul className="text-sm text-blue-700 space-y-1">
@@ -287,7 +280,6 @@ export function GraciasClient() {
               </ul>
             </div>
 
-            {/* Botones de acción */}
             <div className="space-y-3">
               <Link href="/mis-reservas" className="block">
                 <Button fullWidth size="lg" className="bg-brand hover:bg-brand-hover text-white">
@@ -303,7 +295,6 @@ export function GraciasClient() {
           </div>
         </div>
 
-        {/* Footer message */}
         <p className="text-center text-stone-400 text-sm mt-6">
           ¿Tienes preguntas? Contáctanos por WhatsApp
         </p>

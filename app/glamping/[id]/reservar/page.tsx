@@ -37,7 +37,6 @@ const schema = z.object({
     .max(14, 'Celular no puede tener más de 14 caracteres (incluyendo código de país)')
     .refine(val => /^\+?\d{10,14}$/.test(val.replace(/\s/g, '')), 'Formato de celular inválido'),
   emailTitular: z.string().email('Email inválido'),
-  notasEspeciales: z.string().optional(),
 })
 
 type FormData = {
@@ -45,7 +44,6 @@ type FormData = {
   cedulaTitular: string
   celularTitular: string
   emailTitular: string
-  notasEspeciales?: string
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -135,6 +133,29 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     }
   }, [user, setValue])
 
+  // Ajustar acompañantes según número de huéspedes
+  useEffect(() => {
+    setAcompanantes(prev => {
+      // Si huespedes > 1, asegurar al menos (huespedes - 1) campos de acompañante
+      if (huespedes > 1) {
+        const minAcompanantes = huespedes - 1
+        if (prev.length < minAcompanantes) {
+          // Agregar campos vacíos hasta alcanzar el mínimo
+          const nuevos = [...prev]
+          while (nuevos.length < minAcompanantes) {
+            nuevos.push({ nombreCompleto: '', telefono: '' })
+          }
+          return nuevos
+        }
+      }
+      // Si huespedes es 1, remover acompañantes vacíos
+      if (huespedes <= 1) {
+        return prev.filter(a => a.nombreCompleto.trim() || a.telefono.trim())
+      }
+      return prev
+    })
+  }, [huespedes])
+
   const crearReserva = useMutation({
     mutationFn: async (data: FormData) => {
       const fd = new FormData()
@@ -154,7 +175,6 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
       fd.append('cedulaTitular', data.cedulaTitular)
       fd.append('celularTitular', data.celularTitular)
       fd.append('emailTitular', data.emailTitular)
-      fd.append('notasEspeciales', data.notasEspeciales || '')
       fd.append('metodoPago', metodoPago)
       const montoAbono = metodoPago === 'transferencia' && totalBase > 0
         ? (montoManual !== '' ? Number(montoManual) : Math.round(totalBase * (porcentajeAbono ?? 100) / 100))
@@ -239,6 +259,25 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
   const onFormSubmit = (data: FormData) => {
     if (tipo === 'NOCHES' && !hayFechas) { toast.error('Selecciona las fechas'); return }
     if (tipo === 'PASADIA' && !fechaPasadia) { toast.error('Selecciona la fecha del pasadía'); return }
+    // Validar acompañantes cuando huespedes > 1
+    if (huespedes > 1) {
+      const hasValidAcompanante = acompanantes.some(
+        a => a.nombreCompleto.trim().length > 0 && a.telefono.trim().length >= 10
+      )
+      if (!hasValidAcompanante) {
+        toast.error('Debes registrar al menos 1 acompañante con nombre y teléfono')
+        return
+      }
+      // Validar que todos los acompañantes tengan datos completos
+      const incompleteAcompanante = acompanantes.find(
+        a => (a.nombreCompleto.trim().length > 0 && a.telefono.trim().length < 10) ||
+             (a.nombreCompleto.trim().length === 0 && a.telefono.trim().length > 0)
+      )
+      if (incompleteAcompanante) {
+        toast.error('Todos los acompañantes deben tener nombre y teléfono completos')
+        return
+      }
+    }
     if (metodoPago === 'transferencia') {
       if (!comprobante) {
         toast.error('Debes adjuntar el comprobante de pago')
@@ -528,7 +567,10 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
             {/* Acompañantes */}
             <div className="mt-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-stone-700">Acompañantes <span className="text-stone-400 font-normal">(opcional)</span></p>
+                <p className="text-sm font-medium text-stone-700">
+                  Acompañantes {huespedes > 1 && <span className="text-red-500 font-normal">* (obligatorio)</span>}
+                  {huespedes <= 1 && <span className="text-stone-400 font-normal">(opcional)</span>}
+                </p>
                 <button
                   type="button"
                   onClick={() => setAcompanantes((p) => [...p, { nombreCompleto: '', telefono: '' }])}
@@ -568,14 +610,6 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
               ))}
             </div>
 
-            {/* Notas */}
-            <div className="mt-3">
-              <Textarea
-                label="Notas especiales (opcional)"
-                placeholder="¿Algún requerimiento? Alergias, celebraciones, horarios especiales..."
-                {...register('notasEspeciales')}
-              />
-            </div>
           </Section>
 
           {/* PASO 2 — TU VIAJE */}
