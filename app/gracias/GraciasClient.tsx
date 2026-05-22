@@ -185,20 +185,20 @@ export function GraciasClient() {
                   Detalle de tu reserva
                 </h3>
 
-                {reserva.imagenes?.[0] && (
+                {reserva.glamping?.imagenes?.[0] && (
                   <div className="flex items-start gap-3 pb-4 border-b border-stone-200">
                     <img
-                      src={reserva.imagenes[0]}
+                      src={reserva.glamping.imagenes[0]}
                       alt=""
                       className="w-16 h-16 rounded-xl object-cover shrink-0"
                     />
                     <div className="min-w-0">
                       <p className="font-semibold text-stone-900 truncate">
-                        {reserva.nombreGlamping}
+                        {reserva.glamping.nombreGlamping || reserva.nombreGlamping}
                       </p>
                       <p className="text-sm text-stone-500 flex items-center gap-1">
                         <MapPin size={12} />
-                        {reserva.ciudadDepartamento}
+                        {reserva.glamping.ciudadDepartamento || reserva.ciudadDepartamento}
                       </p>
                     </div>
                   </div>

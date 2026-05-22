@@ -194,6 +194,9 @@ export interface Reserva {
   updatedAt: string
   // Populated
   glamping?: Glamping
+  // Legacy fields (cuando glamping no está poblado)
+  nombreGlamping?: string
+  ciudadDepartamento?: string
 }
 
 // ─── Pagos Wompi ─────────────────────────────────────────────────────────────
