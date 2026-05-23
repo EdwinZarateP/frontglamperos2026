@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Star, MapPin, Users, Dog, Clock, ChevronLeft, Calendar,
@@ -49,8 +49,21 @@ interface Props {
 
 export function GlampingDetailClient({ glamping }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isAuthenticated, user } = useAuthStore()
   const queryClient = useQueryClient()
+
+  // Preservar parámetros UTM al navegar al home desde el breadcrumb
+  const buildHomeUrl = (): string => {
+    const utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid']
+    const params = new URLSearchParams()
+    utmParams.forEach(param => {
+      const value = searchParams.get(param)
+      if (value) params.set(param, value)
+    })
+    const qs = params.toString()
+    return qs ? `/?${qs}` : '/'
+  }
 
   const [imgIdx, setImgIdx] = useState(0)
   const touchStartX = useRef(0)
@@ -438,7 +451,7 @@ export function GlampingDetailClient({ glamping }: Props) {
     <div className="w-full lg:w-[80%] mx-auto px-4 sm:px-6 pt-0 sm:pt-6 pb-1 flex flex-col">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-stone-400 mb-4 order-2 lg:order-1 px-0 pt-3 lg:pt-0">
-        <Link href="/" className="hover:text-stone-700 flex items-center gap-1">
+        <Link href={buildHomeUrl()} className="hover:text-stone-700 flex items-center gap-1">
           <ChevronLeft size={14} /> Inicio
         </Link>
         <span>/</span>
