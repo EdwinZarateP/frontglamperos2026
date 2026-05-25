@@ -286,7 +286,7 @@ import { api } from '@/lib/api'
 
 // GET request
 const { data } = await api.get('/glampings/home', {
-  params: { page: 1, limit: 20 }
+  params: { page: 1, limit: 30 }
 })
 
 // POST request

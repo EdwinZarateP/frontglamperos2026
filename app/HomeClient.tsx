@@ -208,7 +208,7 @@ export function HomeClient({ initialFiltros, serverData, tierramontProducts, her
   const total = data?.total ?? 0
   const glampings = data?.data ?? []
   const currentPage = effectivePage
-  const totalPages = Math.ceil(total / (filtros.limit ?? 20)) || 1
+  const totalPages = Math.ceil(total / (filtros.limit ?? 30)) || 1
   const showSearchPopup = isFetching && ready && initialFetchDone.current
   // Mostrar skeleton solo si no hay datos ni de SSR ni de query
   const showLoading = (!serverData && !queryData) && (!ready || isLoading)

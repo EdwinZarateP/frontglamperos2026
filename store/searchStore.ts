@@ -12,7 +12,7 @@ interface SearchState {
 
 const defaultFiltros: FiltrosHome = {
   page: 1,
-  limit: 20,
+  limit: 30,
   order_by: 'calificacion',
 }
 

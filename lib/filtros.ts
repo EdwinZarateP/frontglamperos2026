@@ -55,7 +55,7 @@ export const FILTROS_AMENIDADES: Record<string, string> = {
 
 export async function fetchGlampingsSSR(filtros: Partial<FiltrosHome>): Promise<HomeResponse | undefined> {
   try {
-    const params = new URLSearchParams({ page: String(filtros.page ?? 1), limit: '20', order_by: 'calificacion' })
+    const params = new URLSearchParams({ page: String(filtros.page ?? 1), limit: '30', order_by: 'calificacion' })
     // Si hay coordenadas, buscamos por radio (no por ciudad exacta)
     const usarCiudad = !filtros.lat && filtros.ciudad
     if (usarCiudad)              params.set('ciudad',      filtros.ciudad!)

@@ -72,7 +72,7 @@ export default async function HomePage({
   ])
 
   const currentPage = initialFiltros.page ?? 1
-  const totalPages = serverData ? Math.ceil(serverData.total / (serverData.limit || 20)) : 1
+  const totalPages = serverData ? Math.ceil(serverData.total / (serverData.limit || 30)) : 1
   const prevUrl = currentPage > 1 ? `${SITE_URL}${buildUrlFromFiltros({ ...initialFiltros, page: currentPage - 1 })}` : null
   const nextUrl = currentPage < totalPages ? `${SITE_URL}${buildUrlFromFiltros({ ...initialFiltros, page: currentPage + 1 })}` : null
 

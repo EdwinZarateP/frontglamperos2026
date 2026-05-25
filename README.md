@@ -224,7 +224,7 @@ interface SearchState {
 
 const defaultFiltros: FiltrosHome = {
   page: 1,
-  limit: 20,
+  limit: 30,
   order_by: 'calificacion',
   // NO incluye huespedes:2 — ese valor es solo para el control UI
 }
