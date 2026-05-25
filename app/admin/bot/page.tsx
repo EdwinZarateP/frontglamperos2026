@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { MessageCircle, Phone, Clock, RefreshCw, ArrowLeft } from 'lucide-react'
+import { MessageCircle, Phone, Clock, RefreshCw, ArrowLeft, Calendar, X, Search, Copy, Check } from 'lucide-react'
 import { api } from '@/lib/api'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -67,6 +67,11 @@ function fmtFechaCorta(iso: string) {
 
 export default function AdminBotPage() {
   const [selected, setSelected] = useState<string | null>(null)
+  const [fechaInicio, setFechaInicio] = useState('')
+  const [fechaFin, setFechaFin] = useState('')
+  const [phoneInput, setPhoneInput] = useState('')
+  const [searchPhone, setSearchPhone] = useState('')
+  const [copied, setCopied] = useState(false)
 
   // En móvil: true = mostrando chat, false = mostrando lista
   const [showChat, setShowChat] = useState(false)
@@ -80,19 +85,33 @@ export default function AdminBotPage() {
     setShowChat(false)
   }
 
+  // Construir query params
+  const buildListParams = () => {
+    const p = new URLSearchParams({ limit: '500' })
+    if (fechaInicio) p.set('fecha_inicio', fechaInicio)
+    if (fechaFin) p.set('fecha_fin', fechaFin)
+    if (searchPhone) p.set('telefono', searchPhone.replace(/\D/g, ''))
+    return p
+  }
+
   // Lista de conversaciones — refresca cada 15s
   const { data: listaData, isLoading: listaLoading, dataUpdatedAt } = useQuery({
-    queryKey: ['bot-lista'],
-    queryFn: async () => (await api.get('/bot/conversaciones?limit=100')).data,
+    queryKey: ['bot-lista', fechaInicio, fechaFin, searchPhone],
+    queryFn: async () => (await api.get(`/bot/conversaciones?${buildListParams().toString()}`)).data,
     refetchInterval: 15_000,
   })
 
   const conversaciones: ConvResumen[] = listaData?.conversaciones ?? []
+  const totalConv = listaData?.total ?? 0
 
   // Historial de la conversación seleccionada — refresca cada 5s
+  const histParams = new URLSearchParams({ limit: '200' })
+  if (fechaInicio) histParams.set('fecha_inicio', fechaInicio)
+  if (fechaFin) histParams.set('fecha_fin', fechaFin)
+
   const { data: historialData, isLoading: histLoading } = useQuery({
-    queryKey: ['bot-historial', selected],
-    queryFn: async () => (await api.get(`/bot/conversaciones/${selected}?limit=200`)).data,
+    queryKey: ['bot-historial', selected, fechaInicio, fechaFin],
+    queryFn: async () => (await api.get(`/bot/conversaciones/${selected}?${histParams.toString()}`)).data,
     enabled: !!selected,
     refetchInterval: 5_000,
   })
@@ -113,6 +132,9 @@ export default function AdminBotPage() {
           <div className="flex items-center gap-2">
             <MessageCircle size={16} className="text-brand" />
             <span className="text-sm font-semibold text-stone-900">Conversaciones</span>
+            {totalConv > 0 && (
+              <span className="text-[11px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full">{totalConv}</span>
+            )}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-stone-400">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -120,10 +142,77 @@ export default function AdminBotPage() {
           </div>
         </div>
 
+        {/* Buscar por teléfono */}
+        <div className="px-3 py-2 border-b border-stone-100">
+          <div className="flex gap-1.5">
+            <div className="relative flex-1">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-300" />
+              <input
+                type="text"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') setSearchPhone(phoneInput) }}
+                placeholder="Número de teléfono..."
+                className="w-full text-xs border border-stone-200 rounded-lg pl-8 pr-2 py-1.5 text-stone-700 focus:outline-none focus:ring-1 focus:ring-brand placeholder:text-stone-300"
+              />
+            </div>
+            <button
+              onClick={() => setSearchPhone(phoneInput)}
+              className="px-2.5 py-1.5 text-xs font-medium bg-brand text-white rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Buscar
+            </button>
+            {searchPhone && (
+              <button
+                onClick={() => { setPhoneInput(''); setSearchPhone('') }}
+                className="px-1.5 py-1.5 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-100"
+                title="Limpiar búsqueda"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Filtro de fechas */}
+        <div className="px-3 py-2 border-b border-stone-100 space-y-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-stone-400">
+            <Calendar size={11} />
+            <span>Filtrar por fechas</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+              className="flex-1 text-xs border border-stone-200 rounded-lg px-2 py-1.5 text-stone-700 focus:outline-none focus:ring-1 focus:ring-brand"
+              placeholder="Desde"
+            />
+            <input
+              type="date"
+              value={fechaFin}
+              onChange={(e) => setFechaFin(e.target.value)}
+              className="flex-1 text-xs border border-stone-200 rounded-lg px-2 py-1.5 text-stone-700 focus:outline-none focus:ring-1 focus:ring-brand"
+              placeholder="Hasta"
+            />
+          </div>
+          {(fechaInicio || fechaFin) && (
+            <button
+              onClick={() => { setFechaInicio(''); setFechaFin('') }}
+              className="flex items-center gap-1 text-[11px] text-brand hover:text-emerald-700 transition-colors"
+            >
+              <X size={10} />
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+
         {listaLoading ? (
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : conversaciones.length === 0 ? (
-          <p className="text-center text-stone-400 text-sm py-10">Sin conversaciones aún</p>
+          <p className="text-center text-stone-400 text-sm py-10">
+            {searchPhone ? 'Sin resultados para ese número' : 'Sin conversaciones aún'}
+          </p>
         ) : (
           <ul className="flex-1 overflow-y-auto divide-y divide-stone-50">
             {conversaciones.map((c) => (
@@ -188,9 +277,28 @@ export default function AdminBotPage() {
                   )}
                 </p>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-stone-400 shrink-0">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="hidden sm:inline">actualizando cada 5s</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => {
+                    const text = mensajes.map(m =>
+                      `[${fmtHora(m.timestamp)}] ${m.rol === 'user' ? '👤' : '🤖'}: ${m.mensaje}`
+                    ).join('\n\n')
+                    navigator.clipboard.writeText(text).then(() => {
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    })
+                  }}
+                  disabled={mensajes.length === 0}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Copiar conversación"
+                >
+                  {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                  {copied ? 'Copiado' : 'Copiar'}
+                </button>
+                <div className="flex items-center gap-1.5 text-xs text-stone-400">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="hidden sm:inline">actualizando cada 5s</span>
+                </div>
               </div>
             </div>
 
