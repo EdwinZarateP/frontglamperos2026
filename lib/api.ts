@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/store/authStore'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -18,14 +19,18 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Manejo global de errores 401 → redirige a login
+// Manejo global de errores 401 → logout limpio del store y redirección a login.
+// Se omite la redirección si ya estamos en una ruta /auth/* (login/registro/callback)
+// para no interrumpir esos flujos. El logout() limpia el estado de Zustand
+// (clave glamperos-auth en localStorage) y el token suelto.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/auth/login'
+      useAuthStore.getState().logout()
+      if (!window.location.pathname.startsWith('/auth/')) {
+        window.location.href = '/auth/login'
+      }
     }
     return Promise.reject(error)
   }
