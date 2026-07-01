@@ -61,7 +61,7 @@ const RAW: string[] = [
 
   // Antioquia
   "Medellín, Antioquia", "Bello, Antioquia", "Envigado, Antioquia", "Itagüí, Antioquia",
-  "Sabaneta, Antioquia", "Rionegro, Antioquia", "Apartadó, Antioquia", "Turbo, Antioquia",
+  "Sabaneta, Antioquia", "Santa Elena, Antioquia","Rionegro, Antioquia", "Apartadó, Antioquia", "Turbo, Antioquia",
   "Caucasia, Antioquia", "Caldas, Antioquia", "La Ceja, Antioquia", "El Retiro, Antioquia",
   "Guatapé, Antioquia", "El Peñol, Antioquia", "Santa Fe de Antioquia, Antioquia",
   "Jardín, Antioquia", "Jericó, Antioquia", "Marinilla, Antioquia", "Carmen de Viboral, Antioquia",
