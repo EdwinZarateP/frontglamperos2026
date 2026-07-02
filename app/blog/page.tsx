@@ -67,7 +67,17 @@ export default async function BlogIndex({
   }
 
   // Primero, obtener el total de posts para decidir si consolidar
-  const countRes = await fetch(`${WP}/posts?per_page=1`, { next: { revalidate: 3600 } })
+  let countRes: Response
+  try {
+    countRes = await fetch(`${WP}/posts?per_page=1`, { next: { revalidate: 3600 } })
+  } catch (err) {
+    console.error('[blog] count fetch throw:', err)
+    return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
+  }
+  if (!countRes.ok) {
+    const countBody = await countRes.text().catch(() => '')
+    console.error('[blog] WP count respondió', countRes.status, countBody.slice(0, 300))
+  }
   const totalPosts = Number(countRes.headers.get('X-WP-Total') || '0')
 
   // Umbral: si hay menos de 16 posts, mostrar todos en una sola página
@@ -76,8 +86,18 @@ export default async function BlogIndex({
   const postsPerPage = shouldConsolidate ? 100 : PER_PAGE  // 100 es el máximo de WordPress
 
   const url = `${WP}/posts?_embed&status=publish&orderby=date&order=desc&per_page=${postsPerPage}&page=${currentPage}`
-  const res = await fetch(url, { next: { revalidate: 3600 } })
-  if (!res.ok) return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
+  let res: Response
+  try {
+    res = await fetch(url, { next: { revalidate: 3600 } })
+  } catch (err) {
+    console.error('[blog] list fetch throw:', err)
+    return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
+  }
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    console.error('[blog] WP list respondió', res.status, body.slice(0, 300))
+    return <p className="text-center py-24 text-stone-400">Error al cargar artículos.</p>
+  }
 
   const totalPages = Number(res.headers.get('X-WP-TotalPages') || '1')
   const posts: Post[] = await res.json()
