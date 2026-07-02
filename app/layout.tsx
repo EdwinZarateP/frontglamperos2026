@@ -31,7 +31,16 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'es_CO',
     siteName: 'Glamperos',
-    // opengraph-image.tsx genera la imagen automáticamente
+    title: 'Glamperos — Glamping en Colombia | Domos, Cabañas y más',
+    description:
+      'Descubre los mejores glampings de Colombia. Domos, cabañas, treehouses y experiencias únicas en la naturaleza. Reserva fácil y seguro.',
+    url: 'https://glamperos.com',
+    images: [
+      {
+        url: 'https://storage.googleapis.com/glamperos-imagenes/Imagenes/logo%20actual%202026.jpeg',
+        alt: 'Glamperos — Glamping en Colombia',
+      },
+    ],
   },
   twitter: { card: 'summary_large_image' },
   robots: {
