@@ -201,6 +201,7 @@ export function colombianHolidays(year: number): Set<string> {
   const corp = new Date(e); corp.setDate(e.getDate() + 60); add(_nextMonday(corp))     // Corpus Christi
   const sac = new Date(e); sac.setDate(e.getDate() + 68); add(_nextMonday(sac))        // Sagrado Corazón
   add(_nextMonday(new Date(year, 5, 29)))  // San Pedro y San Pablo
+  add(_nextMonday(new Date(year, 6, 9)))   // Día de Nuestra Señora del Rosario de Chiquinquirá (Ley 2578/2026)
   add(_nextMonday(new Date(year, 7, 15)))  // Asunción
   add(_nextMonday(new Date(year, 9, 12)))  // Día de la Raza
   add(_nextMonday(new Date(year, 10, 1))) // Todos los Santos
