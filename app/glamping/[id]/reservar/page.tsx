@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import {
   Upload, Plus, Trash2, ChevronDown, CheckCircle, ChevronLeft,
   CreditCard, Banknote, ShieldCheck, AlertCircle, CalendarDays,
-  Users, PawPrint, X, Info,
+  Users, PawPrint, X, Info, Copy,
 } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -211,6 +211,15 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
     )
   }, [])
 
+  const copiar = useCallback(async (texto: string, etiqueta: string) => {
+    try {
+      await navigator.clipboard.writeText(texto)
+      toast.success(`${etiqueta} copiado`)
+    } catch {
+      toast.error('No se pudo copiar')
+    }
+  }, [])
+
   // ─── Derived values ────────────────────────────────────────────────────────
   const maxHuespedes      = (glamping?.cantidadHuespedes ?? 0) + (glamping?.cantidadHuespedesAdicionales ?? 0)
   // Excluir personaAdicional (se maneja con el contador) y mascotaAdicional (se maneja con el toggle)
@@ -285,9 +294,9 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
       }
       if (totalBase > 0) {
         const monto = montoManual !== '' ? Number(montoManual) : Math.round(totalBase * (porcentajeAbono ?? 100) / 100)
-        const minimo = Math.round(totalBase * 0.5)
+        const minimo = Math.round(totalBase * 0.4)
         if (monto < minimo) {
-          toast.error(`El monto mínimo es el 50%: ${formatCOP(minimo)}`)
+          toast.error(`El monto mínimo es el 40%: ${formatCOP(minimo)}`)
           return
         }
       }
@@ -948,12 +957,49 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
               <div className="space-y-3">
                 <div className="bg-stone-50 border border-stone-200 rounded-xl p-4">
                   <p className="font-medium text-sm mb-1 flex items-center gap-2 text-stone-700">
-                    <Banknote size={14} /> Instrucciones
+                    <Banknote size={14} /> Datos para tu transferencia
                   </p>
-                  <p className="text-xs text-stone-500">
-                    El anfitrión te enviará los datos bancarios al confirmar tu reserva.
-                    Puedes abonar el 50% ahora y el resto al llegar, o pagar el total.
+                  <p className="text-xs text-stone-500 mb-3">
+                    Realiza el abono (mínimo 40%) a una de estas cuentas y adjunta el
+                    comprobante más abajo para confirmar tu reserva.
                   </p>
+                  <div className="space-y-2">
+                    {/* Cuenta Bancolombia */}
+                    <div className="bg-white rounded-lg border border-stone-200 p-2.5">
+                      <p className="text-[11px] text-stone-400 mb-1.5">
+                        Bancolombia · Ahorros · Titular: Glamperos SAS · NIT 901923029
+                      </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-stone-400">Nº de cuenta</p>
+                          <p className="text-sm font-semibold text-stone-800 tracking-wide">292-000059-43</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copiar('292-000059-43', 'Nº de cuenta')}
+                          className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-emerald-600 border border-stone-200 hover:border-emerald-300 rounded-lg px-2 py-1 transition-colors"
+                        >
+                          <Copy size={12} /> Copiar
+                        </button>
+                      </div>
+                    </div>
+                    {/* Nequi - Nuestra llave */}
+                    <div className="bg-white rounded-lg border border-stone-200 p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-stone-400">Nequi · Nuestra llave</p>
+                          <p className="text-sm font-semibold text-stone-800 tracking-wide">0089996468</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => copiar('0089996468', 'Llave Nequi')}
+                          className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-stone-500 hover:text-emerald-600 border border-stone-200 hover:border-emerald-300 rounded-lg px-2 py-1 transition-colors"
+                        >
+                          <Copy size={12} /> Copiar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Opciones rápidas 50% / 100% */}
@@ -990,12 +1036,12 @@ export default function ReservarPage({ params }: { params: Promise<{ id: string 
                   <div>
                     <label className="text-xs text-stone-500 block mb-1">
                       O ingresa un monto específico {hayFechas && cotizacion && totalBase > 0 && (
-                        <span className="text-stone-400">(mínimo {formatCOP(Math.round(totalBase * 0.5))})</span>
+                        <span className="text-stone-400">(mínimo {formatCOP(Math.round(totalBase * 0.4))})</span>
                       )}
                     </label>
                     <input
                       type="number"
-                      min={totalBase > 0 ? Math.round(totalBase * 0.5) : 0}
+                      min={totalBase > 0 ? Math.round(totalBase * 0.4) : 0}
                       max={totalBase > 0 ? totalBase : undefined}
                       placeholder="Ingresa el monto en COP"
                       value={montoManual}
