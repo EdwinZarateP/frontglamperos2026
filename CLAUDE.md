@@ -176,3 +176,22 @@ NEXT_PUBLIC_API_URL        — URL del backend FastAPI
 NEXT_PUBLIC_SITE_URL       — URL del sitio (para canonical, OG, JSON-LD)
 NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ```
+
+## Blog bilingüe + panel admin de aprobación (2026-09-19)
+
+### Rutas del blog
+- `app/blog/` — español (excluye categoría WP "english" vía `categories_exclude`)
+- `app/en/blog/` — inglés (solo categoría "english", slugs `-en`)
+- `components/blog/BlogIndexView.tsx` y `BlogPostView.tsx` — vistas compartidas parametrizadas por `lang` y `basePath`
+- `lib/wordpress.ts` — helpers server-only: `getEnglishCategoryId()` (caché 24h), `getPosts(lang)`, `countPosts(lang)`, `getPostBySlug()`
+- Sitemap con `alternates.languages` (hreflang es/en) para posts y listados
+- Metadata de posts: `alternates.languages` es ↔ en
+
+### Panel admin Blog (`app/admin/blog/`)
+- `page.tsx` — listado de borradores con badges de estado, botones "Generar ahora" y "Traducir existentes" (badge con pendientes), polling 15s mientras hay REGENERANDO
+- `[id]/page.tsx` — tabs ES/EN con preview del artículo, feedback → regeneración, edición manual, aprobar/publicar, rechazar, timeline de historial
+- Endpoints backend: `/blog/borradores*` (ver CLAUDE.md del backend)
+
+### Webhook de revalidación
+- `app/api/revalidate/route.ts` — POST `{secret, paths?}` contra `REVALIDATE_SECRET` → `revalidatePath` de `/blog`, `/en/blog`, sitemap y paths específicos
+- Lo llama el backend al publicar — sin esto, la ISR de 3600s retrasa la publicación hasta 1h

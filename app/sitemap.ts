@@ -52,12 +52,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  const blogPostUrls: MetadataRoute.Sitemap = blogPosts.map((p) => ({
-    url: `${SITE_URL}/blog/${p.slug}`,
-    lastModified: p.modified ? new Date(p.modified) : new Date(p.date),
-    changeFrequency: 'monthly',
-    priority: 0.6,
-  }))
+  const blogPostUrls: MetadataRoute.Sitemap = blogPosts.map((p) => {
+    const isEn = p.slug.endsWith('-en')
+    // Slug de la contraparte en el otro idioma
+    const altSlug = isEn ? p.slug.slice(0, -3) : `${p.slug}-en`
+    return {
+      url: `${SITE_URL}${isEn ? '/en' : ''}/blog/${p.slug}`,
+      lastModified: p.modified ? new Date(p.modified) : new Date(p.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          es: `${SITE_URL}/blog/${isEn ? altSlug : p.slug}`,
+          en: `${SITE_URL}/en/blog/${isEn ? p.slug.slice(0, -3) : altSlug}`,
+        },
+      },
+    }
+  })
 
   // Páginas de ciudad/zona — alta prioridad para SEO orgánico
   const ZONE_SLUGS = [
@@ -114,6 +125,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
+      alternates: { languages: { es: `${SITE_URL}/blog`, en: `${SITE_URL}/en/blog` } },
+    },
+    {
+      url: `${SITE_URL}/en/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.6,
+      alternates: { languages: { es: `${SITE_URL}/blog`, en: `${SITE_URL}/en/blog` } },
     },
     {
       url: `${SITE_URL}/acerca-de-nosotros`,

@@ -17,23 +17,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = stripHtml(post.title?.rendered)
   const desc = clamp(stripHtml(post.excerpt?.rendered), 160)
   const image = post._embedded?.['wp:featuredmedia']?.[0]?.source_url
-  // Contraparte en inglés (slug con sufijo -en)
-  const altSlug = slug.endsWith('-en') ? slug.slice(0, -3) : `${slug}-en`
+  // Spanish counterpart (slug without the -en suffix)
+  const altSlug = slug.endsWith('-en') ? slug.slice(0, -3) : slug
 
   return {
     title,
     description: desc,
     alternates: {
-      canonical: `/blog/${slug}`,
-      languages: { 'es': `/blog/${slug}`, 'en': `/en/blog/${altSlug}` },
+      canonical: `/en/blog/${slug}`,
+      languages: { 'es': `/blog/${altSlug}`, 'en': `/en/blog/${slug}` },
     },
     robots: { index: true, follow: true },
-    openGraph: { title, description: desc, type: 'article', locale: 'es_CO', images: image ? [{ url: image }] : undefined },
+    openGraph: { title, description: desc, type: 'article', locale: 'en_US', images: image ? [{ url: image }] : undefined },
     twitter: { card: 'summary_large_image', title, description: desc, images: image ? [image] : undefined },
   }
 }
 
-export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BlogPostEn({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  return <BlogPostView slug={slug} lang="es" basePath="/blog" />
+  return <BlogPostView slug={slug} lang="en" basePath="/en/blog" />
 }
