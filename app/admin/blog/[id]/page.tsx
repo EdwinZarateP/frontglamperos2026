@@ -105,6 +105,15 @@ export default function AdminBlogDetallePage() {
     onError: (e) => toast.error(getErrorMessage(e)),
   })
 
+  const despublicarMutation = useMutation({
+    mutationFn: async () => (await api.post(`/blog/borradores/${id}/despublicar`)).data,
+    onSuccess: (res) => {
+      toast.success(res.message || 'Artículo retirado del blog')
+      invalidate()
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
   const editarMutation = useMutation({
     mutationFn: async () =>
       (await api.put(`/blog/borradores/${id}`, {
@@ -172,13 +181,22 @@ export default function AdminBlogDetallePage() {
 
       {/* Links si ya está publicado */}
       {borrador.estado === 'PUBLICADO' && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-wrap gap-4 text-sm">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-wrap items-center gap-4 text-sm">
           <a href={borrador.wpUrlEs} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-emerald-700 font-semibold hover:underline">
             🇪🇸 Ver en español <ExternalLink size={13} />
           </a>
           <a href={borrador.wpUrlEn} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-emerald-700 font-semibold hover:underline">
             🇺🇸 Ver en inglés <ExternalLink size={13} />
           </a>
+          <button
+            onClick={() => {
+              if (window.confirm('¿Retirar este artículo del blog? Dejará de ser visible en glamperos.com (queda como borrador en WordPress y puedes volver a publicarlo).')) despublicarMutation.mutate()
+            }}
+            disabled={despublicarMutation.isPending}
+            className="ml-auto flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-4 py-2 rounded-xl hover:bg-red-100 disabled:opacity-50"
+          >
+            <X size={14} /> {despublicarMutation.isPending ? 'Retirando…' : 'Despublicar'}
+          </button>
         </div>
       )}
 
