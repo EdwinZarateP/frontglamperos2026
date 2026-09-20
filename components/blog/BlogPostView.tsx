@@ -103,6 +103,13 @@ export default async function BlogPostView({
           <Link href={basePath} className="hover:text-stone-700 transition-colors">Blog</Link>
           <ChevronRight size={12} />
           <span className="text-stone-600 font-medium truncate max-w-[260px]">{slug}</span>
+          <span className="ml-auto">
+            {lang === 'es' ? (
+              <Link href="/en/blog" className="hover:text-stone-700 transition-colors">🇺🇸 English</Link>
+            ) : (
+              <Link href="/blog" className="hover:text-stone-700 transition-colors">🇪🇸 Español</Link>
+            )}
+          </span>
         </nav>
 
         {/* Título + meta */}

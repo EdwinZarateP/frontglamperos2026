@@ -119,6 +119,27 @@ export default async function BlogIndexView({
           </h1>
         </div>
 
+        {/* Selector de idioma del blog */}
+        <div className="flex justify-center mb-4">
+          <div className="flex items-center gap-1 bg-stone-100 rounded-full p-1">
+            {lang === 'es' ? (
+              <>
+                <span className="px-4 py-1.5 rounded-full bg-white text-xs font-bold text-stone-900 shadow-sm">🇪🇸 Español</span>
+                <Link href="/en/blog" className="px-4 py-1.5 rounded-full text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors">
+                  🇺🇸 English
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/blog" className="px-4 py-1.5 rounded-full text-xs font-medium text-stone-500 hover:text-stone-800 transition-colors">
+                  🇪🇸 Español
+                </Link>
+                <span className="px-4 py-1.5 rounded-full bg-white text-xs font-bold text-stone-900 shadow-sm">🇺🇸 English</span>
+              </>
+            )}
+          </div>
+        </div>
+
         <div className="max-w-2xl">
           <p className="text-stone-600 text-sm sm:text-base leading-relaxed mb-1">{t.intro}</p>
           <Link href="#articulos" className="text-emerald-600 text-sm font-semibold hover:underline">
