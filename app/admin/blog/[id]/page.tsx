@@ -124,8 +124,19 @@ export default function AdminBlogDetallePage() {
         excerptEn: formEdit.excerptEn || null,
         htmlEn: formEdit.htmlEn || null,
       })).data,
-    onSuccess: () => {
-      toast.success('Cambios guardados')
+    onSuccess: async () => {
+      // Si el artículo ya estaba publicado, los cambios se empujan a WordPress
+      if (borrador?.estado === 'PUBLICADO') {
+        toast.loading('Guardando y republicando…', { id: 'editar' })
+        try {
+          await api.post(`/blog/borradores/${id}/publicar`)
+          toast.success('Cambios guardados y publicados en glamperos.com', { id: 'editar' })
+        } catch (e) {
+          toast.error('Guardado, pero falló la republicación: ' + getErrorMessage(e), { id: 'editar' })
+        }
+      } else {
+        toast.success('Cambios guardados')
+      }
       setEditando(false)
       invalidate()
     },
@@ -189,11 +200,17 @@ export default function AdminBlogDetallePage() {
             🇺🇸 Ver en inglés <ExternalLink size={13} />
           </a>
           <button
+            onClick={abrirEdicion}
+            className="ml-auto flex items-center gap-1.5 bg-white border border-stone-200 text-stone-700 text-xs font-semibold px-4 py-2 rounded-xl hover:bg-stone-50"
+          >
+            <Pencil size={14} /> Editar
+          </button>
+          <button
             onClick={() => {
               if (window.confirm('¿Retirar este artículo del blog? Dejará de ser visible en glamperos.com (queda como borrador en WordPress y puedes volver a publicarlo).')) despublicarMutation.mutate()
             }}
             disabled={despublicarMutation.isPending}
-            className="ml-auto flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-4 py-2 rounded-xl hover:bg-red-100 disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-red-50 text-red-600 text-xs font-semibold px-4 py-2 rounded-xl hover:bg-red-100 disabled:opacity-50"
           >
             <X size={14} /> {despublicarMutation.isPending ? 'Retirando…' : 'Despublicar'}
           </button>
@@ -241,7 +258,11 @@ export default function AdminBlogDetallePage() {
       ) : (
         /* ── Modo edición manual ── */
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
-          <p className="text-xs text-stone-500">Editando manualmente (versión {borrador.version} → se registra en el historial)</p>
+          <p className="text-xs text-stone-500">
+            {borrador.estado === 'PUBLICADO'
+              ? 'Editando un artículo publicado — al guardar, los cambios se publican de inmediato en glamperos.com'
+              : `Editando manualmente (versión ${borrador.version} → se registra en el historial)`}
+          </p>
           {(['Es', 'En'] as const).map((idioma) => (
             <div key={idioma} className="space-y-2">
               <p className="text-xs font-bold text-stone-700">{idioma === 'Es' ? '🇪🇸 Español' : '🇺🇸 English'}</p>
@@ -272,7 +293,11 @@ export default function AdminBlogDetallePage() {
               disabled={editarMutation.isPending}
               className="bg-brand text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 disabled:opacity-50"
             >
-              Guardar cambios
+              {editarMutation.isPending
+                ? 'Guardando…'
+                : borrador.estado === 'PUBLICADO'
+                  ? 'Guardar y publicar cambios'
+                  : 'Guardar cambios'}
             </button>
             <button
               onClick={() => setEditando(false)}
