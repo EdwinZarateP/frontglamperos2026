@@ -61,6 +61,7 @@ export default function AdminBlogDetallePage() {
   const [tab, setTab] = useState<'es' | 'en'>('es')
   const [feedback, setFeedback] = useState('')
   const [editando, setEditando] = useState(false)
+  const [traducirIngles, setTraducirIngles] = useState(true)
   const [formEdit, setFormEdit] = useState({ tituloEs: '', excerptEs: '', htmlEs: '', tituloEn: '', excerptEn: '', htmlEn: '' })
 
   const { data: b, isLoading } = useQuery({
@@ -123,8 +124,15 @@ export default function AdminBlogDetallePage() {
         tituloEn: formEdit.tituloEn || null,
         excerptEn: formEdit.excerptEn || null,
         htmlEn: formEdit.htmlEn || null,
-      })).data,
-    onSuccess: async () => {
+        traducirAlIngles: traducirIngles,
+      }, { timeout: 240000 })).data, // la traducción puede tardar ~1-2 min
+    onSuccess: async (res) => {
+      if (res?.advertencia) {
+        toast.error(res.advertencia, { duration: 8000 })
+        setEditando(false)
+        invalidate()
+        return
+      }
       // Si el artículo ya estaba publicado, los cambios se empujan a WordPress
       if (borrador?.estado === 'PUBLICADO') {
         toast.loading('Guardando y republicando…', { id: 'editar' })
@@ -287,6 +295,19 @@ export default function AdminBlogDetallePage() {
               />
             </div>
           ))}
+          <label className="flex items-start gap-2 text-xs text-stone-600 bg-amber-50 border border-amber-100 rounded-xl p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={traducirIngles}
+              onChange={(e) => setTraducirIngles(e.target.checked)}
+              className="mt-0.5 accent-emerald-600"
+            />
+            <span>
+              <strong>Traducir mis cambios al inglés</strong> — reescribe la versión 🇺🇸 a partir del
+              español editado (tarda ~1 min y reemplaza el contenido EN actual). Desmárcalo si editaste
+              el inglés manualmente.
+            </span>
+          </label>
           <div className="flex gap-2">
             <button
               onClick={() => editarMutation.mutate()}
@@ -294,7 +315,7 @@ export default function AdminBlogDetallePage() {
               className="bg-brand text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:opacity-90 disabled:opacity-50"
             >
               {editarMutation.isPending
-                ? 'Guardando…'
+                ? (traducirIngles ? 'Guardando y traduciendo… (hasta 2 min)' : 'Guardando…')
                 : borrador.estado === 'PUBLICADO'
                   ? 'Guardar y publicar cambios'
                   : 'Guardar cambios'}
