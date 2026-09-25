@@ -62,7 +62,7 @@ export default function AdminBlogDetallePage() {
   const [feedback, setFeedback] = useState('')
   const [editando, setEditando] = useState(false)
   const [traducirIngles, setTraducirIngles] = useState(true)
-  const [formEdit, setFormEdit] = useState({ tituloEs: '', excerptEs: '', htmlEs: '', tituloEn: '', excerptEn: '', htmlEn: '' })
+  const [formEdit, setFormEdit] = useState({ tituloEs: '', excerptEs: '', htmlEs: '', tituloEn: '', excerptEn: '', htmlEn: '', imagenUrl: '' })
 
   const { data: b, isLoading } = useQuery({
     queryKey: ['admin-blog-borrador', id],
@@ -125,6 +125,7 @@ export default function AdminBlogDetallePage() {
         excerptEn: formEdit.excerptEn || null,
         htmlEn: formEdit.htmlEn || null,
         traducirAlIngles: traducirIngles,
+        imagenPortadaUrl: formEdit.imagenUrl || null,
       }, { timeout: 240000 })).data, // la traducción puede tardar ~1-2 min
     onSuccess: async (res) => {
       if (res?.advertencia) {
@@ -166,6 +167,7 @@ export default function AdminBlogDetallePage() {
       tituloEn: borrador.contenidoEn?.titulo || '',
       excerptEn: borrador.contenidoEn?.excerpt || '',
       htmlEn: borrador.contenidoEn?.html || '',
+      imagenUrl: borrador.imagenGlampingUrl || '',
     })
     setEditando(true)
   }
@@ -271,6 +273,24 @@ export default function AdminBlogDetallePage() {
               ? 'Editando un artículo publicado — al guardar, los cambios se publican de inmediato en glamperos.com'
               : `Editando manualmente (versión ${borrador.version} → se registra en el historial)`}
           </p>
+          <div>
+            <p className="text-xs font-bold text-stone-700 mb-1">🖼️ Imagen de portada (URL)</p>
+            <div className="flex gap-2 items-start">
+              {formEdit.imagenUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={formEdit.imagenUrl} alt="portada" className="w-20 h-14 object-cover rounded-lg border border-stone-200 shrink-0" />
+              )}
+              <input
+                value={formEdit.imagenUrl}
+                onChange={(e) => setFormEdit({ ...formEdit, imagenUrl: e.target.value })}
+                placeholder="https://storage.googleapis.com/glamperos-imagenes/..."
+                className="flex-1 border border-stone-200 rounded-xl px-3 py-2 text-xs font-mono"
+              />
+            </div>
+            <p className="text-[11px] text-stone-400 mt-1">
+              Pega la URL de otra foto (p. ej. copia la de otro glamping desde su página) — al guardar, se cambia la portada en WordPress.
+            </p>
+          </div>
           {(['Es', 'En'] as const).map((idioma) => (
             <div key={idioma} className="space-y-2">
               <p className="text-xs font-bold text-stone-700">{idioma === 'Es' ? '🇪🇸 Español' : '🇺🇸 English'}</p>
