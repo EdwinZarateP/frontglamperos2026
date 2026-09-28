@@ -189,7 +189,8 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 ### Panel admin Blog (`app/admin/blog/`)
 - `page.tsx` — listado de borradores con badges de estado, botones "Generar ahora" y "Traducir existentes" (badge con pendientes), polling 15s mientras hay REGENERANDO
-- `[id]/page.tsx` — tabs ES/EN con preview del artículo, feedback → regeneración, edición manual, aprobar/publicar, rechazar, timeline de historial
+- `[id]/page.tsx` — tabs ES/EN con preview del artículo, feedback → regeneración, aprobar/publicar, rechazar, timeline de historial
+- Artículos PUBLICADOS: "Editar" (formulario con imagen de portada URL + checkbox "Traducir mis cambios al inglés"; al guardar republica automáticamente — PUT timeout 240s) y "Despublicar" (reversible)
 - Endpoints backend: `/blog/borradores*` (ver CLAUDE.md del backend)
 
 ### Webhook de revalidación
