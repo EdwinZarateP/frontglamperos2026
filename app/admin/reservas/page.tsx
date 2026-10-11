@@ -119,6 +119,19 @@ export default function AdminReservasPage() {
                     {reserva.nombreTitular}
                     <span className="text-stone-400 font-normal text-sm ml-2">{reserva.emailTitular}</span>
                   </p>
+                  <a
+                    href={`/glamping/${reserva.glampingId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-brand hover:underline mt-0.5 inline-block font-medium"
+                  >
+                    ⛺ {reserva.nombreGlamping ?? reserva.glamping?.nombreGlamping ?? 'Ver glamping'}
+                    {(reserva.ciudadDepartamento ?? reserva.glamping?.ciudadDepartamento) && (
+                      <span className="text-stone-400 font-normal">
+                        {' · '}{reserva.ciudadDepartamento ?? reserva.glamping?.ciudadDepartamento}
+                      </span>
+                    )}
+                  </a>
                   <p className="text-sm text-stone-500 mt-0.5">
                     {reserva.tipo === 'NOCHES'
                       ? `${formatDate(reserva.fechaInicio!)} → ${formatDate(reserva.fechaFin!)}`
