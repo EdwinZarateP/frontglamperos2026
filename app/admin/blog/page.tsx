@@ -3,13 +3,19 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Sparkles, Languages, ArrowRight, RefreshCw } from 'lucide-react'
+import { Sparkles, Languages, ArrowRight, RefreshCw, Power } from 'lucide-react'
 import { api, getErrorMessage } from '@/lib/api'
 import { Spinner } from '@/components/ui/Spinner'
 import toast from 'react-hot-toast'
 
-function MiniSpinner() {
-  return <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+function MiniSpinner({ light = true }: { light?: boolean }) {
+  return (
+    <span
+      className={`inline-block h-3.5 w-3.5 rounded-full border-2 animate-spin ${
+        light ? 'border-white/40 border-t-white' : 'border-stone-400/40 border-t-stone-500'
+      }`}
+    />
+  )
 }
 
 interface Contenido {
@@ -73,6 +79,23 @@ export default function AdminBlogPage() {
     queryFn: async () => (await api.get('/blog/traducir-existentes/estado')).data,
   })
 
+  const { data: sistemaConfig } = useQuery({
+    queryKey: ['sistema-config'],
+    queryFn: async () => (await api.get('/sistema/config')).data,
+  })
+
+  const blogAutoActivo = sistemaConfig?.blogAutoEnabled !== false
+
+  const toggleAutoMutation = useMutation({
+    mutationFn: async (activo: boolean) =>
+      (await api.put('/sistema/config', { blog_auto_enabled: activo })).data,
+    onSuccess: (_, activo) => {
+      qc.invalidateQueries({ queryKey: ['sistema-config'] })
+      toast.success(activo ? 'Generación automática activada' : 'Generación automática detenida')
+    },
+    onError: (e) => toast.error(getErrorMessage(e)),
+  })
+
   const generarMutation = useMutation({
     mutationFn: async () => (await api.post('/blog/generar')).data,
     onSuccess: (res) => {
@@ -106,6 +129,19 @@ export default function AdminBlogPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => toggleAutoMutation.mutate(!blogAutoActivo)}
+            disabled={toggleAutoMutation.isPending}
+            title={blogAutoActivo ? 'El cron genera un borrador cada mañana' : 'El cron NO genera borradores; puedes generar manualmente'}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 ${
+              blogAutoActivo
+                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                : 'bg-red-100 text-red-600 hover:bg-red-200'
+            }`}
+          >
+            {toggleAutoMutation.isPending ? <MiniSpinner light={false} /> : <Power size={14} />}
+            {blogAutoActivo ? 'Auto: activado' : 'Auto: detenido'}
+          </button>
           <button
             onClick={() => generarMutation.mutate()}
             disabled={generarMutation.isPending}
